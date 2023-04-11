@@ -32,7 +32,7 @@ def main():
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
     ### ----------------------------------- ###
-    supchain = supply_chain_climada(direct_impact_usa, exp_usa)
+    supchain = supply_chain_climada(exp_usa, direct_impact_usa, impacted_sector="service", io_approach='ghosh')
 
     # Everything in this section equivalent to
     #    supchain.calc_production_impacts(direct_impact_usa, exp_usa, impacted_secs=impacted_secs, io_approach='ghosh')
