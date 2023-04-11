@@ -3,8 +3,10 @@ from climada_petals.engine import SupplyChain
 from climada.entity import ImpfTropCyclone, ImpactFuncSet
 from climada.engine.impact_calc import ImpactCalc
 
-from supply_chain.compute import compute_supply_chain
+from supply_chain.compute import supply_chain_climada
 from supply_chain.visualization import create_supply_chain_vis
+
+
 def main():
     client = Client()
 
@@ -30,7 +32,7 @@ def main():
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
     ### ----------------------------------- ###
-    supchain = compute_supply_chain(direct_impact_usa, exp_usa)
+    supchain = supply_chain_climada(direct_impact_usa, exp_usa)
 
     # Everything in this section equivalent to
     #    supchain.calc_production_impacts(direct_impact_usa, exp_usa, impacted_secs=impacted_secs, io_approach='ghosh')
