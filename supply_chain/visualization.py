@@ -18,8 +18,8 @@ def plot_tot_prod_impt_eai(data):
 
     source = ColumnDataSource(
         dict(
-            sectors = sectors,
-            impact = values
+            sectors=sectors,
+            impact=values
         )
     )
     p = figure(
@@ -29,12 +29,12 @@ def plot_tot_prod_impt_eai(data):
     p.vbar(x="sectors", top="impact", width=0.9, source=source)
 
     p.y_range.start = 0
-    p.xaxis.major_label_orientation = np.pi/4
+    p.xaxis.major_label_orientation = np.pi / 4
 
     return p
 
-def plot_source_matrix(data, x_range=None):
 
+def plot_source_matrix(data, x_range=None):
     #  Currently only one country
     data = [(k, v, "USA") for k, v in sorted(data.items())]
     data = sorted(data, key=lambda x: x[1], reverse=True)
@@ -45,9 +45,9 @@ def plot_source_matrix(data, x_range=None):
 
     source = ColumnDataSource(
         dict(
-            sectors = sectors,
-            impact = values,
-            country = countries
+            sectors=sectors,
+            impact=values,
+            country=countries
         )
     )
 
@@ -56,12 +56,15 @@ def plot_source_matrix(data, x_range=None):
         low=min(values), high=max(values)
     )
     p = figure(
-        x_range=x_range, y_range=list(set(countries)), height=100, width=1400, title="Expected total production impact for Switzerland",
+        x_range=x_range,
+        y_range=list(set(countries)),
+        height=100,
+        width=1400,
+        title="Expected total production impact for Switzerland",
     )
     p.circle(x='sectors', y='country', color=cmap, size=10, source=source, )
     p.xaxis.major_label_text_color = None
     return p
-
 
 
 def create_supply_chain_vis(supchain: SupplyChain):
@@ -72,4 +75,3 @@ def create_supply_chain_vis(supchain: SupplyChain):
     p1 = plot_tot_prod_impt_eai(data)
     p2 = plot_source_matrix(data, x_range=p1.x_range)
     show(layout([p2, p1]))
-
