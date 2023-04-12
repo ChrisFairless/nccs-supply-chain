@@ -1,1 +1,3 @@
 bokeh
+boto3
+python-dotenv
