@@ -13,8 +13,6 @@ def nccs_yearsets_simple(impact_list, n_sim_years, seed=1312):
 
 
 def yimp_from_imp_simple(imp,  n_sim_years, seed=1312):
-    # We estimate lamda (the mean events per year in our poisson distribution) from the event set total frequency
-    # TODO this is incorrect: the lambda should be divided by the total years in the event set. I think?
     lam = np.sum(imp.frequency)
     yimp, _ = yearsets.impact_yearset(
         imp,
