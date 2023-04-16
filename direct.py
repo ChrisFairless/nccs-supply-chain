@@ -21,7 +21,6 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
         dict(
             haz_type=haz_type,
             sector=sector,
-            exp=get_sector_exposure(sector, country),
             country=country,
             scenario=scenario,
             ref_year=ref_year,

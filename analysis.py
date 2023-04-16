@@ -11,7 +11,7 @@ from climada.util.api_client import Client
 from indirect_impacts.compute import supply_chain_climada
 from indirect_impacts.visualization import create_supply_chain_vis
 from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
-from direct import nccs_direct_impacts_list_simple
+from direct import nccs_direct_impacts_list_simple, get_sector_exposure
 from calc_yearset import nccs_yearsets_simple
 
 country_list = ['Saint Kitts and Nevis', 'Jamaica']
@@ -55,7 +55,11 @@ def calc_supply_chain_impacts(
 
     # Generate supply chain impacts from the yearsets
     analysis_df['supchain'] = [
-        supply_chain_climada(row['exp'], row['yearset'], impacted_sector=row['sector'], io_approach='ghosh')
+        supply_chain_climada(
+            get_sector_exposure(sector=row['sector'], country=row['country']),
+            row['yearset'],
+            impacted_sector=row['sector'],
+            io_approach='ghosh')
         for _, row in analysis_df.iterrows()
     ]
 
