@@ -15,37 +15,35 @@ HAZ_TYPE_LOOKUP = {
 
 
 # Method to loop through configuration lists of and run an impact calculation for each combination on the list
-# Simple, but can be sped up.
-def direct_impact_eventset_list_simple(hazard_list, sector_list, country_list, scenario, ref_year):
+# Simple, but can be sped up and memory usage reduced
+def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year):
     return pd.DataFrame(
         dict(
             haz_type=haz_type,
             sector=sector,
+            exp=get_sector_exposure(sector, country),
             country=country,
             scenario=scenario,
             ref_year=ref_year,
-            impact=direct_impact_eventset_simple(haz_type, sector, country, scenario, ref_year)
+            impact=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
         )
         for haz_type in hazard_list for sector in sector_list for country in country_list
     )
 
-def direct_impact_eventset_simple(haz_type, sector, country, scenario, ref_year):
+def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)
     impf_set = get_sector_impf_set(haz_type, sector, country)
-    return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
+    return ImpactCalc(exp, impf_set, haz).impact(save_mat=False)
+
 
 
 def get_sector_exposure(sector, country):
-    if sector[0:6] == 'litpop':
-        scaling = float(sector[7:])
-        client = Client()
-        exp = client.get_litpop(country)
-        exp.gdf['value'] = exp.gdf['value'] * scaling / 100
-        return exp
-    else:
-        raise ValueError('So far we only work with LitPop exposures')
+    client = Client()
+    exp = client.get_litpop(country)
+    exp.gdf['value'] = exp.gdf['value'] / 100
+    return exp
 
 
 def get_sector_impf_set(hazard, sector, country):
