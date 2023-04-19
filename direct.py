@@ -24,7 +24,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
             country=country,
             scenario=scenario,
             ref_year=ref_year,
-            impact=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
+            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
         )
         for haz_type in hazard_list for sector in sector_list for country in country_list
     )
@@ -34,14 +34,17 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)
     impf_set = get_sector_impf_set(haz_type, sector, country)
-    return ImpactCalc(exp, impf_set, haz).impact(save_mat=False)
+    return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
 
 def get_sector_exposure(sector, country):
-    client = Client()
-    exp = client.get_litpop(country)
-    exp.gdf['value'] = exp.gdf['value'] / 100
+    if sector == 'service':
+        client = Client()
+        exp = client.get_litpop(country)
+        exp.gdf['value'] = exp.gdf['value'] # / 100
+
+    # add more sectors
     return exp
 
 
@@ -50,6 +53,8 @@ def get_sector_impf_set(hazard, sector, country):
 
 
 def get_sector_impf(hazard, sector, country):
+    # TODO: load regional impfs based on country and
+    # sector-specific impfs when they'll be available
     impf = ImpfTropCyclone.from_emanuel_usa()
     impf.haz_type = HAZ_TYPE_LOOKUP[hazard]
     return impf

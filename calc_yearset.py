@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from scipy import sparse
 from climada.util import yearsets
 
 def nccs_yearsets_simple(impact_list, n_sim_years, seed=1312):
@@ -14,12 +15,16 @@ def nccs_yearsets_simple(impact_list, n_sim_years, seed=1312):
 
 def yimp_from_imp_simple(imp,  n_sim_years, seed=1312):
     lam = np.sum(imp.frequency)
-    yimp, _ = yearsets.impact_yearset(
+    yimp, samp_vec = yearsets.impact_yearset(
         imp,
         lam=lam,
         sampled_years=list(range(1,n_sim_years+1)),
         correction_fac=False,
         seed=seed
         )
+    yimp.imp_mat = sparse.csr_matrix(
+        np.vstack([imp.imp_mat[samp_vec[i]].sum(0) 
+                   for i in range(len(samp_vec))
+                   ]))
     return yimp
         

@@ -1,16 +1,6 @@
-import numpy as np
-import pandas as pd
-
-from climada.util.api_client import Client
-from climada_petals.engine import SupplyChain
-from climada.entity import ImpfTropCyclone, ImpactFuncSet, Exposures
-from climada.engine.impact_calc import ImpactCalc
-from climada.entity import ImpactFuncSet, ImpfTropCyclone
-from climada.util.api_client import Client
-
 from indirect_impacts.compute import supply_chain_climada
 from indirect_impacts.visualization import create_supply_chain_vis
-from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
+# from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
 from direct import nccs_direct_impacts_list_simple, get_sector_exposure
 from calc_yearset import nccs_yearsets_simple
 
@@ -47,7 +37,7 @@ def calc_supply_chain_impacts(
     ### ------------------- ###
 
     # Sample impact objects to create a yearset for each row of the data frame
-    analysis_df['yearset'] = nccs_yearsets_simple(analysis_df['impact'], n_sim_years, seed=seed)
+    analysis_df['impact_yearset'] = nccs_yearsets_simple(analysis_df['impact_eventset'], n_sim_years, seed=seed)
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -57,7 +47,7 @@ def calc_supply_chain_impacts(
     analysis_df['supchain'] = [
         supply_chain_climada(
             get_sector_exposure(sector=row['sector'], country=row['country']),
-            row['yearset'],
+            row['impact_yearset'],
             impacted_sector=row['sector'],
             io_approach='ghosh')
         for _, row in analysis_df.iterrows()
@@ -65,8 +55,12 @@ def calc_supply_chain_impacts(
 
     # Everything in this section equivalent to
     #    supchain.calc_production_impacts(direct_impact_usa, exp_usa, impacted_secs=impacted_secs, io_approach='ghosh')
-    create_supply_chain_vis(supchain)
-
+    [
+    create_supply_chain_vis(analysis_df.loc[i, 'supchain'],
+                            analysis_df.loc[i, 'haz_type'],
+                            analysis_df.loc[i, 'country']) 
+    for i in analysis_df.index
+    ]
 
 if __name__ == "__main__":
     calc_supply_chain_impacts(
@@ -74,5 +68,6 @@ if __name__ == "__main__":
         hazard_list,
         sector_list,
         scenario,
-        ref_year
+        ref_year,
+        n_sim_years
     )

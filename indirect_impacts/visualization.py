@@ -8,7 +8,7 @@ from bokeh.models import ColumnDataSource
 from bokeh.transform import linear_cmap
 
 
-def plot_tot_prod_impt_eai(data):
+def plot_tot_prod_impt_eai(data, hazard, country):
     """Plot indirect impact"""
     data = [(k, v) for k, v in sorted(data.items())]
     data = sorted(data, key=lambda x: x[1], reverse=True)
@@ -23,7 +23,8 @@ def plot_tot_prod_impt_eai(data):
         )
     )
     p = figure(
-        x_range=sectors, height=700, width=1400, title="Expected total production impact for Switzerland",
+        x_range=sectors, height=700, width=1400, 
+        title=f"Expected total production impact for Switzerland from {hazard} in {country}",
     )
 
     p.vbar(x="sectors", top="impact", width=0.9, source=source)
@@ -34,9 +35,9 @@ def plot_tot_prod_impt_eai(data):
     return p
 
 
-def plot_source_matrix(data, x_range=None):
+def plot_source_matrix(data, hazard, country, x_range=None):
     #  Currently only one country
-    data = [(k, v, "USA") for k, v in sorted(data.items())]
+    data = [(k, v, f"{country}") for k, v in sorted(data.items())]
     data = sorted(data, key=lambda x: x[1], reverse=True)
 
     sectors = [k[0][:50] for k in data]
@@ -60,18 +61,18 @@ def plot_source_matrix(data, x_range=None):
         y_range=list(set(countries)),
         height=100,
         width=1400,
-        title="Expected total production impact for Switzerland",
+        title=f"Expected total production impact for Switzerland from {hazard} in {country}",
     )
     p.circle(x='sectors', y='country', color=cmap, size=10, source=source, )
     p.xaxis.major_label_text_color = None
     return p
 
 
-def create_supply_chain_vis(supchain: SupplyChain):
+def create_supply_chain_vis(supchain: SupplyChain, hazard, country):
     """Create supply chain visualization"""
     output_file(filename="custom_filename.html", title="Static HTML file")
 
     data = supchain.tot_prod_impt_eai.loc[('CHE', slice(None))]
-    p1 = plot_tot_prod_impt_eai(data)
-    p2 = plot_source_matrix(data, x_range=p1.x_range)
+    p1 = plot_tot_prod_impt_eai(data, hazard, country)
+    p2 = plot_source_matrix(data, hazard, country, x_range=p1.x_range, )
     show(layout([p2, p1]))
