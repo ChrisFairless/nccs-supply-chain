@@ -147,7 +147,7 @@ geo_source = GeoJSONDataSource(geojson=to_gj_feature_collection(features))
 geo_source.selected.on_change('indices', on_country_selected)
 
 p_countries = figure(
-    title="Texas Unemployment, 2009",
+    title="Indirect impact contribution by country",
     height=700, width=700,
     x_axis_type="mercator", y_axis_type="mercator",
     match_aspect=True,
