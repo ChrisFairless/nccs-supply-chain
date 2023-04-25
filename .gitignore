@@ -3,3 +3,4 @@ cache*
 *.html
 
 .env
+/_private/
