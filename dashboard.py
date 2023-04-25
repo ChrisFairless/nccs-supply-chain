@@ -1,5 +1,7 @@
+import glob
 import json
 import logging
+import os
 
 import numpy as np
 import pandas as pd
@@ -15,7 +17,9 @@ with open("countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ADMIN']: c for c in countries['features']}  # ISO_A3 would way safer
 
-DS_INDIRECT_BASE = pd.read_csv("results/indirect_impacts.csv")
+data_files = glob.glob(f"{os.path.dirname(__file__)}/results/indirect_impacts_*.csv")
+DS_INDIRECT_BASE = pd.concat((pd.read_csv(filename) for filename in data_files))
+DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 
 selected_hazard_type = HAZARD_TYPES[0]
@@ -53,7 +57,7 @@ def get_barplot_source(ds):
     data = [(k, v) for k, v in sorted(data.items())]
     data = sorted(data, key=lambda x: x[1], reverse=True)
 
-    sectors = [k[0][:50] for k in data]
+    sectors = [k[0] for k in data]
     values = [k[1] for k in data]
     return dict(
         sectors=sectors,
