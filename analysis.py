@@ -38,7 +38,8 @@ def calc_supply_chain_impacts(
     ### ------------------- ###
 
     # Sample impact objects to create a yearset for each row of the data frame
-    analysis_df['impact_yearset'] = nccs_yearsets_simple(analysis_df['impact_eventset'], n_sim_years, seed=seed)
+    analysis_df['impact_yearset'] = nccs_yearsets_simple(analysis_df['impact_eventset'], 
+                                                         n_sim_years, seed=seed)
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
