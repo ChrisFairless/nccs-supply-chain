@@ -1,5 +1,9 @@
 cache*
 .idea
 *.html
+*.pkl
 
 .env
+/_to_ignore/
+*__pycache__*
+*.csv
