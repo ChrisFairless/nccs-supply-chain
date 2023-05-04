@@ -1,8 +1,9 @@
-from indirect_impacts.compute import supply_chain_climada
-from indirect_impacts.visualization import create_supply_chain_vis
-# from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
-from direct import nccs_direct_impacts_list_simple, get_sector_exposure
+import os.path
+
 from calc_yearset import nccs_yearsets_simple
+# from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
+from direct import get_sector_exposure, nccs_direct_impacts_list_simple
+from indirect import dump_supchain_to_csv, supply_chain_climada
 
 country_list = ['Saint Kitts and Nevis', 'Jamaica']
 hazard_list = ['tropical_cyclone', 'river_flood']
@@ -10,6 +11,7 @@ sector_list = ['service', 'service']
 scenario = 'rcp60'
 ref_year = 2080
 n_sim_years = 100
+
 
 def calc_supply_chain_impacts(
         country_list,
@@ -23,7 +25,6 @@ def calc_supply_chain_impacts(
         save_by_sector=False,
         seed=1312
 ):
-
     ### --------------------------------- ###
     ### CALCULATE DIRECT ECONOMIC IMPACTS ###
     ### --------------------------------- ###
@@ -44,23 +45,20 @@ def calc_supply_chain_impacts(
     ### ----------------------------------- ###
 
     # Generate supply chain impacts from the yearsets
-    analysis_df['supchain'] = [
-        supply_chain_climada(
+    # Create a folder to output the data
+    os.makedirs("results", exist_ok=True)
+
+    # Run the Supply Chain for each country and sector and output the data needed to csv
+    for _, row in analysis_df.iterrows():
+        supchain = supply_chain_climada(
             get_sector_exposure(sector=row['sector'], country=row['country']),
             row['impact_yearset'],
             impacted_sector=row['sector'],
-            io_approach='ghosh')
-        for _, row in analysis_df.iterrows()
-    ]
+            io_approach='ghosh'
+        )
+        dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'])
+    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
-    # Everything in this section equivalent to
-    #    supchain.calc_production_impacts(direct_impact_usa, exp_usa, impacted_secs=impacted_secs, io_approach='ghosh')
-    [
-    create_supply_chain_vis(analysis_df.loc[i, 'supchain'],
-                            analysis_df.loc[i, 'haz_type'],
-                            analysis_df.loc[i, 'country']) 
-    for i in analysis_df.index
-    ]
 
 if __name__ == "__main__":
     calc_supply_chain_impacts(
