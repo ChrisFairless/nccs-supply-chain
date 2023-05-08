@@ -244,3 +244,4 @@ lt = layout(
 )
 curdoc().add_root(lt)
 curdoc().title = "NCCS - Dashboard"
+print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
