@@ -79,9 +79,15 @@ def calc_supply_chain_impacts(
         If you want to save intermediate files to an S3 bucket. Uses credentials stored in .env. Filenames are set 
         using the `job_name` parameter. Default False
     load_saved_objects : bool
-        If results have already been calculated, analysis expects to find existing files (at all stages), 
-
+        If results have already been calculated, load these from the locations specified in the previous parameters, 
+        instead of re-calculating. Default False
+    overwrite : bool
+        Overwrite existing files. Throws an error if False when files exist. Default False
+    return_impact_objects : bool
+        Return impact objects in the analysis data frame. Warning: this requires a lot of memory for larger analyses. 
+        Default False
     seed : int
+        Random seed
     """
 
     ### --------------------------------- ###
@@ -89,7 +95,7 @@ def calc_supply_chain_impacts(
     ### --------------------------------- ###
 
     # Generate a data frame with metadata, exposure objects and impact objects 
-    # for each combination of input factors.
+    # for each combination of input factors, and save intermediate files.
     analysis_df = nccs_direct_impacts_list_simple(
         hazard_list=hazard_list, 
         sector_list=sector_list,
@@ -108,7 +114,7 @@ def calc_supply_chain_impacts(
     ### SAMPLE IMPACT YEARS ###
     ### ------------------- ###
 
-    # Sample impact objects to create a yearset for each row of the data frame
+    # Sample the impact objects to create a yearset for each row of the data frame. Save if required.
     analysis_df = nccs_yearsets_simple(
         analysis_df=analysis_df, 
         n_sim_years=n_sim_years,
