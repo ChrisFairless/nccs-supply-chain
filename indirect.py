@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+from pathlib import Path
 from climada_petals.engine import SupplyChain
 
 SERVICE_SEC = {"service": range(26, 56)}
@@ -31,7 +32,7 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
     return supchain
 
 
-def dump_supchain_to_csv(supchain, haz_type, country, sector):
+def dump_supchain_to_csv(supchain, haz_type, country, sector, save_intermediate_dir, save_file_name):
     indirect_impacts = [
         {
             "sector": sec,
@@ -43,12 +44,6 @@ def dump_supchain_to_csv(supchain, haz_type, country, sector):
         for (sec, v) in supchain.tot_prod_impt_eai.loc[('CHE', slice(None))].items()
     ]
     df_indirect = pd.DataFrame(indirect_impacts)
-    path = f"{os.path.dirname(__file__)}/results/" \
-           f"indirect_impacts" \
-           f"_{haz_type}" \
-           f"_{country.replace(' ', '_')[:15]}" \
-           f"_{sector.replace(' ', '_')[:15]}" \
-           f".csv"
-
+    path = Path(save_intermediate_dir, save_file_name)
     df_indirect.to_csv(path)
     return path

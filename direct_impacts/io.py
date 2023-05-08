@@ -36,8 +36,8 @@ def load_impact(file_name, save_intermediate_dir, save_intermediate_s3):
     raise ValueError('Please set either save_intermediate_dir or save_intermediate_s3')
 
 
-def get_job_filename(job_name, product, hazard, scenario, ref_year, sector, country):
-    file_name = '_'.join([job_name, product, hazard.replace('_', ''), sector, scenario, str(ref_year), standardise_country(country)]) + '.hdf5'
+def get_job_filename(job_name, product, hazard, scenario, ref_year, sector, country, ext):
+    file_name = '_'.join([job_name, product, hazard.replace('_', ''), sector, scenario, str(ref_year), standardise_country(country)]) + '.' + ext
     return file_name
 
 

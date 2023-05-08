@@ -3,32 +3,24 @@ import numpy as np
 import pandas as pd
 from typing import List
 
-from climada.util.api_client import Client
-from climada_petals.engine import SupplyChain
-from climada.entity import ImpfTropCyclone, ImpactFuncSet, Exposures
-from climada.engine.impact_calc import ImpactCalc
-from climada.entity import ImpactFuncSet, ImpfTropCyclone
-from climada.util.api_client import Client
-
-from indirect_impacts.compute import supply_chain_climada
-from indirect_impacts.visualization import create_supply_chain_vis
-from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
+from indirect import supply_chain_climada, dump_supchain_to_csv
 from direct_impacts.direct import nccs_direct_impacts_list_simple, get_sector_exposure
 from direct_impacts.calc_yearset import nccs_yearsets_simple
+from direct_impacts.io import load_impact, get_job_filename
 
-country_list = ['United States', 'China']
-hazard_list = ['tropical_cyclone', 'river_flood']
-sector_list = ['service', 'service']
-scenario = 'rcp60'
-ref_year = 2080
-n_sim_years = 5000
-
-# country_list = ['Saint Kitts and Nevis']
-# hazard_list = ['tropical_cyclone']
-# sector_list = ['service']
+# country_list = ['United States', 'China']
+# hazard_list = ['tropical_cyclone', 'river_flood']
+# sector_list = ['service', 'service']
 # scenario = 'rcp60'
 # ref_year = 2080
-# n_sim_years = 50
+# n_sim_years = 5000
+
+country_list = ['Saint Kitts and Nevis']
+hazard_list = ['tropical_cyclone']
+sector_list = ['service']
+scenario = 'rcp60'
+ref_year = 2080
+n_sim_years = 50
 
 job_name: str = 'test'
 save_intermediate_dir = './scratch'
@@ -138,13 +130,19 @@ def calc_supply_chain_impacts(
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     for _, row in analysis_df.iterrows():
+        if row['impact_yearset']:
+            impact_yearset = row['impact_yearset']
+        else:
+            impact_yearset = load_impact(row['file_name_yearset'], save_intermediate_dir, save_intermediate_s3)
         supchain = supply_chain_climada(
             get_sector_exposure(sector=row['sector'], country=row['country']),
-            row['impact_yearset'],
+            impact_yearset,
             impacted_sector=row['sector'],
             io_approach='ghosh'
         )
-        dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'])
+        file_name = get_job_filename(job_name, "indirectimpacts", row['haz_type'], row['scenario'], row['ref_year'], row['sector'], row['country'], "csv")
+        dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'], save_intermediate_dir, file_name)
+        
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 

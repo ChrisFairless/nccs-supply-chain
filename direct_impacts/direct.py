@@ -34,7 +34,7 @@ def nccs_direct_impacts_list_simple(
     for haz_type in hazard_list:
         for sector in sector_list:
             for country in country_list:
-                file_name_eventset = get_job_filename(job_name, 'eventset', HAZ_TYPE_LOOKUP[haz_type], scenario, ref_year, sector, country)
+                file_name_eventset = get_job_filename(job_name, 'eventset', HAZ_TYPE_LOOKUP[haz_type], scenario, ref_year, sector, country, 'hdf5')
                 if load_saved_objects:
                     if return_impact_objects:
                         impact_eventset = load_impact(file_name_eventset, save_intermediate_dir, save_intermediate_s3)
