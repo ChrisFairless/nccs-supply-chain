@@ -15,10 +15,16 @@ from bokeh.plotting import figure
 
 with open("countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
-    COUNTRIES_BY_NAME = {c['properties']['ADMIN']: c for c in countries['features']}  # ISO_A3 would way safer
+    COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
-data_files = glob.glob(f"{os.path.dirname(__file__)}/results/indirect_impacts_*.csv")
-DS_INDIRECT_BASE = pd.concat((pd.read_csv(filename) for filename in data_files))
+data_files = glob.glob(f"{os.path.dirname(__file__)}/results/test_indirect_impacts_*.csv")
+dfs = []
+for filename in data_files:
+    df = pd.read_csv(filename)
+    df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
+    dfs.append(df)
+DS_INDIRECT_BASE = pd.concat(dfs)
+
 DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 
@@ -29,7 +35,7 @@ SELECTED_SECTOR = None
 
 def filter_data(ds: pd.DataFrame, imp_country=None, sector=None, hazard_type=None):
     if imp_country is not None:
-        ds = ds[ds.country_of_impact == imp_country]
+        ds = ds[ds.country_of_impact_iso_a3 == imp_country]
     if sector is not None:
         ds = ds[ds.sector == sector]
     if hazard_type is not None:
@@ -39,7 +45,7 @@ def filter_data(ds: pd.DataFrame, imp_country=None, sector=None, hazard_type=Non
 
 def get_country_source(ds, gj):
     result_countries = []
-    sub = ds.groupby("country_of_impact")['value'].sum(numeric_only=True)
+    sub = ds.groupby("country_of_impact_iso_a3")['value'].sum(numeric_only=True)
     for (country, summed) in sub.items():
         country_geom = gj.get(country, None)
 
@@ -97,7 +103,7 @@ def on_country_selected(attr, old, new):
         SELECTED_COUNTRY = None
         return
     countries = json.loads(geo_source.geojson)['features'][new[0]]  # We should replace this to another lookup
-    selected_imp_country = countries['properties']['ADMIN']
+    selected_imp_country = countries['properties']['ISO_A3']
     SELECTED_COUNTRY = selected_imp_country
     update_plots(
         selected_imp_country=selected_imp_country,
