@@ -13,7 +13,7 @@ def nccs_yearsets_simple(impact_list, n_sim_years, seed=1312):
     return [yimp_from_imp_simple(imp, n_sim_years, seed=random.randint(1,999999999)) for imp in impact_list]
 
 
-def yimp_from_imp_simple(imp,  n_sim_years, seed=1312):
+def yimp_from_imp_simple(imp, n_sim_years, seed=1312):
     lam = np.sum(imp.frequency)
     yimp, samp_vec = yearsets.impact_yearset(
         imp,

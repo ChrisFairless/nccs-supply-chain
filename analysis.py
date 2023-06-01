@@ -41,6 +41,10 @@ def calc_supply_chain_impacts(
     analysis_df['impact_yearset'] = nccs_yearsets_simple(analysis_df['impact_eventset'], 
                                                          n_sim_years, seed=seed)
 
+    # SupplyChain only analyze events that lead to non-zero damages
+    analysis_df = analysis_df.loc[[analysis_df.impact_yearset.loc[i].at_event.any() 
+                                   for i in analysis_df.index]]
+
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
     ### ----------------------------------- ###
@@ -57,7 +61,7 @@ def calc_supply_chain_impacts(
             impacted_sector=row['sector'],
             io_approach='ghosh'
         )
-        dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'])
+        dump_supchain_to_csv(supchain, 'ghosh', row['haz_type'], row['country'], row['sector'])
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
