@@ -5,6 +5,9 @@ from climada.util.api_client import Client
 from climada.entity import ImpfTropCyclone, ImpactFuncSet
 from climada.engine.impact_calc import ImpactCalc
 
+#newly added
+from CI_sectorial_exp.lonlat_to_country.step5_sectorial_exp_CI_MRIOT import sectorial_exp_CI_MRIOT
+
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
     'river_flood': 'RF'
@@ -30,7 +33,8 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
-    exp = get_sector_exposure(sector, country)
+    exp = get_sector_exposure(sector, country) # was originally here
+    #exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
     impf_set = get_sector_impf_set(haz_type, sector, country)
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
