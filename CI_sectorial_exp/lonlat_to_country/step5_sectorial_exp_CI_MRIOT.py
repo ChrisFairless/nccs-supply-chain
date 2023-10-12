@@ -35,6 +35,8 @@ def get_CI_raster():
     """
     Step 1
     Get the country iso for each gridcell
+    
+    Takes a long time to load each time
     """
 
     countries=get_country_vectorized_ISO(coordinates) #original
@@ -65,29 +67,6 @@ def get_CI_raster():
 
 
     """
-    Save the file as a csv for intermediate results and testing to avoid heavy computations all the time
-    """
-    # # Define the path to save the CSV file
-    # output_csv_path = 'C:/Users/AlinaMastai/Correntics/Correntics - Documents/Data/critical-infrastructure/intermediate_results/CISI_global_ISO3.csv'
-    #
-    # # Save the GeoDataFrame to a CSV file
-    # exp_raster.gdf.to_csv(output_csv_path, index=False)
-
-    """
-    Reopen it again in the case of closed or overloaded console
-    """
-    #
-    # import geopandas as gpd
-    #
-    # # Define the path to the CSV file
-    # csv_path = 'C:/Users/AlinaMastai/Correntics/Correntics - Documents/Data/critical-infrastructure/intermediate_results/CISI_global_ISO3.csv'
-    #
-    # # Read the CSV file as a GeoDataFrame
-    # reopened_gdf = gpd.read_file(csv_path)
-
-
-
-    """
     Sum the critical infastructure for each country and save this into an excel file
     """
 
@@ -100,11 +79,6 @@ def get_CI_raster():
     # Create a DataFrame
     df_country_sum = pd.DataFrame(country_sum)
 
-    # # Define the path to save the Excel file
-    # output_excel_path = 'C:/Users/AlinaMastai/Correntics/Correntics - Documents/Data/critical-infrastructure/intermediate_results/country_sum.xlsx'
-    #
-    # # Save the DataFrame to an Excel file
-    # df_country_sum.to_excel(output_excel_path, index=False)
 
 
     """
@@ -112,8 +86,8 @@ def get_CI_raster():
     Attention, this makes the original exp_raster.gdf smaller  as it only takes the rows which are not None for ISO3 (?)
     """
 
-    # Assuming you have your extended GeoDataFrame named 'exp_raster.gdf'
-    # Assuming you have a DataFrame named 'df_country_sum' with summed values for each country
+    # Assuming GeoDataFrame named 'exp_raster.gdf'
+    # Assuming DataFrame named 'df_country_sum' with summed values for each country
 
     # Merge the 'df_country_sum' DataFrame with 'exp_raster.gdf' based on the 'ISO3' column
     exp_raster.gdf = exp_raster.gdf.merge(df_country_sum, on='ISO3', suffixes=('', '_sum'))
@@ -129,7 +103,7 @@ def get_CI_raster():
     Save this raster file into an intermediate file format to use it in a later code
     use therefore the picke thing
     """
-    with open("CI_raster.pkl", "wb") as f:
+    with open("../../CI_raster.pkl", "wb") as f:
         pickle.dump(exp_raster, f)
 
 
@@ -555,7 +529,12 @@ Finalize the exposure creation by combining the different functions
 
 def sectorial_exp_CI_MRIOT(country, sector):
 
-    exp_raster = get_CI_raster()
+    #this would be the code to open the file again-> activate this in the file to open
+    with open("CI_raster.pkl", "rb") as f:
+
+         exp_raster = pickle.load(f)
+
+    # exp_raster = get_CI_raster() # only activate this if the pickle is not loaded
 
     """
     Get the final demand for each
