@@ -15,7 +15,7 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
 
     # (Service sector)
     impacted_secs = supchain.mriot.get_sectors()[sec_range].tolist()
-    supchain.calc_secs_exp_imp_shock(exposure, direct_impact, impacted_secs)
+    supchain.calc_shock_to_sectors(exposure, direct_impact, impacted_secs) #renamed the function from calc_secs_exp_imp_shock since the code changed
 
     # Calculate local production losses
     supchain.calc_direct_production_impacts()
