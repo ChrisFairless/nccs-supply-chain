@@ -5,7 +5,7 @@ from calc_yearset import nccs_yearsets_simple
 from direct import get_sector_exposure, nccs_direct_impacts_list_simple
 from indirect import dump_supchain_to_csv, supply_chain_climada
 
-country_list = ['Saint Kitts and Nevis', 'Jamaica']
+country_list = ['Saint Kitts and Nevis', 'Jamaica', "China", "United States"]
 hazard_list = ['tropical_cyclone', 'river_flood']
 sector_list = ['service', 'service']
 scenario = 'rcp60'
@@ -38,8 +38,10 @@ def calc_supply_chain_impacts(
     ### ------------------- ###
 
     # Sample impact objects to create a yearset for each row of the data frame
-    analysis_df['impact_yearset'] = nccs_yearsets_simple(analysis_df['impact_eventset'], 
-                                                         n_sim_years, seed=seed)
+    analysis_df['impact_yearset'] = nccs_yearsets_simple(
+        analysis_df['impact_eventset'],
+        n_sim_years, seed=seed
+    )
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -51,13 +53,17 @@ def calc_supply_chain_impacts(
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     for _, row in analysis_df.iterrows():
-        supchain = supply_chain_climada(
-            get_sector_exposure(sector=row['sector'], country=row['country']),
-            row['impact_yearset'],
-            impacted_sector=row['sector'],
-            io_approach='ghosh'
-        )
-        dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'])
+        try:
+            print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+            supchain = supply_chain_climada(
+                get_sector_exposure(sector=row['sector'], country=row['country']),
+                row['impact_yearset'],
+                impacted_sector=row['sector'],
+                io_approach='ghosh'
+            )
+            dump_supchain_to_csv(supchain, row['haz_type'], row['country'], row['sector'])
+        except ValueError as e:
+            print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 

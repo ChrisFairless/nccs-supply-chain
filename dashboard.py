@@ -8,8 +8,8 @@ import pandas as pd
 import xyzservices.providers as xyz
 from bokeh.io import curdoc
 from bokeh.layouts import layout
-from bokeh.models import ColumnDataSource, DataTable, Div, GeoJSONDataSource, LinearColorMapper, Patches, Select, \
-    TableColumn
+from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LinearColorMapper, Patches, Select,
+                          TableColumn)
 from bokeh.palettes import Viridis256
 from bokeh.plotting import figure
 
@@ -24,7 +24,7 @@ with open("countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
-data_files = glob.glob(f"{os.path.dirname(__file__)}/results/test_indirect_impacts_*.csv")
+data_files = glob.glob(f"{os.path.dirname(__file__)}/results/indirect_impacts_*.csv")
 dfs = []
 for filename in data_files:
     df = pd.read_csv(filename)

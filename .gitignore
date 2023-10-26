@@ -7,3 +7,4 @@ cache*
 /_to_ignore/
 *__pycache__*
 *.csv
+*.hdf5
