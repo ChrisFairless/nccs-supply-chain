@@ -13,7 +13,16 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 # ref_year = 2080
 # n_sim_years = 100
 
-country_list = ['United States', 'Norway', 'Cyprus', 'Puerto Rico']
+
+country_list = ['Australia', 'Austria', 'Belgium', 'Bulgaria', 'Brazil', 'Canada', 'Croatia', 'China', 'Cyprus',
+                'Czechia',
+                'Denmark', 'Estonia', 'Finland', 'France', 'Germany',
+                'Greece', 'Hungary', 'Indonesia', 'Ireland',
+                'Italy', 'India', 'Japan', 'Korea, Republic of', 'Latvia', 'Libya', 'Lithuania', 'Luxembourg',
+                'Malta', 'Mexico', 'Netherlands', 'Norway', 'Poland', 'Portugal', 'Puerto Rico',
+                'Romania', 'Russian Federation', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
+                'Switzerland', 'Taiwan, Province of China', 'Turkey', 'United Kingdom',
+                'United States']
 country_list_with_riverflood_and_WIOD16_worked=['Australia','Brazil','China','India','Portugal']
 country_list_with_riverflood_and_WIOD16_not_worked= ['Austria', 'Belgium', 'Bulgaria', 'Canada', 'Croatia',
                                           'Cyprus','Czechia', 'Denmark', 'Estonia', 'Finland','France', 'Germany',
@@ -23,7 +32,7 @@ country_list_with_riverflood_and_WIOD16_not_worked= ['Austria', 'Belgium', 'Bulg
                                           'Romania','Russian Federation', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
                                           'Switzerland','Taiwan, Province of China', 'Turkey', 'United Kingdom',
                                           'United States']
-hazard_list = ['tropical_cyclone'] #['tropical_cyclone', 'river_flood']
+hazard_list = ['river_flood'] #['tropical_cyclone', 'river_flood']
 sector_list = ['manufacturing'] #['service', 'service']
 
 scenario = 'rcp60'
@@ -81,7 +90,6 @@ def calc_supply_chain_impacts(
             )
             dump_supchain_to_csv(supchain, row['haz_type'],row['sector'], scenario,ref_year, row['country'])
         except ValueError as e:
-            raise e
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
