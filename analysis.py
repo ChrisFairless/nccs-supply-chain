@@ -13,7 +13,7 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 # ref_year = 2080
 # n_sim_years = 100
 
-country_list = ['United Kingdom']
+country_list = ['United States', 'Norway', 'Cyprus', 'Puerto Rico']
 country_list_with_riverflood_and_WIOD16_worked=['Australia','Brazil','China','India','Portugal']
 country_list_with_riverflood_and_WIOD16_not_worked= ['Austria', 'Belgium', 'Bulgaria', 'Canada', 'Croatia',
                                           'Cyprus','Czechia', 'Denmark', 'Estonia', 'Finland','France', 'Germany',
@@ -23,8 +23,9 @@ country_list_with_riverflood_and_WIOD16_not_worked= ['Austria', 'Belgium', 'Bulg
                                           'Romania','Russian Federation', 'Slovakia', 'Slovenia', 'Spain', 'Sweden',
                                           'Switzerland','Taiwan, Province of China', 'Turkey', 'United Kingdom',
                                           'United States']
-hazard_list = ['river_flood'] #['tropical_cyclone', 'river_flood']
+hazard_list = ['tropical_cyclone'] #['tropical_cyclone', 'river_flood']
 sector_list = ['manufacturing'] #['service', 'service']
+
 scenario = 'rcp60'
 ref_year = 2080
 n_sim_years = 100
