@@ -46,8 +46,14 @@ def get_sector_exposure(sector, country):
         exp = client.get_litpop(country)
         exp.gdf['value'] = exp.gdf['value'] # / 100
 
+
+    if sector == 'manufacturing':
+        client = Client()
+        exp = client.get_litpop(country) #first guess with litpop
+        exp.gdf['value'] = exp.gdf['value'] # / 100
     # add more sectors
     return exp
+
 
 
 def get_sector_impf_set(hazard, sector, country):
