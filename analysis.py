@@ -1,5 +1,9 @@
+import glob
 import os.path
 
+import pandas as pd
+
+import indirect
 from calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
 from direct import get_sector_exposure, nccs_direct_impacts_list_simple
@@ -13,42 +17,44 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 # ref_year = 2080
 # n_sim_years = 100
 
-problem_countries= ['Serbia',
-                    'Côte d’Ivoire', 'Sudan, South',  'Montenegro']
+problem_countries = ['Serbia',
+                     'Côte d’Ivoire', 'Sudan, South', 'Montenegro']
 country_list = ["Lao People's Democratic Republic"]
 country_list_2 = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
-                'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
-                'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
-                'Bosnia and Herzegovina', 'Botswana',
-                'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
-                'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros','Congo',
-                'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',
-                'Cuba', 'Cyprus', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
-                'Timor-Leste', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea',
-                'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
-                'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
-                'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq', 'Ireland',
-                'Israel',
-                'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
-                "Korea, Democratic People's Republic of",
-                'Korea, Republic of', 'Kuwait', 'Kyrgyzstan', "Lao People's Democratic Republic", 'Latvia', 'Lebanon',
-                'Lesotho', 'Liberia',
-                'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives',
-                'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
-                'Mexico', 'Micronesia, Federated States of', 'Moldova, Republic of', 'Monaco', 'Mongolia',
-                'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
-                'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan',
-                'Palau', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
-                'Qatar', 'Romania', 'Russian Federation', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia',
-                'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia',
-                'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
-                'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
-                'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China', 'Tajikistan',
-                'Tanzania, United Republic of', 'Thailand',
-                'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
-                'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
-                'Vanuatu', 'Vatican City', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
-                'Zimbabwe']
+                  'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
+                  'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
+                  'Bosnia and Herzegovina', 'Botswana',
+                  'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
+                  'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo',
+                  'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',
+                  'Cuba', 'Cyprus', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
+                  'Timor-Leste', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea',
+                  'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
+                  'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
+                  'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq',
+                  'Ireland',
+                  'Israel',
+                  'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
+                  "Korea, Democratic People's Republic of",
+                  'Korea, Republic of', 'Kuwait', 'Kyrgyzstan', "Lao People's Democratic Republic", 'Latvia', 'Lebanon',
+                  'Lesotho', 'Liberia',
+                  'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia', 'Maldives',
+                  'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
+                  'Mexico', 'Micronesia, Federated States of', 'Moldova, Republic of', 'Monaco', 'Mongolia',
+                  'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
+                  'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan',
+                  'Palau', 'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal',
+                  'Qatar', 'Romania', 'Russian Federation', 'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia',
+                  'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia',
+                  'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
+                  'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
+                  'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
+                  'Tajikistan',
+                  'Tanzania, United Republic of', 'Thailand',
+                  'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
+                  'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
+                  'Vanuatu', 'Vatican City', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
+                  'Zimbabwe']
 
 hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood']
 sector_list = ['manufacturing']
@@ -131,3 +137,16 @@ if __name__ == "__main__":
             ref_year,
             n_sim_years
         )
+
+    # Postprocessing to create the final files
+    supchain = indirect.get_supply_chain()
+    for f in glob.glob("results/*_*.csv"):
+        f_out = f.replace("results", "results_row_adjusted")
+        os.makedirs(os.path.dirname(f_out), exist_ok=True)
+
+        df = pd.read_csv(f)
+        iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
+        factor = indirect.get_country_modifier(supchain, iso_a3)
+        df["value"] = df["value"] * factor
+        print(f"Adjusting {f} by {factor} to {f_out}")
+        df.to_csv(f_out, index=False)

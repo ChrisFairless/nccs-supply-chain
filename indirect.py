@@ -1,17 +1,33 @@
 import os
-import pycountry
+
 import pandas as pd
+import pycountry
 from climada_petals.engine import SupplyChain
 
-#original
+# original
 # SERVICE_SEC = {"service": range(26, 56)}
-SUPER_SEC = {"manufacturing": range(4,21),
-             "service": range(26, 56)}
+SUPER_SEC = {
+    "manufacturing": range(4, 21),
+    "service": range(26, 56)
+}
+
+
+def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
+    # Get the country modifier from the supchain
+    mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
+    if mrio_region == 'ROW':
+        return 1 / (n_total - len(set(r[0] for r in supchain.mriot.x.axes[0])))
+    return 1.0
+
+
+def get_supply_chain():
+    return SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
+
 
 def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_approach='ghosh', shock_factor=None):
     assert impacted_sector in SUPER_SEC.keys(), f"impacted_sector must be one of {SUPER_SEC.keys()}"
     sec_range = SUPER_SEC[impacted_sector]
-    supchain: SupplyChain = SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
+    supchain: SupplyChain = get_supply_chain()
 
     # Assign exposure and stock direct_impact to MRIOT country-sector
 
@@ -64,7 +80,7 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
 #     )
 #     return supchain
 
-def dump_supchain_to_csv(supchain, haz_type, sector,scenario,ref_year, country):
+def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country):
     indirect_impacts = [
         {
             "sector": sec[1],
@@ -75,12 +91,11 @@ def dump_supchain_to_csv(supchain, haz_type, sector,scenario,ref_year, country):
             "ref_year": ref_year,
             "country_of_impact": country,
 
-
         }
         for (sec, v) in supchain.supchain_imp["ghosh"].loc[:, ('CHE', slice(None))].max(0).items()
     ]
     df_indirect = pd.DataFrame(indirect_impacts)
-    #newly added to get ISO3 code
+    # newly added to get ISO3 code
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3  # f"_{country.replace(' ', '_')[:15]}" \
     path = f"{os.path.dirname(__file__)}/results/" \
            f"indirect_impacts" \
