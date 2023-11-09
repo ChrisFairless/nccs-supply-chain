@@ -3,6 +3,7 @@ import pycountry
 from climada.engine.impact_calc import ImpactCalc
 from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.util.api_client import Client
+from climada_petals.entity.impact_funcs.river_flood import flood_imp_func_set, RIVER_FLOOD_REGIONS_CSV
 
 # newly added
 
@@ -42,7 +43,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
-    impf_set = get_sector_impf_set(haz_type, sector, country)
+    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha)
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
@@ -60,17 +61,33 @@ def get_sector_exposure(sector, country):
     return exp
 
 
-def get_sector_impf_set(hazard, sector, country):
-    return ImpactFuncSet([get_sector_impf(hazard, sector, country)])
+def apply_sector_impf_set(hazard, sector, country_iso3alpha):
+    haz_type = HAZ_TYPE_LOOKUP[hazard]
 
+    if haz_type == 'TC':
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
+    
+    if haz_type == 'RF':
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
 
-def get_sector_impf(hazard, sector, country):
+    Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
+    return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, haz_type)])
+
+def get_sector_impf_tc(country_iso3alpha, haz_type='TC'):
     # TODO: load regional impfs based on country and
-    # sector-specific impfs when they'll be available
     impf = ImpfTropCyclone.from_emanuel_usa()
-    impf.haz_type = HAZ_TYPE_LOOKUP[hazard]
+    impf.haz_type = haz_type
     return impf
 
+def get_sector_impf_rf(country_iso3alpha):
+    # Use the flood module's lookup to get the regional impact function for the country
+    country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
+    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+    # Grab just that impact function from the flood set, and set its ID to 1
+    impf_set = flood_imp_func_set()
+    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+    impf.id = 1
+    return impf
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
