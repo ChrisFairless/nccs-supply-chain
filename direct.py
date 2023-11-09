@@ -39,6 +39,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
 
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
+    #Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
