@@ -13,10 +13,19 @@ SUPER_SEC = {
 
 
 def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
-    # Get the country modifier from the supchain
+    """
+    Calculate the country modifier for a given country in a supply chain.
+    If the country is listed in the mrio table then the modifier is 1.0.
+    else the modifier is 1 / (n_total - (number of countries in the mrio table - 1)).
+
+    :param supchain: 
+    :param country_iso3alpha: 
+    :param n_total: 
+    :return: 
+    """
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
-        return 1 / (n_total - len(set(r[0] for r in supchain.mriot.x.axes[0])))
+        return 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1))
     return 1.0
 
 
