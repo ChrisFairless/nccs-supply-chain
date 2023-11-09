@@ -17,16 +17,15 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 # ref_year = 2080
 # n_sim_years = 100
 
-problem_countries = ['Serbia',
-                     'Côte d’Ivoire', 'Sudan, South', 'Montenegro']
-country_list = ["Lao People's Democratic Republic"]
-country_list_2 = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
+
+country_list = ["Republic of Serbia"]
+country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                   'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                   'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
                   'Bosnia and Herzegovina', 'Botswana',
                   'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
                   'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo',
-                  'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',
+                  'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',"Côte d'Ivoire",
                   'Cuba', 'Cyprus', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
                   'Timor-Leste', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea',
                   'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
@@ -150,3 +149,4 @@ if __name__ == "__main__":
         df["value"] = df["value"] * factor
         print(f"Adjusting {f} by {factor} to {f_out}")
         df.to_csv(f_out, index=False)
+    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
