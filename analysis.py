@@ -13,16 +13,16 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 # ref_year = 2080
 # n_sim_years = 100
 
-problem_countries= ['Serbia', 'Congo, Democratic Republic of the',
-                    'Côte d’Ivoire', 'Sudan, South', 'Kosovo',  'Montenegro']
-
-country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
+problem_countries= ['Serbia',
+                    'Côte d’Ivoire', 'Sudan, South',  'Montenegro']
+country_list = ["Lao People's Democratic Republic"]
+country_list_2 = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                 'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
                 'Bosnia and Herzegovina', 'Botswana',
                 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
-                'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros',
-                'Congo, Republic of the', 'Costa Rica', 'Croatia',
+                'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros','Congo',
+                'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',
                 'Cuba', 'Cyprus', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
                 'Timor-Leste', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea',
                 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
