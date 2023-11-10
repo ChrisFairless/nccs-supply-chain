@@ -8,3 +8,4 @@ cache*
 *__pycache__*
 *.csv
 *.hdf5
+climada_petals/

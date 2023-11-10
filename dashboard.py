@@ -8,7 +8,7 @@ import pandas as pd
 import xyzservices.providers as xyz
 from bokeh.io import curdoc
 from bokeh.layouts import layout
-from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LinearColorMapper, Patches, Select,
+from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LinearColorMapper, LogColorMapper, Patches, Select,
                           TableColumn)
 from bokeh.palettes import Viridis256
 from bokeh.plotting import figure
@@ -24,7 +24,7 @@ with open("countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
-data_files = glob.glob(f"{os.path.dirname(__file__)}/results/indirect_impacts_*.csv")
+data_files = glob.glob(f"{os.path.dirname(__file__)}/results_row_adjusted/indirect_impacts_*.csv")
 dfs = []
 for filename in data_files:
     df = pd.read_csv(filename)
@@ -205,7 +205,7 @@ p_countries.add_tile(xyz.OpenStreetMap.Mapnik)
 p_countries.grid.grid_line_color = None
 p_countries.hover.point_policy = "follow_mouse"
 
-color_mapper = LinearColorMapper(palette=Viridis256)
+color_mapper = LogColorMapper(palette="Sunset11", low=1, high=None)
 r = p_countries.patches(
     'xs', 'ys', source=geo_source,
     fill_color={'field': 'value', 'transform': color_mapper},

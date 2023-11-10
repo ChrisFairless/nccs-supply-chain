@@ -1,12 +1,11 @@
-import pycountry
 import pandas as pd
-
-from climada.util.api_client import Client
-from climada.entity import ImpfTropCyclone, ImpactFuncSet
+import pycountry
 from climada.engine.impact_calc import ImpactCalc
+from climada.entity import ImpactFuncSet, ImpfTropCyclone
+from climada.util.api_client import Client
+from climada_petals.entity.impact_funcs.river_flood import flood_imp_func_set, RIVER_FLOOD_REGIONS_CSV
 
-#newly added
-from CI_sectorial_exp.lonlat_to_country.step5_sectorial_exp_CI_MRIOT import sectorial_exp_CI_MRIOT
+# newly added
 
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
@@ -18,57 +17,94 @@ HAZ_TYPE_LOOKUP = {
 # each combination on the list
 # Simple, but can be sped up and memory usage reduced
 def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year):
-    return pd.DataFrame(
-        dict(
-            haz_type=haz_type,
-            sector=sector,
-            country=country,
-            scenario=scenario,
-            ref_year=ref_year,
-            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
-        )
-        for haz_type in hazard_list for sector in sector_list for country in country_list
-    )
+    result = []
+    for haz_type in hazard_list:
+        for sector in sector_list:
+            for country in country_list:
+                try:
+                    # This could fail if a hazard is not available for a certain country or sector
+                    result.append(
+                        dict(
+                            haz_type=haz_type,
+                            sector=sector,
+                            country=country,
+                            scenario=scenario,
+                            ref_year=ref_year,
+                            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
+                        )
+                    )
+                except Exception as e:
+                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}: {e}")
+    return pd.DataFrame(result)
+
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
+    #Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
-    exp = get_sector_exposure(sector, country) # was originally here
-    #exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
-    impf_set = get_sector_impf_set(haz_type, sector, country)
+    exp = get_sector_exposure(sector, country)  # was originally here
+    # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
+    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha)
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
-
 
 
 def get_sector_exposure(sector, country):
     if sector == 'service':
         client = Client()
         exp = client.get_litpop(country)
-        exp.gdf['value'] = exp.gdf['value'] # / 100
+        exp.gdf['value'] = exp.gdf['value']  # / 100
 
+    if sector == 'manufacturing':
+        client = Client()
+        exp = client.get_litpop(country)  # first guess with litpop
+        exp.gdf['value'] = exp.gdf['value']  # / 100
     # add more sectors
     return exp
 
 
-def get_sector_impf_set(hazard, sector, country):
-    return ImpactFuncSet([get_sector_impf(hazard, sector, country)])
+def apply_sector_impf_set(hazard, sector, country_iso3alpha):
+    haz_type = HAZ_TYPE_LOOKUP[hazard]
 
+    if haz_type == 'TC':
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
+    
+    if haz_type == 'RF':
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
 
-def get_sector_impf(hazard, sector, country):
+    Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
+    return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, haz_type)])
+
+def get_sector_impf_tc(country_iso3alpha, haz_type='TC'):
     # TODO: load regional impfs based on country and
-    # sector-specific impfs when they'll be available
     impf = ImpfTropCyclone.from_emanuel_usa()
-    impf.haz_type = HAZ_TYPE_LOOKUP[hazard]
+    impf.haz_type = haz_type
     return impf
 
+def get_sector_impf_rf(country_iso3alpha):
+    # Use the flood module's lookup to get the regional impact function for the country
+    country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
+    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+    # Grab just that impact function from the flood set, and set its ID to 1
+    impf_set = flood_imp_func_set()
+    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+    impf.id = 1
+    return impf
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
     if haz_type == 'tropical_cyclone':
-        return client.get_hazard(haz_type, properties={'country_iso3alpha': country_iso3alpha, 
-                                                       'climate_scenario': scenario, 'ref_year': str(ref_year)})
+        return client.get_hazard(
+            haz_type, properties={
+                'country_iso3alpha': country_iso3alpha,
+                'climate_scenario': scenario, 'ref_year': str(ref_year)
+            }
+        )
     elif haz_type == 'river_flood':
-        year_range_midpoint = round(ref_year/20) * 20
+        year_range_midpoint = round(ref_year / 20) * 20
         year_range = str(year_range_midpoint - 10) + '_' + str(year_range_midpoint + 10)
-        return client.get_hazard(haz_type, properties={'country_iso3alpha': country_iso3alpha, 
-                                                       'climate_scenario': scenario, 'year_range': year_range})
+        return client.get_hazard(
+            haz_type, properties={
+                'country_iso3alpha': country_iso3alpha,
+                'climate_scenario': scenario, 'year_range': year_range
+            }
+        )
