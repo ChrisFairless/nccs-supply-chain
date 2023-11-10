@@ -8,7 +8,8 @@ from climada_petals.engine import SupplyChain
 # SERVICE_SEC = {"service": range(26, 56)}
 SUPER_SEC = {
     "manufacturing": range(4, 22),
-    "service": range(26, 56)
+    "service": range(26, 56),
+    "mining":[3]
 }
 
 
