@@ -4,6 +4,7 @@ from climada.engine.impact_calc import ImpactCalc
 from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import flood_imp_func_set, RIVER_FLOOD_REGIONS_CSV
+from climada.entity import Exposures
 
 # newly added
 
@@ -59,6 +60,16 @@ def get_sector_exposure(sector, country):
         exp = client.get_litpop(country)  # first guess with litpop
         exp.gdf['value'] = exp.gdf['value']  # / 100
     # add more sectors
+    if sector == 'mining':
+        #load an exposure from an excel file
+        input_file = 'C:/github/nccs-supply-chain/mining_exposure/mining_500_exposure.xlsx'
+        excel_data = pd.read_excel(input_file)
+        # Generate an Exposures instance from DataFrame
+        exp = Exposures(excel_data)
+        exp.set_geometry_points()
+        exp.gdf['value'] = exp.gdf.value
+        exp.check()
+
     return exp
 
 
