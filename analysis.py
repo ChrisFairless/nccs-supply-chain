@@ -198,6 +198,9 @@ if __name__ == "__main__":
         df = pd.read_csv(f)
         iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
         factor = indirect.get_country_modifier(supchain, iso_a3)
+        for col in df.columns:
+            if col.startswith("impact_"):
+                df[col] = df[col] * factor
         df["value"] = df["value"] * factor
         print(f"Adjusting {f} by {factor} to {f_out}")
         df.to_csv(f_out, index=False)
