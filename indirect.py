@@ -35,7 +35,7 @@ def get_supply_chain() -> SupplyChain:
     return SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
 
 
-def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_approach='ghosh', shock_factor=None):
+def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_approach='leontief', shock_factor=None):
     assert impacted_sector in SUPER_SEC.keys(), f"impacted_sector must be one of {SUPER_SEC.keys()}"
     sec_range = SUPER_SEC[impacted_sector]
     supchain: SupplyChain = get_supply_chain()
@@ -62,39 +62,11 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
     return supchain
 
 
-# SUPER_SEC = {"manufacturing": range(4,21),
-#              "service": range(26, 56)}
-#
-# def supply_chain_climada(exposure, direct_impact, impacted_sector, io_approach='ghosh', shock_factor=None):
-#     assert impacted_sector in SUPER_SEC.keys(), f"impacted_sector must be one of {SUPER_SEC.keys()}"
-#     sec_range = SUPER_SEC[impacted_sector]
-#     supchain: SupplyChain = SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
-#
-#     # Assign exposure and stock direct_impact to MRIOT country-sector
-#
-#     # (Service sector)
-#     impacted_secs = supchain.mriot.get_sectors()[sec_range].tolist()
-#     supchain.calc_shock_to_sectors(
-#         exposure=exposure,
-#         impact=direct_impact,
-#         impacted_secs=impacted_secs,
-#         shock_factor=shock_factor
-#     )  # renamed the function from
-#     # calc_secs_exp_imp_shock since the code changed
-#
-#     # Calculate the propagation of production losses
-#     supchain.calc_impacts(
-#         exposure=exposure,
-#         impact=direct_impact,
-#         io_approach=io_approach,
-#         impacted_secs=impacted_secs
-#     )
-#     return supchain
 
 def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, n_sim=100, return_period=100):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     indirect_impacts = []
-    for (sec, v) in supchain.supchain_imp["ghosh"].loc[:, ('CHE', slice(None))].items():
+    for (sec, v) in supchain.supchain_imp["leontief"].loc[:, ('CHE', slice(None))].items():
         rp_value = v.sort_values(ascending=False).iloc[index_rp]
         mean = v.sum() / n_sim
         max_val = v.max()
@@ -129,5 +101,5 @@ def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country
 
     df_indirect.to_csv(path)
 
-    supchain.supchain_imp['ghosh']
+    supchain.supchain_imp['leontief']
     return path
