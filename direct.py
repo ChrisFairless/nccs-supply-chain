@@ -62,7 +62,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         #load an exposure from an excel file
-        input_file = 'C:/github/nccs-supply-chain/mining_exposure/mining_500_exposure.xlsx'
+        input_file = 'exposures/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
