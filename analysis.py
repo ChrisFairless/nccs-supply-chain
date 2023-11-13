@@ -90,7 +90,7 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Zimbabwe']
 
 hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood']
-sector_list = ['mining'] # 'mining', 'manufacturing', 'service'
+sector_list = ['manufacturing'] # 'mining', 'manufacturing', 'service'
 # sector_list = ['manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
@@ -160,7 +160,7 @@ def calc_supply_chain_impacts(
                 get_sector_exposure(sector=row['sector'], country=row['country']),
                 row['impact_yearset'],
                 impacted_sector=row['sector'],
-                io_approach='ghosh'
+                io_approach='leontief'
             )
             dump_supchain_to_csv(
                 supchain,
