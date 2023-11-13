@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 import pycountry
 from climada_petals.engine import SupplyChain
@@ -9,7 +10,7 @@ from climada_petals.engine import SupplyChain
 SUPER_SEC = {
     "manufacturing": range(4, 22),
     "service": range(26, 56),
-    "mining":[3]
+    "mining": [3]
 }
 
 
@@ -30,7 +31,7 @@ def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
     return 1.0
 
 
-def get_supply_chain():
+def get_supply_chain() -> SupplyChain:
     return SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
 
 
@@ -90,20 +91,30 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
 #     )
 #     return supchain
 
-def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country):
-    indirect_impacts = [
-        {
+def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, n_sim=100, return_period=100):
+    index_rp = np.floor(n_sim / return_period).astype(int) - 1
+    indirect_impacts = []
+    for (sec, v) in supchain.supchain_imp["ghosh"].loc[:, ('CHE', slice(None))].items():
+        rp_value = v.sort_values(ascending=False).iloc[index_rp]
+        mean = v.sum() / n_sim
+        max_val = v.max()
+
+        obj = {
             "sector": sec[1],
-            "value": v,
+            "value": mean,
+            "impact_max": max_val,
+            "impact_aai": mean,
+            f"impact_rp_{return_period}": rp_value,
             "hazard_type": haz_type,
             "sector_of_impact": sector,
-            "sceanrio": scenario,
+            "scenario": scenario,
             "ref_year": ref_year,
             "country_of_impact": country,
 
         }
-        for (sec, v) in supchain.supchain_imp["ghosh"].loc[:, ('CHE', slice(None))].max(0).items()
-    ]
+        indirect_impacts.append(obj)
+
+
     df_indirect = pd.DataFrame(indirect_impacts)
     # newly added to get ISO3 code
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3  # f"_{country.replace(' ', '_')[:15]}" \
@@ -117,4 +128,6 @@ def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country
            f".csv"
 
     df_indirect.to_csv(path)
+
+    supchain.supchain_imp['ghosh']
     return path

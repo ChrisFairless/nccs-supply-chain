@@ -31,13 +31,16 @@ for filename in data_files:
     df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
     dfs.append(df)
 DS_INDIRECT_BASE = pd.concat(dfs)
+DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
 
 DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
+METRICS = ["impact_aai", "impact_rp_100"]
 
 selected_hazard_type = HAZARD_TYPES[0]
 selected_impacted_sector = IMPACTED_SECTORS[0]
+selected_metric = METRICS[0]
 SELECTED_COUNTRY = None
 SELECTED_SECTOR = None
 
@@ -97,7 +100,9 @@ def update_barplot_source(ds):
     p_barpot.x_range.factors = source_barplot.data['sectors']
 
 
-def update_plots(selected_imp_country, selected_sector, selected_hazard_type, selected_impacted_sector):
+def update_plots(selected_imp_country, selected_sector, selected_hazard_type, selected_impacted_sector, metric):
+    DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE[metric]
+    print(DS_INDIRECT_BASE["value"])
     update_country_source(
         filter_data(DS_INDIRECT_BASE, None, selected_sector, selected_hazard_type, selected_impacted_sector)
     )
@@ -114,7 +119,8 @@ def on_country_selected(attr, old, new):
             selected_imp_country=None,
             selected_sector=None,
             selected_hazard_type=selected_hazard_type,
-            selected_impacted_sector=selected_impacted_sector
+            selected_impacted_sector=selected_impacted_sector,
+            metric=selected_metric
         )
         SELECTED_COUNTRY = None
         return
@@ -125,7 +131,8 @@ def on_country_selected(attr, old, new):
         selected_imp_country=selected_imp_country,
         selected_sector=None,
         selected_hazard_type=selected_hazard_type,
-        selected_impacted_sector=selected_impacted_sector
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric
     )
 
 
@@ -137,7 +144,8 @@ def on_sector_selected(attr, old, new):
             selected_imp_country=None,
             selected_sector=None,
             selected_hazard_type=selected_hazard_type,
-            selected_impacted_sector=selected_impacted_sector
+            selected_impacted_sector=selected_impacted_sector,
+            metric=selected_metric
         )
         SELECTED_SECTOR = None
         return
@@ -147,7 +155,8 @@ def on_sector_selected(attr, old, new):
         selected_imp_country=None,
         selected_sector=sector,
         selected_hazard_type=selected_hazard_type,
-        selected_impacted_sector=selected_impacted_sector
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric
     )
 
 
@@ -158,7 +167,8 @@ def on_hazard_type_changed(attr, old, new):
         selected_imp_country=SELECTED_COUNTRY,
         selected_sector=SELECTED_SECTOR,
         selected_hazard_type=selected_hazard_type,
-        selected_impacted_sector=selected_impacted_sector
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric
     )
 
 
@@ -169,7 +179,19 @@ def on_impacted_sector_changed(attr, old, new):
         selected_imp_country=SELECTED_COUNTRY,
         selected_sector=SELECTED_SECTOR,
         selected_hazard_type=selected_hazard_type,
-        selected_impacted_sector=selected_impacted_sector
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric
+    )
+
+def on_metric_changed(attr, old, new):
+    global selected_metric
+    selected_metric = new
+    update_plots(
+        selected_imp_country=SELECTED_COUNTRY,
+        selected_sector=SELECTED_SECTOR,
+        selected_hazard_type=selected_hazard_type,
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric
     )
 
 
@@ -187,6 +209,16 @@ select_source_sector = Select(
 )
 select_source_sector.on_change("value", on_impacted_sector_changed)
 select_source_sector.sizing_mode = "fixed"
+
+select_metric = Select(
+    title="Metric",
+    options=sorted(METRICS),
+    value=selected_impacted_sector,
+    width=200,
+)
+select_metric.on_change("value", on_metric_changed)
+select_metric.sizing_mode = "fixed"
+
 # Country Plot
 geo_source = GeoJSONDataSource(geojson=to_gj_feature_collection(features))
 geo_source.selected.on_change('indices', on_country_selected)
@@ -243,7 +275,7 @@ data_table = DataTable(source=source_barplot, columns=columns, height=400, width
 select_hazard_type.sizing_mode = "fixed"
 lt = layout(
     [
-        [select_hazard_type, select_source_sector, Div(sizing_mode="stretch_width")],
+        [select_hazard_type, select_source_sector, select_metric, Div(sizing_mode="stretch_width")],
         [p_countries, p_barpot],
         [data_table]
     ],

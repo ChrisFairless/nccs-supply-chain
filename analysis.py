@@ -162,7 +162,16 @@ def calc_supply_chain_impacts(
                 impacted_sector=row['sector'],
                 io_approach='ghosh'
             )
-            dump_supchain_to_csv(supchain, row['haz_type'], row['sector'], scenario, ref_year, row['country'])
+            dump_supchain_to_csv(
+                supchain,
+                row['haz_type'],
+                row['sector'],
+                scenario,
+                ref_year,
+                row['country'],
+                n_sim=n_sim_years,
+                return_period=100
+            )
         except ValueError as e:
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
