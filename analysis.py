@@ -46,7 +46,7 @@ country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antig
                   'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia',
                   'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
                   'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
-                  'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
+                  'Suriname', 'Sweden', 'Syrian Arab Republic', 'Taiwan, Province of China',
                   'Tajikistan',
                   'Tanzania, United Republic of', 'Thailand',
                   'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
@@ -90,7 +90,7 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Zimbabwe']
 
 hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood']
-sector_list = ['manufacturing'] # 'mining', 'manufacturing', 'service'
+sector_list = ['mining'] # 'mining', 'manufacturing', 'service', 'electricity'
 # sector_list = ['manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
@@ -105,11 +105,13 @@ Climada API data availability:
 
 Tropical Cyclones: Actually available and downloadable for Tropical Cyclone RCP26: 2040, 2060, 2080 RCP45: 2040, 2060, 2080 RCP60: 2040, 2060, 2080 historical: 1980-2020
 River Flood: Actually Available for River Flood RCP26: 2040, 2060, 2080 RCP60: 2040, 2060, 2080 RCP85: 2040, 2080 historical: 1980-2000
+Wildfire: Available on API: haz_type: wildfire, climate_scenario: historical, year_range=2001_2020, 
 """
 
 scenario = 'rcp60'
 ref_year = 2080
 n_sim_years = 100
+io_approach = 'ghosh'
 
 
 
@@ -160,7 +162,7 @@ def calc_supply_chain_impacts(
                 get_sector_exposure(sector=row['sector'], country=row['country']),
                 row['impact_yearset'],
                 impacted_sector=row['sector'],
-                io_approach='leontief'
+                io_approach=io_approach
             )
             dump_supchain_to_csv(
                 supchain,
@@ -186,7 +188,8 @@ if __name__ == "__main__":
             sector_list,
             scenario,
             ref_year,
-            n_sim_years
+            n_sim_years,
+            io_approach
         )
 
     # Postprocessing to create the final files
@@ -201,7 +204,7 @@ if __name__ == "__main__":
         for col in df.columns:
             if col.startswith("impact_"):
                 df[col] = df[col] * factor
-        df["value"] = df["value"] * factor
+        #df["value"] = df["value"] * factor
         print(f"Adjusting {f} by {factor} to {f_out}")
         df.to_csv(f_out, index=False)
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")

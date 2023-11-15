@@ -6,11 +6,16 @@ from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import flood_imp_func_set, RIVER_FLOOD_REGIONS_CSV
 from climada.entity import Exposures
 
+#for the wilfire impact function:
+from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire #https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
+
+
 # newly added
 
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
-    'river_flood': 'RF'
+    'river_flood': 'RF',
+    'wildfire': 'WF',
 }
 
 
@@ -70,6 +75,16 @@ def get_sector_exposure(sector, country):
         exp.gdf['value'] = exp.gdf.value
         exp.check()
 
+    if sector == 'electricity':
+        #load an exposure from an excel file
+        input_file = 'exposures/utilities_power_plant_global_database_WRI.xlsx'
+        excel_data = pd.read_excel(input_file)
+        # Generate an Exposures instance from DataFrame
+        exp = Exposures(excel_data)
+        exp.set_geometry_points()
+        exp.gdf['value'] = exp.gdf.value
+        exp.check()
+
     return exp
 
 
@@ -81,6 +96,8 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
+    if haz_type == 'WF':
+        return ImpactFuncSet([get_sector_impf_rf()])
 
     Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
     return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, haz_type)])
@@ -100,6 +117,12 @@ def get_sector_impf_rf(country_iso3alpha):
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
     return impf
+
+#for wilddire, not sure if it is working
+def get_sector_impf_wf(country_iso3alpha, haz_type='WF'):
+    impf =ImpfWildfire.from_default_FIRMS()
+    return impf
+
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()

@@ -10,7 +10,8 @@ from climada_petals.engine import SupplyChain
 SUPER_SEC = {
     "manufacturing": range(4, 22),
     "service": range(26, 56),
-    "mining": [3]
+    "mining": [3],
+    "electricity": [23],
 }
 
 
@@ -35,7 +36,7 @@ def get_supply_chain() -> SupplyChain:
     return SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
 
 
-def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_approach='leontief', shock_factor=None):
+def supply_chain_climada(exposure, direct_impact, io_approach, impacted_sector="service", shock_factor=None):
     assert impacted_sector in SUPER_SEC.keys(), f"impacted_sector must be one of {SUPER_SEC.keys()}"
     sec_range = SUPER_SEC[impacted_sector]
     supchain: SupplyChain = get_supply_chain()
@@ -63,17 +64,17 @@ def supply_chain_climada(exposure, direct_impact, impacted_sector="service", io_
 
 
 
-def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, n_sim=100, return_period=100):
+def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, n_sim=100, return_period=100, io_approach='ghosh'):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     indirect_impacts = []
-    for (sec, v) in supchain.supchain_imp["leontief"].loc[:, ('CHE', slice(None))].items():
+    for (sec, v) in supchain.supchain_imp[f"{io_approach}"].loc[:, ('CHE', slice(None))].items():
         rp_value = v.sort_values(ascending=False).iloc[index_rp]
         mean = v.sum() / n_sim
         max_val = v.max()
 
         obj = {
             "sector": sec[1],
-            "value": mean,
+            #"value": mean,
             "impact_max": max_val,
             "impact_aai": mean,
             f"impact_rp_{return_period}": rp_value,
@@ -96,10 +97,11 @@ def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country
            f"_{sector.replace(' ', '_')[:15]}" \
            f"_{scenario}" \
            f"_{ref_year}" \
+           f"_{io_approach}" \
            f"_{country_iso3alpha}" \
            f".csv"
 
     df_indirect.to_csv(path)
 
-    supchain.supchain_imp['leontief']
+    supchain.supchain_imp[f"{io_approach}"]
     return path
