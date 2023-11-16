@@ -46,7 +46,7 @@ country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antig
                   'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia',
                   'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
                   'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
-                  'Suriname', 'Sweden', 'Syrian Arab Republic', 'Taiwan, Province of China',
+                  'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
                   'Tajikistan',
                   'Tanzania, United Republic of', 'Thailand',
                   'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
@@ -56,8 +56,8 @@ country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antig
 country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                   'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                   'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
-                  'Bosnia and Herzegovina', 'Botswana',
-                  'Brazil', 'Brunei Darussalam', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
+                  'Bosnia and Herzegovina', 'Botswana','Brazil', 'Brunei Darussalam', 'Bulgaria', 'Burkina Faso',
+                    'Burundi', 'Cabo Verde', 'Cambodia', 'Cameroon',
                   'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo',
                   'Congo, The Democratic Republic of the', 'Costa Rica', 'Croatia',"Côte d'Ivoire",
                   'Cuba', 'Cyprus', 'Czechia', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic',
@@ -65,9 +65,7 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
                   'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
                   'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq',
-                  'Ireland',
-                  'Israel',
-                  'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
+                  'Ireland','Israel','Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
                   "Korea, Democratic People's Republic of",
                   'Korea, Republic of', 'Kuwait', 'Kyrgyzstan', "Lao People's Democratic Republic", 'Latvia', 'Lebanon',
                   'Lesotho', 'Liberia',
@@ -82,15 +80,14 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
                   'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
                   'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
-                  'Tajikistan',
-                  'Tanzania, United Republic of', 'Thailand',
+                  'Tajikistan','Tanzania, United Republic of', 'Thailand',
                   'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
                   'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
                   'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                   'Zimbabwe']
 
-hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood']
-sector_list = ['mining'] # 'mining', 'manufacturing', 'service', 'electricity'
+hazard_list = ['tropical_cyclone']  # ['tropical_cyclone', 'river_flood']
+sector_list = ['service'] # 'mining', 'manufacturing', 'service', 'electricity'
 # sector_list = ['manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
@@ -181,16 +178,20 @@ def calc_supply_chain_impacts(
 
 if __name__ == "__main__":
     # Added a loop to run for each country to have intermediate files
+
     for country in country_list:
-        calc_supply_chain_impacts(
-            [country],  # replace by country_list if whole list should be calculated at once
-            hazard_list,
-            sector_list,
-            scenario,
-            ref_year,
-            n_sim_years,
-            io_approach
-        )
+        try:
+            calc_supply_chain_impacts(
+                [country],  # replace by country_list if whole list should be calculated at once
+                hazard_list,
+                sector_list,
+                scenario,
+                ref_year,
+                n_sim_years,
+                io_approach
+            )
+        except Exception as e:
+            print(f"Could not caluclate country {country} {sector_list} due to {e}")
 
     # Postprocessing to create the final files
     supchain = indirect.get_supply_chain()
