@@ -4,6 +4,7 @@ from climada.engine.impact_calc import ImpactCalc
 from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import flood_imp_func_set, RIVER_FLOOD_REGIONS_CSV
+from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.entity import Exposures
 
 #for the wilfire impact function:
@@ -16,6 +17,14 @@ HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
     'river_flood': 'RF',
     'wildfire': 'WF',
+    'storm_europe': 'WS'
+}
+
+WS_SCENARIO_LOOKUP = {
+    'rcp26': 'ssp126',
+    'rcp45': 'ssp245',
+    'rcp60': 'ssp370',  # TODO check this is acceptable
+    'rcp85': 'ssp585'
 }
 
 
@@ -99,7 +108,9 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
     if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_rf()])
+        return ImpactFuncSet([get_sector_impf_wf()])
+    if haz_type == 'WS':
+        return ImpactFuncSet([get_sector_impf_ws()])
 
     Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
     return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, haz_type)])
@@ -120,9 +131,13 @@ def get_sector_impf_rf(country_iso3alpha):
     impf.id = 1
     return impf
 
-#for wilddire, not sure if it is working
-def get_sector_impf_wf(country_iso3alpha, haz_type='WF'):
+#for wildfire, not sure if it is working
+def get_sector_impf_wf(country_iso3alpha):
     impf =ImpfWildfire.from_default_FIRMS()
+    return impf
+
+def get_sector_impf_ws():
+    impf = ImpfStormEurope.from_schwierz()
     return impf
 
 
@@ -144,3 +159,12 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 'climate_scenario': scenario, 'year_range': year_range
             }
         )
+    elif haz_type == "storm_europe":
+        return client.get_hazard(
+            haz_type, properties={
+                'spatial_coverage': 'Europe',
+                'gcm': 'EC-Earth3-Veg',
+                'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
+            }
+        )
+        # TODO filter to bounding box
