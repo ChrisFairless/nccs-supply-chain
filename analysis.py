@@ -86,8 +86,8 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                   'Zimbabwe']
 
-hazard_list = ['tropical_cyclone']  # ['tropical_cyclone', 'river_flood']
-sector_list = ['service'] # 'mining', 'manufacturing', 'service', 'electricity'
+hazard_list = ['storm_europe']  # ['tropical_cyclone', 'river_flood', 'storm_europe']
+sector_list = ['mining'] # 'mining', 'manufacturing', 'service', 'electricity'
 # sector_list = ['manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
 #                'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing', 'manufacturing',
@@ -102,11 +102,18 @@ Climada API data availability:
 
 Tropical Cyclones: Actually available and downloadable for Tropical Cyclone RCP26: 2040, 2060, 2080 RCP45: 2040, 2060, 2080 RCP60: 2040, 2060, 2080 historical: 1980-2020
 River Flood: Actually Available for River Flood RCP26: 2040, 2060, 2080 RCP60: 2040, 2060, 2080 RCP85: 2040, 2080 historical: 1980-2000
+Storm Europe: hazard type: 'storm_europe', spatial coverage ? 
 Wildfire: Available on API: haz_type: wildfire, climate_scenario: historical, year_range=2001_2020, 
+
+request for data sets example
+from climada.util.api_client import Client
+client = Client()
+tc_dataset_infos = client.list_dataset_infos(data_type='tropical_cyclone')
+client.get_property_values(tc_dataset_infos, known_property_values = {'country_iso3alpha':'USA'})
 """
 
-scenario = 'rcp60'
-ref_year = 2080
+scenario = 'rcp60' # 'rcp60'
+ref_year = 2080 #2080
 n_sim_years = 100
 io_approach = 'ghosh'
 
