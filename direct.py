@@ -132,7 +132,7 @@ def get_sector_impf_rf(country_iso3alpha):
     return impf
 
 #for wildfire, not sure if it is working
-def get_sector_impf_wf(country_iso3alpha):
+def get_sector_impf_wf():
     impf =ImpfWildfire.from_default_FIRMS()
     return impf
 
@@ -144,19 +144,43 @@ def get_sector_impf_ws():
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
     if haz_type == 'tropical_cyclone':
-        return client.get_hazard(
-            haz_type, properties={
-                'country_iso3alpha': country_iso3alpha,
-                'climate_scenario': scenario, 'ref_year': str(ref_year)
-            }
-        )
+        if scenario =='None':
+            return client.get_hazard(
+                haz_type, properties={
+                    'country_iso3alpha': country_iso3alpha,
+                    'climate_scenario': 'None',
+                    'event_type':'synthetic'
+                })
+        else:
+            return client.get_hazard(
+                haz_type, properties={
+                    'country_iso3alpha': country_iso3alpha,
+                    'climate_scenario': scenario, 'ref_year': str(ref_year)
+                }
+            )
     elif haz_type == 'river_flood':
-        year_range_midpoint = round(ref_year / 20) * 20
-        year_range = str(year_range_midpoint - 10) + '_' + str(year_range_midpoint + 10)
+        if scenario == 'None':
+            return client.get_hazard(
+                haz_type, properties={
+                    'country_iso3alpha': country_iso3alpha,
+                    'climate_scenario': 'historical', 'year_range': '1980_2000'
+                }
+            )
+        else:
+            year_range_midpoint = round(ref_year / 20) * 20
+            year_range = str(year_range_midpoint - 10) + '_' + str(year_range_midpoint + 10)
+            return client.get_hazard(
+                haz_type, properties={
+                    'country_iso3alpha': country_iso3alpha,
+                    'climate_scenario': scenario, 'year_range': year_range
+                }
+            )
+    elif haz_type == 'wildfire':
+        year_range = '2001_2020'
         return client.get_hazard(
             haz_type, properties={
                 'country_iso3alpha': country_iso3alpha,
-                'climate_scenario': scenario, 'year_range': year_range
+                'climate_scenario': 'historical', 'year_range': year_range
             }
         )
     elif haz_type == "storm_europe":
