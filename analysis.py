@@ -81,7 +81,7 @@ Wildfire:
 
 
 #Check for country names with this website: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
-country_list = ['United States']
+country_list = ['Germany']
 country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                   'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                   'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
@@ -115,12 +115,12 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                   'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                   'Zimbabwe']
 
-hazard_list = ['wildfire']  # ['tropical_cyclone', 'river_flood', 'storm_europe']
+hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood', 'storm_europe']
 sector_list = ['service'] # 'mining', 'manufacturing', 'service', 'electricity'
-scenario = 'None' # 'rcp60', 'rcp26', 'rcp45','None'
-ref_year = 'historical' # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
+scenario = 'rcp26' # 'rcp60', 'rcp26', 'rcp45','None'
+ref_year = 2060 # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
 n_sim_years = 100
-io_approach = 'ghosh'
+io_approach = 'leontief'
 
 
 
@@ -181,6 +181,7 @@ def calc_supply_chain_impacts(
                 scenario,
                 ref_year,
                 row['country'],
+                io_approach,
                 n_sim=n_sim_years,
                 return_period=100
             )
@@ -192,33 +193,33 @@ def calc_supply_chain_impacts(
 if __name__ == "__main__":
     # Added a loop to run for each country to have intermediate files
 
-    for country in country_list:
-        try:
-            calc_supply_chain_impacts(
-                [country],  # replace by country_list if whole list should be calculated at once
-                hazard_list,
-                sector_list,
-                scenario,
-                ref_year,
-                n_sim_years,
-                io_approach
-            )
-        except Exception as e:
-            print(f"Could not caluclate country {country} {sector_list} due to {e}")
+    # for country in country_list:
+    #     try:
+    #         calc_supply_chain_impacts(
+    #             [country],  # replace by country_list if whole list should be calculated at once
+    #             hazard_list,
+    #             sector_list,
+    #             scenario,
+    #             ref_year,
+    #             n_sim_years,
+    #             io_approach
+    #         )
+    #     except Exception as e:
+    #         print(f"Could not caluclate country {country} {sector_list} due to {e}")
 
-    # Postprocessing to create the final files
-    # supchain = indirect.get_supply_chain()
-    # for f in glob.glob("results/*_*.csv"):
-    #     f_out = f.replace("results", "results_row_adjusted")
-    #     os.makedirs(os.path.dirname(f_out), exist_ok=True)
-    #
-    #     df = pd.read_csv(f)
-    #     iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
-    #     factor = indirect.get_country_modifier(supchain, iso_a3)
-    #     for col in df.columns:
-    #         if col.startswith("impact_"):
-    #             df[col] = df[col] * factor
-    #     #df["value"] = df["value"] * factor
-    #     print(f"Adjusting {f} by {factor} to {f_out}")
-    #     df.to_csv(f_out, index=False)
-    # print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+    #Postprocessing to create the final files
+    supchain = indirect.get_supply_chain()
+    for f in glob.glob("results/*_*.csv"):
+        f_out = f.replace("results", "results_row_adjusted")
+        os.makedirs(os.path.dirname(f_out), exist_ok=True)
+
+        df = pd.read_csv(f)
+        iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
+        factor = indirect.get_country_modifier(supchain, iso_a3)
+        for col in df.columns:
+            if col.startswith("impact_"):
+                df[col] = df[col] * factor
+        #df["value"] = df["value"] * factor
+        print(f"Adjusting {f} by {factor} to {f_out}")
+        df.to_csv(f_out, index=False)
+    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
