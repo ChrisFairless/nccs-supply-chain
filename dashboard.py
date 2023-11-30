@@ -8,11 +8,9 @@ import pandas as pd
 import xyzservices.providers as xyz
 from bokeh.io import curdoc
 from bokeh.layouts import layout
-from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LinearColorMapper, LogColorMapper, Patches, Select,
-                          TableColumn)
-from bokeh.palettes import Viridis256
+from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LogColorMapper, Patches, Select,
+                          TabPanel, TableColumn, Tabs)
 from bokeh.plotting import figure
-
 
 """
 To run the dashboard.py 
@@ -29,6 +27,13 @@ dfs = []
 for filename in data_files:
     df = pd.read_csv(filename)
     df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
+
+    # TODO Hotfix to be removed
+    if "leontief" in filename:
+        df['io_approach'] = "leontief"
+    else:
+        df['io_approach'] = "ghosh"
+
     dfs.append(df)
 DS_INDIRECT_BASE = pd.concat(dfs)
 DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
@@ -37,15 +42,31 @@ DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
 METRICS = ["impact_aai", "impact_rp_100"]
+IO_APPROACH = DS_INDIRECT_BASE.io_approach.unique()
+SCENARIOS = DS_INDIRECT_BASE.scenario.unique()
+REF_YEARS = DS_INDIRECT_BASE.ref_year.unique()
 
+# Defaults for the dropdowns
 selected_hazard_type = HAZARD_TYPES[0]
 selected_impacted_sector = IMPACTED_SECTORS[0]
 selected_metric = METRICS[0]
-SELECTED_COUNTRY = None
-SELECTED_SECTOR = None
+selected_io_approach = IO_APPROACH[0]
+selected_scenario = SCENARIOS[0]
+selected_ref_year = REF_YEARS[0]
+
+# Variables which hold the country and sector the user clicked on the map / barplot
+SELECTED_COUNTRY = None  # The country which is shocked
+SELECTED_SECTOR = None  # The sector which is indirectly impacted
 
 
-def filter_data(ds: pd.DataFrame, imp_country=None, sector=None, hazard_type=None, sector_of_impact=None):
+def filter_data(ds: pd.DataFrame,
+                imp_country=None,
+                sector=None,
+                hazard_type=None,
+                sector_of_impact=None,
+                scenario=None,
+                ref_year=None,
+                io_approach=None):
     if imp_country is not None:
         ds = ds[ds.country_of_impact_iso_a3 == imp_country]
     if sector_of_impact is not None:
@@ -54,12 +75,19 @@ def filter_data(ds: pd.DataFrame, imp_country=None, sector=None, hazard_type=Non
         ds = ds[ds.sector == sector]
     if hazard_type is not None:
         ds = ds[ds.hazard_type == hazard_type]
+    if scenario is not None:
+        ds = ds[ds.scenario == scenario]
+    if ref_year is not None:
+        ds = ds[ds.ref_year == ref_year]
+    if io_approach is not None:
+        ds = ds[ds.io_approach == io_approach]
     return ds
 
 
 def get_country_source(ds, gj):
     result_countries = []
     sub = ds.groupby("country_of_impact_iso_a3")['value'].sum(numeric_only=True)
+
     for (country, summed) in sub.items():
         country_geom = gj.get(country, None)
 
@@ -69,7 +97,9 @@ def get_country_source(ds, gj):
 
         country_geom['properties']['value'] = summed
         result_countries.append(country_geom)
-    return result_countries
+
+    sub = ds.groupby("country_of_impact")['value'].sum(numeric_only=True).reset_index()
+    return result_countries, {"country": sub.country_of_impact, "impact": sub.value}
 
 
 def get_barplot_source(ds):
@@ -90,8 +120,9 @@ def to_gj_feature_collection(features):
 
 
 def update_country_source(ds):
-    new_data = get_country_source(ds, COUNTRIES_BY_NAME)
+    new_data, table_data = get_country_source(ds, COUNTRIES_BY_NAME)
     geo_source.geojson = to_gj_feature_collection(new_data)
+    country_table_source.data = table_data
 
 
 def update_barplot_source(ds):
@@ -100,14 +131,43 @@ def update_barplot_source(ds):
     p_barpot.x_range.factors = source_barplot.data['sectors']
 
 
-def update_plots(selected_imp_country, selected_sector, selected_hazard_type, selected_impacted_sector, metric):
+def update_plots(selected_imp_country,
+                 selected_sector,
+                 selected_hazard_type,
+                 selected_impacted_sector,
+                 metric,
+                 selected_scenario,
+                 selected_ref_year,
+                 selected_io_approach):
+    # TODO Find all update_plots calls and update them to use the new parameters
     DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE[metric]
-    print(DS_INDIRECT_BASE["value"])
+    print(
+        f"Updating plots with {selected_imp_country} {selected_sector} {selected_hazard_type} "
+        f"{selected_impacted_sector} {metric}"
+    )
     update_country_source(
-        filter_data(DS_INDIRECT_BASE, None, selected_sector, selected_hazard_type, selected_impacted_sector)
+        filter_data(
+            ds=DS_INDIRECT_BASE,
+            imp_country=None,
+            sector=selected_sector,
+            hazard_type=selected_hazard_type,
+            sector_of_impact=selected_impacted_sector,
+            scenario=selected_scenario,
+            ref_year=selected_ref_year,
+            io_approach=selected_io_approach
+        )
     )
     update_barplot_source(
-        filter_data(DS_INDIRECT_BASE, selected_imp_country, None, selected_hazard_type, selected_impacted_sector)
+        filter_data(
+            ds=DS_INDIRECT_BASE,
+            imp_country=selected_imp_country,
+            sector=None,
+            hazard_type=selected_hazard_type,
+            sector_of_impact=selected_impacted_sector,
+            scenario=selected_scenario,
+            ref_year=selected_ref_year,
+            io_approach=selected_io_approach
+        )
     )
 
 
@@ -183,6 +243,7 @@ def on_impacted_sector_changed(attr, old, new):
         metric=selected_metric
     )
 
+
 def on_metric_changed(attr, old, new):
     global selected_metric
     selected_metric = new
@@ -195,9 +256,20 @@ def on_metric_changed(attr, old, new):
     )
 
 
+def on_io_approach_changed(attr, old, new):
+    global selected_io_approach
+    selected_io_approach = new
+    update_plots(
+        selected_imp_country=SELECTED_COUNTRY,
+        selected_sector=SELECTED_SECTOR,
+        selected_hazard_type=selected_hazard_type,
+        selected_impacted_sector=selected_impacted_sector,
+        metric=selected_metric,
+    )
+
+
 logging.getLogger().setLevel(logging.INFO)
 
-features = get_country_source(DS_INDIRECT_BASE, COUNTRIES_BY_NAME)
 select_hazard_type = Select(title="Hazard Type", options=sorted(HAZARD_TYPES), value=selected_hazard_type, width=200)
 select_hazard_type.on_change("value", on_hazard_type_changed)
 
@@ -219,9 +291,23 @@ select_metric = Select(
 select_metric.on_change("value", on_metric_changed)
 select_metric.sizing_mode = "fixed"
 
+# TODO: Add the other dropdowns for scenario and ref_year (duplicate line 295 - 302)
+select_io_approach = Select(
+    title="IO Approach",
+    options=sorted(IO_APPROACH),
+    value=selected_io_approach,
+    width=200,
+)
+select_metric.on_change("value", on_metric_changed)
+select_metric.sizing_mode = "fixed"
+
 # Country Plot
+# This is for the country, value table
+
+features, country_table_data = get_country_source(DS_INDIRECT_BASE, COUNTRIES_BY_NAME)
 geo_source = GeoJSONDataSource(geojson=to_gj_feature_collection(features))
 geo_source.selected.on_change('indices', on_country_selected)
+country_table_source = ColumnDataSource(country_table_data)
 
 p_countries = figure(
     title="Indirect impact contribution by country",
@@ -271,13 +357,26 @@ columns = [
     TableColumn(field="impact", title="Indirect Impact"),
 ]
 
-data_table = DataTable(source=source_barplot, columns=columns, height=400, width=400)
+data_table_sector = DataTable(source=source_barplot, columns=columns, height=400, width=400)
 select_hazard_type.sizing_mode = "fixed"
+
+columns = [
+    TableColumn(field="country", title="Country"),
+    TableColumn(field="impact", title="Indirect Impact"),
+]
+
+data_table_country = DataTable(source=country_table_source, columns=columns, height=400, width=400)
+select_hazard_type.sizing_mode = "fixed"
+
+tab = Tabs(
+    tabs=[TabPanel(child=data_table_sector, title="Sectors"), TabPanel(child=data_table_country, title="Countries")]
+)
+
 lt = layout(
     [
-        [select_hazard_type, select_source_sector, select_metric, Div(sizing_mode="stretch_width")],
+        [select_hazard_type, select_source_sector, select_metric, Div(sizing_mode="stretch_width")], #TODO Add the new buttons here
         [p_countries, p_barpot],
-        [data_table]
+        [tab]
     ],
     sizing_mode="stretch_width"
 )

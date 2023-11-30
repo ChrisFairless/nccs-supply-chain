@@ -83,6 +83,7 @@ def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country
             "scenario": scenario,
             "ref_year": ref_year,
             "country_of_impact": country,
+            "io_approach": io_approach
 
         }
         indirect_impacts.append(obj)
