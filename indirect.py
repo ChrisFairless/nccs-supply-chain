@@ -108,11 +108,11 @@ def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country
                 "sector": sec[1],
                 # "value": mean,
                 "impact_max": max_val,
-                "rel_impact_max": 0,  # Set to 0 to avoid division by zero
+                "rel_impact_max_%": 0,  # Set to 0 to avoid division by zero
                 "impact_aai": mean,
-                "rel_impact_aai": 0,  # Set to 0 to avoid division by zero
+                "rel_impact_aai_%": 0,  # Set to 0 to avoid division by zero
                 f"impact_rp_{return_period}": rp_value,
-                f"rel_impact_rp_{return_period}": 0,  # Set to 0 to avoid division by zero
+                f"rel_impact_rp_{return_period}_%": 0,  # Set to 0 to avoid division by zero
                 "hazard_type": haz_type,
                 "sector_of_impact": sector,
                 "scenario": scenario,
