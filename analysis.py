@@ -12,12 +12,13 @@ from indirect import dump_supchain_to_csv, supply_chain_climada
 """
 Climada API data availability: https://climada.ethz.ch/data-api/admin/docs 
     --> Search Datasets, 
-    --> for properties always use doubled quotation marks "", example: "climate_scenario": "historical"
+    --> example data_type: tropical_cyclone
+    --> for properties always use doubled quotation marks "", example: "climate_scenario": "None"
     --> use the hazard name for the data_type
 
 Tropical Cyclones: 
     Climada API properties:
-    'ref_year': ['2040', '2060', '2080'], 
+    'ref_year': ['2040', '2060', '2080', 'historical'], 
     'event_type': ['synthetic', 'observed'],
     'climate_scenario': ['rcp26', 'rcp45', 'None', 'rcp60', 'rcp85']
 
@@ -36,8 +37,8 @@ Tropical Cyclones:
     "synthetic", could also use "observed"
 
 River Flood: 
-    'year_range': ['2010_2030','2030_2050','2050_2070','2070_2090','1980_2000'],
-    'climate_scenario': ['rcp26', 'rcp85', 'historical', 'rcp60']
+    'year_range': ['2010_2030','2030_2050','2050_2070','2070_2090','historical'], # officialy in API 'historical' would be '1980_2000'
+    'climate_scenario': ['rcp26', 'rcp85', 'None', 'rcp60'] # officialy in API, 'None' would be 'historical'
 
     combination that are allowed:
     scenario = 'rcp26' & ref_year = 2020
@@ -61,8 +62,8 @@ Storm Europe:
     
 Wildfire: 
     Available on API: haz_type: wildfire, 
-    "climate_scenario": "historical" 
-    "year_range": "2001_2020", 
+    "climate_scenario": ['None'] # offically on API it would be "historical" 
+    "year_range": ['historical']  # officialy on API it would be "2001_2020", 
 
     combination that are allowed:
     scenario = 'None'  & ref_year = historical
@@ -119,10 +120,10 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                        'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                        'Zimbabwe']
 
-hazard_list = ['relative_crop_yield']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield]
-sector_list = ['agriculture']  # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
-scenario = 'historical'  # 'rcp60', 'rcp26', 'rcp45','None' | for agriculture: historical, rcp60
-ref_year = '2006_2099'  # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
+hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield]
+sector_list = ['service']  # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
+scenario = 'rcp26'  # 'rcp60', 'rcp26', 'rcp45','None'
+ref_year = '2060'  # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
 n_sim_years = 100
 io_approach = 'ghosh'
 
@@ -195,7 +196,7 @@ def calc_supply_chain_impacts(
 
 
 if __name__ == "__main__":
-    # Added a loop to run for each country to have intermediate files
+    #Added a loop to run for each country to have intermediate files
 
     for country in country_list:
         try:
@@ -210,6 +211,8 @@ if __name__ == "__main__":
             )
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list} due to {e}")
+
+
 
     # Postprocessing to create the final files
     supchain = indirect.get_supply_chain()
