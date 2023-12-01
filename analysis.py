@@ -79,9 +79,9 @@ Wildfire:
 # n_sim_years = 100
 
 
-# Check for country names with this website:
-# https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
-country_list = ['United States']
+
+#Check for country names with this website: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
+country_list = ['Germany']
 country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                        'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                        'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
@@ -119,12 +119,12 @@ country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola',
                        'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                        'Zimbabwe']
 
-hazard_list = ['relative_crop_yield']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield]
-sector_list = ['agriculture']  # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
-scenario = 'None'  # 'rcp60', 'rcp26', 'rcp45','None'
-ref_year = 'historical'  # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
+hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield]
+sector_list = ['service']  # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
+scenario = 'rcp26'  # 'rcp60', 'rcp26', 'rcp45','None'
+ref_year = '2060'  # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
 n_sim_years = 100
-io_approach = 'ghosh'
+io_approach = 'leontief'
 
 
 def calc_supply_chain_impacts(
@@ -207,7 +207,6 @@ if __name__ == "__main__":
                 io_approach
             )
         except Exception as e:
-            raise e
             print(f"Could not calculate country {country} {sector_list} due to {e}")
 
     # Postprocessing to create the final files

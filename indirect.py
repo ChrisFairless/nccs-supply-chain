@@ -65,7 +65,7 @@ def supply_chain_climada(exposure, direct_impact, io_approach, impacted_sector="
 
 
 
-def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, n_sim=100, return_period=100, io_approach='ghosh'):
+def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, io_approach, n_sim=100, return_period=100):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     indirect_impacts = []
     for (sec, v) in supchain.supchain_imp[f"{io_approach}"].loc[:, ('CHE', slice(None))].items():
