@@ -324,7 +324,7 @@ def on_io_approach_changed(attr, old, new):
     )
 
 
-logging.getLogger().setLevel(logging.INFO)
+# logging.getLogger().setLevel(logging.INFO)
 
 #Buttons for selection
 
