@@ -82,7 +82,6 @@ Wildfire:
 
 
 #Check for country names with this website: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
-<<<<<<< Updated upstream
 country_list = ['Germany']
 country_list_global = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                        'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
@@ -125,7 +124,6 @@ hazard_list = ['river_flood']  # ['tropical_cyclone', 'river_flood', 'storm_euro
 sector_list = ['service']  # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
 scenario = 'rcp26'  # 'rcp60', 'rcp26', 'rcp45','None'
 ref_year = '2060'  # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
-=======
 country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                   'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados',
                   'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia, Plurinational State of',
@@ -152,7 +150,7 @@ country_list = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antig
                   'Saint Vincent and the Grenadines', 'Samoa', 'San Marino', 'Sao Tome and Principe', 'Saudi Arabia',
                   'Senegal', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia',
                   'Solomon Islands', 'Somalia', 'South Africa', 'Spain', 'Sri Lanka', 'Sudan',
-                  'Suriname', 'Sweden', 'Switzerland', 'Syrian Arab Republic', 'Taiwan, Province of China',
+                  'Suriname', 'Sweden', 'Syrian Arab Republic', 'Taiwan, Province of China',
                   'Tajikistan','Tanzania, United Republic of', 'Thailand',
                   'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey', 'Turkmenistan', 'Tuvalu', 'Uganda',
                   'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay', 'Uzbekistan',
@@ -191,11 +189,10 @@ ALL_COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Anti
                   'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                   'Zimbabwe']
 
-hazard_list = ['tropical_cyclone']  # ['tropical_cyclone', 'river_flood', 'storm_europe']
+hazard_list = ['tropical_cyclone']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield']
 sector_list = ['electricity'] # 'mining', 'manufacturing', 'service', 'electricity'
 scenario = 'None' # 'rcp60', 'rcp26', 'rcp45','None'
 ref_year = 'historical' # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
->>>>>>> Stashed changes
 n_sim_years = 100
 io_approach = 'leontief'
 
@@ -279,11 +276,8 @@ if __name__ == "__main__":
                 io_approach
             )
         except Exception as e:
-<<<<<<< Updated upstream
-            print(f"Could not calculate country {country} {sector_list} due to {e}")
-=======
             print(f"Could not caluclate country {country} {sector_list} due to {e}")
->>>>>>> Stashed changes
+
 
     # Postprocessing to create the final files
     supchain = indirect.get_supply_chain()
