@@ -187,7 +187,6 @@ def calc_supply_chain_impacts(
                 io_approach=io_approach
             )
         except ValueError as e:
-            raise e
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
