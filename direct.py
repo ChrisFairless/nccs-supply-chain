@@ -211,6 +211,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
 
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
+
         return agriculture.get_hazard(
             country=country_iso3alpha,
             year_range=ref_year,
