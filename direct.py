@@ -159,7 +159,11 @@ def get_sector_impf_ws():
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
     if haz_type == 'tropical_cyclone':
+<<<<<<< Updated upstream
         if scenario == 'None':
+=======
+        if scenario =='None' and ref_year=='historical':
+>>>>>>> Stashed changes
             return client.get_hazard(
                 haz_type, properties={
                     'country_iso3alpha': country_iso3alpha,
@@ -175,7 +179,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 }
             )
     elif haz_type == 'river_flood':
-        if scenario == 'None':
+        if scenario == 'None' and ref_year=='historical':
             return client.get_hazard(
                 haz_type, properties={
                     'country_iso3alpha': country_iso3alpha,
@@ -193,12 +197,13 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             )
     elif haz_type == 'wildfire':
         year_range = '2001_2020'
-        return client.get_hazard(
-            haz_type, properties={
-                'country_iso3alpha': country_iso3alpha,
-                'climate_scenario': 'historical', 'year_range': year_range
-            }
-        )
+        if scenario == 'None' and ref_year=='historical':
+            return client.get_hazard(
+                haz_type, properties={
+                    'country_iso3alpha': country_iso3alpha,
+                    'climate_scenario': 'historical', 'year_range': year_range
+                }
+            )
     elif haz_type == "storm_europe":
         return client.get_hazard(
             haz_type, properties={
