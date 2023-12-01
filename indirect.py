@@ -12,6 +12,7 @@ SUPER_SEC = {
     "service": range(26, 56),
     "mining": [3],
     "electricity": [23],
+    "agriculture": [0],
 }
 
 
