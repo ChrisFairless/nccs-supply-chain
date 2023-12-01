@@ -42,7 +42,7 @@ DS_INDIRECT_BASE["ref_year"]=DS_INDIRECT_BASE["ref_year"].astype(str)
 DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
-METRICS = ["impact_aai", "impact_rp_100"]
+METRICS = ["impact_aai","rel_impact_aai_%", "impact_rp_100", "rel_impact_rp_100_%"]
 IO_APPROACH = DS_INDIRECT_BASE.io_approach.unique()
 SCENARIOS = DS_INDIRECT_BASE.scenario.unique()
 REF_YEARS = DS_INDIRECT_BASE.ref_year.unique()
@@ -352,7 +352,7 @@ select_metric = Select(
 select_metric.on_change("value", on_metric_changed)
 select_metric.sizing_mode = "fixed"
 
-# TODO: Add the other dropdowns for scenario and ref_year (duplicate line 295 - 302)
+# TODO: Add the other dropdowns for scenario and ref_year
 select_scenario = Select(
     title="Scenario",
     options=sorted(SCENARIOS),
