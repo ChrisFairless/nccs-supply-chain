@@ -160,7 +160,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
     if haz_type == 'tropical_cyclone':
 
-        if scenario =='None' and ref_year=='historical':
+        if scenario == 'None' and ref_year == 'historical':
 
             return client.get_hazard(
                 haz_type, properties={
@@ -177,7 +177,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 }
             )
     elif haz_type == 'river_flood':
-        if scenario == 'None' and ref_year=='historical':
+        if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
                 haz_type, properties={
                     'country_iso3alpha': country_iso3alpha,
@@ -195,7 +195,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             )
     elif haz_type == 'wildfire':
         year_range = '2001_2020'
-        if scenario == 'None' and ref_year=='historical':
+        if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
                 haz_type, properties={
                     'country_iso3alpha': country_iso3alpha,
@@ -214,6 +214,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
 
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
+
         return agriculture.get_hazard(
             country=country_iso3alpha,
             year_range=ref_year,
