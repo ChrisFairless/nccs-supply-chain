@@ -193,3 +193,5 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             }
         )
         # TODO filter to bounding box
+    else:
+        raise ValueError(f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
