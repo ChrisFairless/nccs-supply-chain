@@ -133,7 +133,8 @@ def get_sector_impf_rf(country_iso3alpha):
 
 #for wildfire, not sure if it is working
 def get_sector_impf_wf():
-    impf =ImpfWildfire.from_default_FIRMS()
+    impf = ImpfWildfire.from_default_FIRMS()
+    impf.haz_type = 'WFseason'
     return impf
 
 def get_sector_impf_ws():
