@@ -9,3 +9,5 @@ cache*
 *.csv
 *.hdf5
 climada_petals/
+*.nc4
+*.nc4
