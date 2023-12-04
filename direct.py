@@ -185,11 +185,12 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             }
         )
     elif haz_type == "storm_europe":
-        return client.get_hazard(
+        haz = client.get_hazard(
             haz_type, properties={
                 'spatial_coverage': 'Europe',
                 'gcm': 'EC-Earth3-Veg',
                 'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
             }
         )
-        # TODO filter to bounding box
+        country_iso3num = pycountry.countries.get(alpha_3=country_iso3alpha).numeric
+        return haz.select(reg_id = country_iso3num)
