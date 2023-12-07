@@ -69,15 +69,14 @@ Wildfire:
     scenario = 'None'  & ref_year = historical
     --> 'None' will use climate_scenario 'historical' and ref_year = historical will use '2001-2020'
     --> even if another scenario is selected, it will just pick the historical one
+    
+Agriculture: Relative Cropyield
+    hazard: 'relative_crop_yield'
+    sector: 'agriculture'
+    scenario = 'climate_scenario': ['historical', 'rcp60'] & ref_year = 'year_range': ['1971_2001', '1980_2012', '2006_2099', '1976_2005']    
+    hazard_list = ['relative_crop_yield']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield']
 """
 
-# original
-# country_list = ['Saint Kitts and Nevis', 'Jamaica', "China", "United States"]
-# hazard_list = ['tropical_cyclone', 'river_flood']
-# sector_list = ['service', 'service']
-# scenario = 'rcp60'
-# ref_year = 2080
-# n_sim_years = 100
 
 
 
@@ -119,6 +118,7 @@ ALL_COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Anti
 
 hazard_list = ['relative_crop_yield']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield']
 sector_list = ['agriculture'] # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
+
 scenario = 'historical' # 'rcp60', 'rcp26', 'rcp45','None', 'historical'
 ref_year = '1971_2001' # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
 n_sim_years = 100
