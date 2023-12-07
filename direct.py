@@ -148,6 +148,7 @@ def get_sector_impf_rf(country_iso3alpha):
 # for wildfire, not sure if it is working
 def get_sector_impf_wf():
     impf = ImpfWildfire.from_default_FIRMS()
+    impf.haz_type = 'WFseason'
     return impf
 
 
@@ -211,7 +212,6 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             }
         )
         # TODO filter to bounding box
-
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
 
@@ -220,3 +220,5 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             year_range=ref_year,
             scenario=scenario
         )
+    else:
+        raise ValueError(f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
