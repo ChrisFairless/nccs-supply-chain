@@ -117,10 +117,10 @@ ALL_COUNTRIES = ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Anti
                   'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                   'Zimbabwe']
 
-hazard_list = ['wildfire']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield']
-sector_list = ['electricity'] # 'mining', 'manufacturing', 'service', 'electricity'
-scenario = 'None' # 'rcp60', 'rcp26', 'rcp45','None'
-ref_year = 'historical' # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
+hazard_list = ['relative_crop_yield']  # ['tropical_cyclone', 'river_flood', 'storm_europe', 'relative_crop_yield']
+sector_list = ['agriculture'] # 'mining', 'manufacturing', 'service', 'electricity', 'agriculture'
+scenario = 'historical' # 'rcp60', 'rcp26', 'rcp45','None', 'historical'
+ref_year = '1971_2001' # 'historical', 2040, 2060, 2080, 2020 #2020 works for river_flood only
 n_sim_years = 100
 io_approach = 'ghosh'
 
