@@ -38,6 +38,7 @@ for filename in data_files:
 DS_INDIRECT_BASE = pd.concat(dfs)
 DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
 DS_INDIRECT_BASE["ref_year"]=DS_INDIRECT_BASE["ref_year"].astype(str)
+DS_INDIRECT_BASE["value"]=DS_INDIRECT_BASE["impact_aai"].copy()
 
 DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
@@ -352,7 +353,6 @@ select_metric = Select(
 select_metric.on_change("value", on_metric_changed)
 select_metric.sizing_mode = "fixed"
 
-# TODO: Add the other dropdowns for scenario and ref_year
 select_scenario = Select(
     title="Scenario",
     options=sorted(SCENARIOS),
