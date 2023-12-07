@@ -39,7 +39,6 @@ def get_hazard(country,
                scenario: typing.Literal["historical", "rcp60"] = "historical",
                crop_type: CropType = "whe",
                irr: IrrigationType = "firr"):
-    # TODO how to filter the hazard by country?
     # TODO how to map the year to the years in this model
     # TODO What about the firr and noirr?
     print(country, year_range, scenario, crop_type, irr)
@@ -49,7 +48,8 @@ def get_hazard(country,
         properties={
             'climate_scenario': scenario,
             'crop': crop_type,
-            'irrigation_status': irr
+            'irrigation_status': irr,
+            'year_range':year_range
         }
     )
     hazard.centroids.set_region_id()
