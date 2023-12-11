@@ -7,3 +7,7 @@ cache*
 /_to_ignore/
 *__pycache__*
 *.csv
+*.hdf5
+climada_petals/
+*.nc4
+*.nc4
