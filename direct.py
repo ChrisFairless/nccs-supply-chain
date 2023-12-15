@@ -64,7 +64,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
-    print(f"Calculating direct impacts for {country} {sector} {haz_type}")
+    print(f"Calculating direct impacts for {country} {sector} {haz_type} {scenario} {ref_year}")
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
@@ -148,7 +148,7 @@ def get_sector_impf_rf(country_iso3alpha):
 # for wildfire, not sure if it is working
 def get_sector_impf_wf():
     impf = ImpfWildfire.from_default_FIRMS()
-    impf.haz_type = 'WFseason'
+    impf.haz_type = 'WFseason' #TODO there is a warning when running the code that the haz_type is set to WFsingle
     return impf
 
 
@@ -208,17 +208,26 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             haz_type, properties={
                 'spatial_coverage': 'Europe',
                 'gcm': 'EC-Earth3-Veg',
-                'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
+                #'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
+                'climate_scenario': scenario
             }
         )
         # TODO filter to bounding box
+    # TODO currently always returns the same hazard
+
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
-
-        return agriculture.get_hazard(
-            country=country_iso3alpha,
-            year_range=ref_year,
-            scenario=scenario
-        )
+        if scenario == 'None' and ref_year=="historical":
+            return agriculture.get_hazard(
+                country=country_iso3alpha,
+                year_range="1971_2001",
+                scenario="historical"
+            )
+        else:
+            return agriculture.get_hazard(
+                country=country_iso3alpha,
+                year_range=ref_year,
+                scenario=scenario
+            )
     else:
         raise ValueError(f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
