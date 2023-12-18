@@ -115,7 +115,7 @@ config = {
     "io_approach": "ghosh",
     "n_sim_years": 100,
     "runs": [
-        {
+        {   
             "hazard": "tropical_cyclone",
             "sectors": ["mining", "manufacturing", "service", "electricity","agriculture"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
@@ -302,6 +302,7 @@ config = {
                 # {"scenario": "ssp585", "ref_year": "present"},
             ]
         },
+
         {
             "hazard": "relative_crop_yield",
             "sectors": ["agriculture"],
@@ -427,22 +428,22 @@ def run_pipeline(country_list, hazard, sector_list, scenario, ref_year, n_sim_ye
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list} due to {e}")
 
-    # Postprocessing to create the final files
-    # supchain = indirect.get_supply_chain()
-    # for f in glob.glob("results/*_*.csv"):
-    #     f_out = f.replace("results", "results_row_adjusted")
-    #     os.makedirs(os.path.dirname(f_out), exist_ok=True)
-    #
-    #     df = pd.read_csv(f)
-    #     iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
-    #     factor = indirect.get_country_modifier(supchain, iso_a3)
-    #     for col in df.columns:
-    #         if col.startswith("impact_"):
-    #             df[col] = df[col] * factor
-    #     # df["value"] = df["value"] * factor
-    #     print(f"Adjusting {f} by {factor} to {f_out}")
-    #     df.to_csv(f_out, index=False)
-    # print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+    # # Postprocessing to create the final files
+    supchain = indirect.get_supply_chain()
+    for f in glob.glob("results/*_*.csv"):
+        f_out = f.replace("results", "results_row_adjusted")
+        os.makedirs(os.path.dirname(f_out), exist_ok=True)
+
+        df = pd.read_csv(f)
+        iso_a3 = f.split("/")[-1].split("_")[-1].split(".")[0]
+        factor = indirect.get_country_modifier(supchain, iso_a3)
+        for col in df.columns:
+            if col.startswith("impact_"):
+                df[col] = df[col] * factor
+        # df["value"] = df["value"] * factor
+        print(f"Adjusting {f} by {factor} to {f_out}")
+        df.to_csv(f_out, index=False)
+    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
 def run_pipeline_from_config(config):
@@ -457,6 +458,7 @@ def run_pipeline_from_config(config):
                 config["n_sim_years"],
                 config["io_approach"]
             )
+
 
 
 if __name__ == "__main__":
