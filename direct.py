@@ -14,6 +14,7 @@ from climada_petals.entity.impact_funcs.wildfire import \
     ImpfWildfire  # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 
 import agriculture
+import h5py
 
 # /wildfire.py
 
@@ -106,6 +107,18 @@ def get_sector_exposure(sector, country):
 
     if sector == 'agriculture':
         exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
+
+    if sector == 'forestry':
+        # load an exposure from a hdf5 file
+        input_file_forest = 'exposures/forestry/forest_exp_v2.h5'
+        h5_file = pd.read_hdf(input_file_forest)
+        # Generate an Exposures instance from DataFrame
+        exp = Exposures(h5_file)
+        exp.set_geometry_points()
+        exp.gdf['value'] = exp.gdf.value
+        exp.check()
+
+
     return exp
 
 
