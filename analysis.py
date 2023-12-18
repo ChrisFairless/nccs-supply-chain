@@ -7,7 +7,7 @@ import indirect
 from calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
 from direct import get_sector_exposure, nccs_direct_impacts_list_simple
-from indirect import dump_supchain_to_csv, supply_chain_climada
+from indirect import dump_supchain_to_csv, supply_chain_climada, dump_direct_to_csv
 
 """
 Climada API data availability: https://climada.ethz.ch/data-api/admin/docs 
@@ -115,7 +115,7 @@ config = {
     "io_approach": "ghosh",
     "n_sim_years": 100,
     "runs": [
-        {   
+        {
             "hazard": "tropical_cyclone",
             "sectors": ["mining", "manufacturing", "service", "electricity","agriculture"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
@@ -397,6 +397,18 @@ def calc_supply_chain_impacts(
                 impacted_sector=row['sector'],
                 io_approach=io_approach
             )
+            #save direct impacts to a csv
+            dump_direct_to_csv(
+                supchain=supchain,
+                haz_type=row['haz_type'],
+                sector=row['sector'],
+                scenario=scenario,
+                ref_year=ref_year,
+                country=row['country'],
+                n_sim=n_sim_years,
+                return_period=100,
+            )
+            #save indirect impacts to a csv
             dump_supchain_to_csv(
                 supchain=supchain,
                 haz_type=row['haz_type'],
@@ -408,6 +420,7 @@ def calc_supply_chain_impacts(
                 return_period=100,
                 io_approach=io_approach
             )
+
         except ValueError as e:
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
@@ -428,7 +441,7 @@ def run_pipeline(country_list, hazard, sector_list, scenario, ref_year, n_sim_ye
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list} due to {e}")
 
-    # # Postprocessing to create the final files
+    # Postprocessing to create the final files
     supchain = indirect.get_supply_chain()
     for f in glob.glob("results/*_*.csv"):
         f_out = f.replace("results", "results_row_adjusted")
