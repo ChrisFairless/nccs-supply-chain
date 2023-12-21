@@ -4,6 +4,8 @@ from climada.entity import ImpactFuncSet
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.relative_cropyield import ImpfRelativeCropyield
 from pycountry import countries
+import numpy as np
+from climada.entity import ImpactFunc
 
 CropType = typing.Literal[
     "whe",
@@ -32,6 +34,20 @@ def get_impf_set():
     impf_cp.append(impf_def)
     impf_cp.check()
     return impf_cp
+
+def get_impf_set_TC():
+    imp_fun_maize = ImpactFunc(
+        id=1,
+        name="TC agriculture damage",
+        intensity_unit="m/s",
+        haz_type="TC",
+        intensity=np.array([0,11,38,60]),
+        mdd=np.array([0,0,1,1]),
+        paa=np.array([1,1,1,1])
+    )
+    imp_fun_maize.check()
+    imp_fun_set = ImpactFuncSet([imp_fun_maize])
+    return imp_fun_set
 
 
 def get_hazard(country,
