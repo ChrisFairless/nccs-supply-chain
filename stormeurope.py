@@ -3,11 +3,13 @@ import numpy as np
 import pycountry
 from climada.util.api_client import Client
 from climada.hazard import Hazard
+from climada.entity import ImpactFuncSet
+from climada.entity import ImpfStormEurope
 
 WS_SCENARIO_LOOKUP = {
     'rcp26': 'ssp126',
     'rcp45': 'ssp245',
-    'rcp60': 'ssp370',  # TODO check this is acceptable
+    'rcp60': 'ssp370',  # TODO check this is and acceptable approximation
     'rcp85': 'ssp585',
     'historical': 'None'
 }
@@ -31,7 +33,7 @@ def get_hazard(scenario, country_iso3alpha, gcm_list=None):
 
     ws_scenario = WS_SCENARIO_LOOKUP[scenario]
     if not gcm_list:
-        storm_df = get_cmip6_models([ws_scenario])
+        storm_df = get_cmip6_model_list([ws_scenario])
         gcm_list = storm_df['gcm']
     
     # Reproject each hazard dataset to match ERA5
@@ -93,7 +95,7 @@ def get_hazard_one_gcm(client, gcm, ws_scenario, country_iso3num, regrid_centroi
 
 
 
-def get_cmip6_models(scenario_list = None):
+def get_cmip6_model_list(scenario_list = None):
     client = Client()
     # Get metadata for all the CMIP6 data on the API
     info_df = client.list_dataset_infos(data_type='storm_europe')
