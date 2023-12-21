@@ -125,9 +125,10 @@ def get_sector_exposure(sector, country):
 def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
+    if haz_type == 'TC' and sector=='agriculture':
+        return agriculture.get_impf_set_TC()
     if haz_type == 'TC':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
-
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
     if haz_type == 'WF':
