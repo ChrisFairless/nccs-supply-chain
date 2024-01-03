@@ -22,25 +22,30 @@ with open("countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
-data_files = glob.glob(f"{os.path.dirname(__file__)}/results_row_adjusted/indirect_impacts_*.csv")
-dfs = []
-for filename in data_files:
-    df = pd.read_csv(filename)
-    df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
+if not os.path.isfile("complet.csv"):
+    data_files = glob.glob(f"{os.path.dirname(__file__)}/results_row_adjusted/indirect_impacts_*.csv")
+    dfs = []
+    for filename in data_files:
+        df = pd.read_csv(filename)
+        df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
 
-    # TODO Hotfix to be removed, because there were no io approaches in the testing files
-    if "leontief" in filename:
-        df['io_approach'] = "leontief"
-    else:
-        df['io_approach'] = "ghosh"
+        # TODO Hotfix to be removed, because there were no io approaches in the testing files
+        if "leontief" in filename:
+            df['io_approach'] = "leontief"
+        else:
+            df['io_approach'] = "ghosh"
 
-    dfs.append(df)
-DS_INDIRECT_BASE = pd.concat(dfs)
-DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
-DS_INDIRECT_BASE["ref_year"]=DS_INDIRECT_BASE["ref_year"].astype(str)
-DS_INDIRECT_BASE["value"]=DS_INDIRECT_BASE["impact_aai"].copy()
+        dfs.append(df)
+    DS_INDIRECT_BASE = pd.concat(dfs)
+    DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
+    DS_INDIRECT_BASE["ref_year"]=DS_INDIRECT_BASE["ref_year"].astype(str)
+    DS_INDIRECT_BASE["value"]=DS_INDIRECT_BASE["impact_aai"].copy()
 
-DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
+    DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
+    DS_INDIRECT_BASE.to_csv("complete.csv")
+else:
+    DS_INDIRECT_BASE=pd.read_csv("complete.csv")
+
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
 METRICS = ["impact_aai","rel_impact_aai_%", "impact_rp_100", "rel_impact_rp_100_%"]
@@ -81,9 +86,11 @@ def filter_data(ds: pd.DataFrame,
     if scenario is not None:
         ds = ds[ds.scenario == scenario]
     if ref_year is not None:
-        ds = ds[ds.ref_year == ref_year]
+        ds = ds[ds.ref_year == str(ref_year)]
     if io_approach is not None:
         ds = ds[ds.io_approach == io_approach]
+
+    print(len(ds))
     return ds
 
 
@@ -283,8 +290,8 @@ def on_metric_changed(attr, old, new):
         selected_io_approach=selected_io_approach
     )
 def on_scenario_changed(attr, old, new):
-    global selected_sceanrio
-    selected_sceanrio = new
+    global selected_scenario
+    selected_scenario = new
     update_plots(
         selected_imp_country=SELECTED_COUNTRY,
         selected_sector=SELECTED_SECTOR,

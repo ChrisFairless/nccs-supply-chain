@@ -11,3 +11,4 @@ cache*
 climada_petals/
 *.nc4
 *.nc4
+/exposures/forestry/forest_exp_region.h5
