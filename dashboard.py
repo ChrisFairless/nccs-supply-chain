@@ -48,7 +48,7 @@ else:
 
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
-METRICS = ["impact_aai","rel_impact_aai_%", "impact_rp_100", "rel_impact_rp_100_%"]
+METRICS = ["iAAPL","irAAPL", "iPL100", "irPL100"]
 IO_APPROACH = DS_INDIRECT_BASE.io_approach.unique()
 SCENARIOS = DS_INDIRECT_BASE.scenario.unique()
 REF_YEARS = DS_INDIRECT_BASE.ref_year.unique()
