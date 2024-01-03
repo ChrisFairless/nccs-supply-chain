@@ -63,6 +63,75 @@ def supply_chain_climada(exposure, direct_impact, io_approach, impacted_sector="
     )
     return supchain
 
+# TODO include another dump to csv function to store the direct impacts
+"""
+trial not sure if it will work
+"""
+def dump_direct_to_csv(supchain, haz_type, sector, scenario, ref_year,country, n_sim=100, return_period=100):
+    index_rp = np.floor(n_sim / return_period).astype(int) - 1
+    direct_impacts=[]
+    sec_range = SUPER_SEC[sector]
+    impacted_secs = supchain.mriot.get_sectors()[sec_range].tolist()
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    secs_prod = supchain.mriot.x.loc[(country_iso3alpha, impacted_secs), :]
+    # create a lookup table for each sector and its total production
+    lookup = {}
+    for idx, row in secs_prod.iterrows():
+        lookup[idx] = row["total production"]
+    for (sec, v) in supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)].items():
+        rp_value = v.sort_values(ascending=False).iloc[index_rp]
+        mean = v.sum() / n_sim
+        max_val = v.max()
+        # Check if the denominator is non-zero before performing division
+        if lookup[sec] != 0:
+            obj = {
+                "sector": sec[1],
+                "total_sectorial_production_mriot": lookup[sec],
+                "impact_max": max_val,
+                "rel_impact_max_%": (max_val / lookup[sec]) * 100 if max_val != 0 else 0,
+                "impact_aai": mean,
+                "rel_impact_aai_%": (mean / lookup[sec]) * 100 if mean != 0 else 0,
+                f"impact_rp_{return_period}": rp_value,
+                f"rel_impact_rp_{return_period}_%": (rp_value / lookup[sec]) * 100 if rp_value != 0 else 0,
+                "hazard_type": haz_type,
+                "sector_of_impact": sector,
+                "scenario": scenario,
+                "ref_year": ref_year,
+                "country_of_impact": country,
+            }
+            direct_impacts.append(obj)
+        else:
+            # Handle the case where the denominator is zero
+            obj = {
+                "sector": sec[1],
+                "total_sectorial_production_mriot": lookup[sec],
+                "impact_max": max_val,
+                "rel_impact_max_%": 0,  # Set to 0 to avoid division by zero
+                "impact_aai": mean,
+                "rel_impact_aai_%": 0,  # Set to 0 to avoid division by zero
+                f"impact_rp_{return_period}": rp_value,
+                f"rel_impact_rp_{return_period}_%": 0,  # Set to 0 to avoid division by zero
+                "hazard_type": haz_type,
+                "sector_of_impact": sector,
+                "scenario": scenario,
+                "ref_year": ref_year,
+                "country_of_impact": country,
+            }
+            direct_impacts.append(obj)
+    df_direct = pd.DataFrame(direct_impacts)
+    # newly added to get ISO3 code
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3  # f"_{country.replace(' ', '_')[:15]}" \
+    path = f"{os.path.dirname(__file__)}/results_direct/" \
+           f"direct_impacts" \
+           f"_{haz_type}" \
+           f"_{sector.replace(' ', '_')[:15]}" \
+           f"_{scenario}" \
+           f"_{ref_year}" \
+           f"_{country_iso3alpha}" \
+           f".csv"
+
+    df_direct.to_csv(path)
+    return path
 
 
 def dump_supchain_to_csv(supchain, haz_type, sector, scenario, ref_year, country, io_approach, n_sim=100, return_period=100):

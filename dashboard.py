@@ -332,24 +332,23 @@ def on_io_approach_changed(attr, old, new):
 select_hazard_type = Select(
     title="Hazard Type",
     options=sorted(HAZARD_TYPES),
-    value=selected_hazard_type, width=200)
+    value=selected_hazard_type,
+    width=200)
 select_hazard_type.on_change("value", on_hazard_type_changed)
 
 select_source_sector = Select(
     title="Impacted Sector",
     options=sorted(IMPACTED_SECTORS),
     value=selected_impacted_sector,
-    width=200,
-)
+    width=200)
 select_source_sector.on_change("value", on_impacted_sector_changed)
 select_source_sector.sizing_mode = "fixed"
 
 select_metric = Select(
     title="Metric",
     options=sorted(METRICS),
-    value=selected_impacted_sector,
-    width=200,
-)
+    value=selected_metric,
+    width=200)
 select_metric.on_change("value", on_metric_changed)
 select_metric.sizing_mode = "fixed"
 
@@ -357,27 +356,24 @@ select_scenario = Select(
     title="Scenario",
     options=sorted(SCENARIOS),
     value=selected_scenario,
-    width=200,
-)
-select_scenario.on_change("value", on_metric_changed)
+    width=200)
+select_scenario.on_change("value", on_scenario_changed)
 select_scenario.sizing_mode = "fixed"
 
 select_ref_year = Select(
     title="Year",
     options=sorted(REF_YEARS),
     value=selected_ref_year,
-    width=200,
-)
-select_ref_year.on_change("value", on_metric_changed)
+    width=200)
+select_ref_year.on_change("value", on_ref_year_changed)
 select_ref_year.sizing_mode = "fixed"
 
 select_io_approach = Select(
     title="IO Approach",
     options=sorted(IO_APPROACH),
     value=selected_io_approach,
-    width=200,
-)
-select_io_approach.on_change("value", on_metric_changed)
+    width=200)
+select_io_approach.on_change("value", on_io_approach_changed)
 select_io_approach.sizing_mode = "fixed"
 
 # Country Plot
