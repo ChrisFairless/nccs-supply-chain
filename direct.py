@@ -15,6 +15,7 @@ from climada_petals.entity.impact_funcs.wildfire import \
 
 import agriculture
 import h5py
+import pickle
 
 # /wildfire.py
 
@@ -109,14 +110,26 @@ def get_sector_exposure(sector, country):
         exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
 
     if sector == 'forestry':
-        # load an exposure from a hdf5 file
-        input_file_forest = 'exposures/forestry/forest_exp_v2.h5'
-        h5_file = pd.read_hdf(input_file_forest)
-        # Generate an Exposures instance from DataFrame
-        exp = Exposures(h5_file)
-        exp.set_geometry_points()
-        exp.gdf['value'] = exp.gdf.value
-        exp.check()
+        try:
+            # open this exposure file from the pickle
+            with open("exposures/forestry/exp_forestry.pkl", "rb") as f:
+                exp = pickle.load(f)
+                exp.check()
+        except:
+            # load an exposure from a hdf5 file
+            input_file_forest = 'exposures/forestry/forest_exp_region.h5'
+            h5_file = pd.read_hdf(input_file_forest)
+            # Generate an Exposures instance from DataFrame
+            exp = Exposures(h5_file)
+            exp.set_geometry_points()
+            exp.gdf['value'] = exp.gdf.value
+            exp.check()
+            """
+            Save this exposure into an intermediate file format to use it in a later code
+            use therefore the picke thing
+            """
+            with open("exposures/forestry/exp_forestry.pkl", "wb") as f:
+                pickle.dump(exp, f)
 
 
     return exp
