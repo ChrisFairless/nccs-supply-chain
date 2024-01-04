@@ -1,6 +1,7 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
+from utils.folder_naming import get_resource_dir
 from functools import cache
 
 import pandas as pd
@@ -11,11 +12,12 @@ from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
-# for the wilfire impact function:
-from climada_petals.entity.impact_funcs.wildfire import \
-    ImpfWildfire  # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 
-import agriculture
+# for the wilfire impact function:
+# https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
+from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
+
+import pipeline.direct.agriculture as agriculture
 
 # /wildfire.py
 
@@ -94,7 +96,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         # load an exposure from an excel file
-        input_file = '../../resources/exposures/mining_500_exposure.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -104,7 +106,7 @@ def get_sector_exposure(sector, country):
 
     if sector == 'electricity':
         # load an exposure from an excel file
-        input_file = '../../resources/exposures/utilities_power_plant_global_database_WRI.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/utilities_power_plant_global_database_WRI.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)

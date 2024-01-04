@@ -2,8 +2,8 @@ import os.path
 
 from pipeline.direct.calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
-from pipeline.direct import get_sector_exposure, nccs_direct_impacts_list_simple
-from pipeline.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
+from pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_list_simple
+from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
 from utils import folder_naming
 
 
