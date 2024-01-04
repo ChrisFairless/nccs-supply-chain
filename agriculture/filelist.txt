@@ -1,6 +1,0 @@
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/future/gepic_hadgem2-es_ewembi_rcp60_2005soc_2005co2_yield-whe-firr_global_annual_2006_2099.nc4
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/future/gepic_hadgem2-es_ewembi_rcp60_2005soc_2005co2_yield-whe-noirr_global_annual_2006_2099.nc4
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/future/gepic_hadgem2-es_ewembi_rcp60_2005soc_co2_yield-whe-firr_global_annual_2006_2099.nc4
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/future/gepic_hadgem2-es_ewembi_rcp60_2005soc_co2_yield-whe-noirr_global_annual_2006_2099.nc4
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/historical/gepic_hadgem2-es_ewembi_historical_2005soc_co2_yield-whe-firr_global_annual_1861_2005.nc4
-https://files.isimip.org/ISIMIP2b/OutputData/agriculture/GEPIC/hadgem2-es/historical/gepic_hadgem2-es_ewembi_historical_2005soc_co2_yield-whe-noirr_global_annual_1861_2005.nc4
