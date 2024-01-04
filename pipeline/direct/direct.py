@@ -1,6 +1,8 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
+from functools import cache
+
 import pandas as pd
 import pycountry
 from climada.engine.impact_calc import ImpactCalc
@@ -14,9 +16,6 @@ from climada_petals.entity.impact_funcs.wildfire import \
     ImpfWildfire  # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 
 import agriculture
-import h5py
-import pickle
-from functools import cache
 
 # /wildfire.py
 
@@ -28,13 +27,6 @@ HAZ_TYPE_LOOKUP = {
     'wildfire': 'WF',
     'storm_europe': 'WS',
     "relative_crop_yield": "RC",
-}
-
-WS_SCENARIO_LOOKUP = {
-    'rcp26': 'ssp126',
-    'rcp45': 'ssp245',
-    'rcp60': 'ssp370',  # TODO check this is acceptable
-    'rcp85': 'ssp585'
 }
 
 
@@ -79,7 +71,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
 @cache
 def load_forestry_exposure():
     # Load an exposure from an hdf5 file
-    input_file_forest = 'exposures/forestry/forest_exp_region.h5'
+    input_file_forest = 'resources/exposures/forestry/forest_exp_region.h5'
     h5_file = pd.read_hdf(input_file_forest)
     # Generate an Exposures instance from DataFrame
     exp = Exposures(h5_file)
@@ -102,7 +94,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         # load an exposure from an excel file
-        input_file = 'exposures/mining_500_exposure.xlsx'
+        input_file = '../../resources/exposures/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -112,7 +104,7 @@ def get_sector_exposure(sector, country):
 
     if sector == 'electricity':
         # load an exposure from an excel file
-        input_file = 'exposures/utilities_power_plant_global_database_WRI.xlsx'
+        input_file = '../../resources/exposures/utilities_power_plant_global_database_WRI.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -124,7 +116,6 @@ def get_sector_exposure(sector, country):
         exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
 
     if sector == 'forestry':
-
         exp = load_forestry_exposure()
 
     return exp
@@ -134,7 +125,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
     if haz_type == 'TC' and sector == 'agriculture':
-        return agriculture.get_impf_set_TC()
+        return agriculture.get_impf_set_tc()
     if haz_type == 'TC':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
     if haz_type == 'RF':
@@ -230,7 +221,6 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             haz_type, properties={
                 'spatial_coverage': 'Europe',
                 'gcm': 'EC-Earth3-Veg',
-                # 'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
                 'climate_scenario': scenario
             }
         )
@@ -253,4 +243,5 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             )
     else:
         raise ValueError(
-            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
+            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
+        )

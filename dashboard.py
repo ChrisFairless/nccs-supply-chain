@@ -18,7 +18,7 @@ first: run the the terminal the following command: python dashboard.py
 next: bokeh serve dashboard.py --show
 """
 
-with open("countries_wgs84.geojson", "r") as f:
+with open("resources/countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 

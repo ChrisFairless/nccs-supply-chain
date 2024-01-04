@@ -14,4 +14,4 @@ def get_indirect_output_dir(run_title):
     return f"{OUTPUT_DIR}/{run_title}/indirect"
 
 
-OUTPUT_DIR = "../results"
+OUTPUT_DIR = "./results"

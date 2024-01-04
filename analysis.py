@@ -1,9 +1,9 @@
 import os.path
 
-from calc_yearset import nccs_yearsets_simple
+from pipeline.direct.calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
-from direct import get_sector_exposure, nccs_direct_impacts_list_simple
-from indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
+from pipeline.direct import get_sector_exposure, nccs_direct_impacts_list_simple
+from pipeline.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
 from utils import folder_naming
 
 
@@ -123,6 +123,7 @@ def run_pipeline_from_config(config):
 
     os.makedirs(direct_output_dir, exist_ok=True)
     os.makedirs(indirect_output_dir, exist_ok=True)
+    print(f"Direct output will be saved to {direct_output_dir}")
 
     for run in config["runs"]:
         for scenario_year in run["scenario_years"]:

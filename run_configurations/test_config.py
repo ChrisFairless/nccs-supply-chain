@@ -11,7 +11,7 @@ CONFIG = {
         {
             "hazard": "tropical_cyclone",
             "sectors": ["manufacturing", "mining"],
-            "countries": ['United States', 'Germany'],
+            "countries": ['United States', 'Germany', 'Ghana'],
             "scenario_years": [
                 {"scenario": "rcp26", "ref_year": "2060"}
 
@@ -20,7 +20,7 @@ CONFIG = {
         {
             "hazard": "river_flood",
             "sectors": ["manufacturing", "mining"],
-            "countries": ['United States', 'Germany'],
+            "countries": ['United States', 'Germany','Ghana'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]

@@ -36,7 +36,7 @@ def get_impf_set():
     return impf_cp
 
 
-def get_impf_set_TC():
+def get_impf_set_tc():
     imp_fun_maize = ImpactFunc(
         id=1,
         name="TC agriculture damage",
