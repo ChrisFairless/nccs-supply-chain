@@ -16,6 +16,7 @@ from climada_petals.entity.impact_funcs.wildfire import \
 import agriculture
 import h5py
 import pickle
+from functools import cache
 
 # /wildfire.py
 
@@ -75,6 +76,19 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
+@cache
+def load_forestry_exposure():
+    # Load an exposure from an hdf5 file
+    input_file_forest = 'exposures/forestry/forest_exp_region.h5'
+    h5_file = pd.read_hdf(input_file_forest)
+    # Generate an Exposures instance from DataFrame
+    exp = Exposures(h5_file)
+    exp.set_geometry_points()
+    exp.gdf['value'] = exp.gdf.value
+    exp.check()
+    return exp
+
+
 def get_sector_exposure(sector, country):
     if sector == 'service':
         client = Client()
@@ -110,27 +124,8 @@ def get_sector_exposure(sector, country):
         exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
 
     if sector == 'forestry':
-        try:
-            # open this exposure file from the pickle
-            with open("exposures/forestry/exp_forestry.pkl", "rb") as f:
-                exp = pickle.load(f)
-                exp.check()
-        except:
-            # load an exposure from a hdf5 file
-            input_file_forest = 'exposures/forestry/forest_exp_region.h5'
-            h5_file = pd.read_hdf(input_file_forest)
-            # Generate an Exposures instance from DataFrame
-            exp = Exposures(h5_file)
-            exp.set_geometry_points()
-            exp.gdf['value'] = exp.gdf.value
-            exp.check()
-            """
-            Save this exposure into an intermediate file format to use it in a later code
-            use therefore the picke thing
-            """
-            with open("exposures/forestry/exp_forestry.pkl", "wb") as f:
-                pickle.dump(exp, f)
 
+        exp = load_forestry_exposure()
 
     return exp
 
@@ -138,7 +133,7 @@ def get_sector_exposure(sector, country):
 def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
-    if haz_type == 'TC' and sector=='agriculture':
+    if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_TC()
     if haz_type == 'TC':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
@@ -175,7 +170,7 @@ def get_sector_impf_rf(country_iso3alpha):
 # for wildfire, not sure if it is working
 def get_sector_impf_wf():
     impf = ImpfWildfire.from_default_FIRMS()
-    impf.haz_type = 'WFseason' #TODO there is a warning when running the code that the haz_type is set to WFsingle
+    impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle
     return impf
 
 
@@ -235,7 +230,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             haz_type, properties={
                 'spatial_coverage': 'Europe',
                 'gcm': 'EC-Earth3-Veg',
-                #'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
+                # 'climate_scenario': WS_SCENARIO_LOOKUP[scenario]
                 'climate_scenario': scenario
             }
         )
@@ -244,7 +239,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
 
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
-        if scenario == 'None' and ref_year=="historical":
+        if scenario == 'None' and ref_year == "historical":
             return agriculture.get_hazard(
                 country=country_iso3alpha,
                 year_range="1971_2001",
@@ -257,4 +252,5 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 scenario=scenario
             )
     else:
-        raise ValueError(f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
+        raise ValueError(
+            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}')
