@@ -29,6 +29,8 @@ def upload_files(run_title):
     files_to_sync = glob.glob(f"{root_path}/**/*", recursive=True)
 
     for f in files_to_sync:
+        if os.path.isdir(f):
+            continue
         bucket_file = os.path.relpath(f, os.path.dirname(__file__)).replace("\\", "/")
         upload_to_s3_bucket(f, bucket_file)
 
