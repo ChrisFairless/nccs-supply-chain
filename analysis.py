@@ -87,6 +87,7 @@ def calc_supply_chain_impacts(
         except ValueError as e:
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+    print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
 
 
 def run_pipeline(country_list,
