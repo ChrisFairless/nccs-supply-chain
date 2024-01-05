@@ -10,20 +10,20 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["manufacturing", "mining"],
-            "countries": ['United States', 'Germany', 'Ghana'],
+            "sectors": ["manufacturing","forestry"],
+            "countries": ['United States','Germany','Ghana','Fiji'],
             "scenario_years": [
                 {"scenario": "rcp26", "ref_year": "2060"}
 
             ]
         },
-        {
-            "hazard": "river_flood",
-            "sectors": ["manufacturing", "mining"],
-            "countries": ['United States', 'Germany','Ghana'],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-            ]
-        },
+        # {
+        #     "hazard": "river_flood",
+        #     "sectors": ["manufacturing", "mining"],
+        #     "countries": ['United States','Fiji'],
+        #     "scenario_years": [
+        #         {"scenario": "None", "ref_year": "historical"},
+        #     ]
+        # },
     ]
 }
