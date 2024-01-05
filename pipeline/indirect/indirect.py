@@ -32,6 +32,38 @@ def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
     return 1.0
 
 
+def get_secs_prod(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_total=195):
+    """
+    Calculate the country modifier for a given country in a supply chain.
+    If the country is listed in the mrio table then the modifier is 1.0.
+    else the modifier is 1 / (n_total - (number of countries in the mrio table - 1)).
+
+    :param supchain:
+    :param country_iso3alpha:
+    :param n_total:
+    :return:
+    """
+    mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
+    if mrio_region == 'ROW':
+        return (1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)))*supchain.mriot.x.loc[("ROW", impacted_secs), :]
+    return supchain.mriot.x.loc[(country_iso3alpha, impacted_secs), :]
+
+def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_total=195):
+    """
+    Calculate the country modifier for a given country in a supply chain.
+    If the country is listed in the mrio table then the modifier is 1.0.
+    else the modifier is 1 / (n_total - (number of countries in the mrio table - 1)).
+
+    :param supchain:
+    :param country_iso3alpha:
+    :param n_total:
+    :return:
+    """
+    mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
+    if mrio_region == 'ROW':
+        return (1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)))*supchain.secs_shock.loc[:, ("ROW", impacted_secs)]
+    return supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)]
+
 def get_supply_chain() -> SupplyChain:
     return SupplyChain.from_mriot(mriot_type='WIOD16', mriot_year=2011)
 
@@ -63,12 +95,6 @@ def supply_chain_climada(exposure, direct_impact, io_approach, impacted_sector="
     return supchain
 
 
-# TODO include another dump to csv function to store the direct impacts
-"""
-trial not sure if it will work
-"""
-
-
 def dump_direct_to_csv(supchain,
                        haz_type,
                        sector,
@@ -84,13 +110,14 @@ def dump_direct_to_csv(supchain,
     sec_range = SUPER_SEC[sector]
     impacted_secs = supchain.mriot.get_sectors()[sec_range].tolist()
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
-    secs_prod = supchain.mriot.x.loc[(country_iso3alpha, impacted_secs), :]
+    #calls the function which is especially important for ROW countries as the country code does not exist
+    secs_prod = get_secs_prod(supchain, country_iso3alpha,impacted_secs)
     # create a lookup table for each sector and its total production
     lookup = {}
     for idx, row in secs_prod.iterrows():
         lookup[idx] = row["total production"]
 
-    for (sec, v) in supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)].items():
+    for (sec, v) in get_secs_shock(supchain, country_iso3alpha,impacted_secs).items():
         rp_value = v.sort_values(ascending=False).iloc[index_rp]
         mean_ratio = v.sum() / n_sim
         max_val = v.max()
@@ -151,7 +178,7 @@ def dump_supchain_to_csv(supchain,
     secs_prod = supchain.mriot.x.loc[("CHE"), :]
 
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
-    rotw_factor = get_country_modifier(supchain, country_iso3alpha)
+    rotw_factor = get_country_modifier(supchain, country)
 
     # create a lookup table for each sector and its total production
     lookup = {}
@@ -167,10 +194,8 @@ def dump_supchain_to_csv(supchain,
         mean = (v.sum() / n_sim) * rotw_factor
         max_val = v.max() * rotw_factor
 
-        if not lookup[sec[1]] != 0:  # TODO just to debug
-            Warning("Check this")
-        # Check if the denominator is non-zero before performing division
-        total_production = lookup[sec[1]] * rotw_factor  # TODO check if the index is actually needed
+
+        total_production = lookup[sec[1]]    #no muliply with the rotw fctor, since we use the Swiss productions
         obj = {
             "sector": sec[1],
             "total_sectorial_production_mriot_CHE": total_production,
