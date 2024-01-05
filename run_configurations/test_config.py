@@ -10,8 +10,8 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["manufacturing","forestry"],
-            "countries": ['United States','Germany','Ghana','Fiji'],
+            "sectors": ["forestry"],
+            "countries": ['Germany','Brazil'],
             "scenario_years": [
                 {"scenario": "rcp26", "ref_year": "2060"}
 
