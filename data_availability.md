@@ -1,4 +1,5 @@
 
+**Check Climada Data availability**
 
 Climada API data availability: https://climada.ethz.ch/data-api/admin/docs 
     --> Search Datasets, 
@@ -6,7 +7,10 @@ Climada API data availability: https://climada.ethz.ch/data-api/admin/docs
     --> for properties always use doubled quotation marks "", example: "climate_scenario": "None"
     --> use the hazard name for the data_type
 
-Tropical Cyclones: 
+
+**Climada data availability**
+
+**Tropical Cyclones:** 
     Climada API properties:
     'ref_year': ['2040', '2060', '2080', 'historical'], 
     'event_type': ['synthetic', 'observed'],
@@ -15,14 +19,14 @@ Tropical Cyclones:
     --> 'None' will use climate_scenario 'None' and historical will use '1980_2020' and will use "event_type": 
     "synthetic", could also use "observed"
 
-River Flood: 
+**River Flood:** 
     'year_range': ['2010_2030','2030_2050','2050_2070','2070_2090','historical'], # officialy in API 'historical' 
     would be '1980_2000'
     'climate_scenario': ['rcp26', 'rcp85', 'None', 'rcp60'] # officialy in API, 'None' would be 'historical'
 
     --> 'None' will use climate_scenario 'historical' and ref_year = 'historical' will use '1980_2000'
 
-Storm Europe: 
+**Storm Europe:** 
     hazard type: 'storm_europe', spatial coverage 'Europe' 
       {'res_km': ['100 km', '250 km', '500 km', '50 km'],
  'data_source': ['CMIP6', 'ERA5'],
@@ -55,5 +59,8 @@ Agriculture: Relative Cropyield
     1971_2001 as historical
      'crop': ['mai', 'soy', 'whe', 'ric'] --> at the moment we use wheat
     'irrigation_status': ['firr', 'noirr'],
+
+
+**Pycountry ISO codes**
     
 https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry/databases/iso3166-1.json
