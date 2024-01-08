@@ -73,7 +73,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
 @cache
 def load_forestry_exposure():
     # Load an exposure from an hdf5 file
-    input_file_forest = 'resources/exposures/forestry/forest_exp_region_final.h5'
+    input_file_forest = 'resources/exposures/forestry/forestry_values_MRIO_avg(draft).h5'
     h5_file = pd.read_hdf(input_file_forest)
     # Generate an Exposures instance from DataFrame
     exp = Exposures(h5_file)
@@ -96,7 +96,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/mining_500_exposure.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/mining/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -106,7 +106,7 @@ def get_sector_exposure(sector, country):
 
     if sector == 'electricity':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/utilities_power_plant_global_database_WRI.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/utilities/utilities_power_plant_global_database_WRI.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
