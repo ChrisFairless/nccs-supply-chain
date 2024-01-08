@@ -12,3 +12,5 @@ climada_petals/
 *.nc4
 *.nc4
 /resources/exposures/forestry/forest_exp_region_final.h5
+env
+.h5
