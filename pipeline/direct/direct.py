@@ -96,7 +96,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/mining_500_exposure.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/mining/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -106,7 +106,7 @@ def get_sector_exposure(sector, country):
 
     if sector == 'electricity':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/utilities_power_plant_global_database_WRI.xlsx'
+        input_file = f'{get_resource_dir()}/exposures/utilities/utilities_power_plant_global_database_WRI.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
