@@ -44,7 +44,7 @@ if not os.path.isfile("complet.csv"):
     DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
     DS_INDIRECT_BASE["ref_year"] = DS_INDIRECT_BASE["ref_year"].astype(str)
     DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["iAAPL"].copy()
-
+    # DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["impact_aai"].copy() #TODO to be removed, old configurations, and used for best guesstimate run
     DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
     DS_INDIRECT_BASE.to_csv("complete.csv")
 else:
@@ -53,6 +53,7 @@ else:
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
 METRICS = ["iAAPL", "irAAPL", "iPL100", "irPL100"]
+# METRICS = ["impact_max", "imapct_max_%", "impact_aai", "rel_impact_aai_%","impact_rp_10", "rel_impact_rp_100_%"] #TODO to be removed, old configurations, and used for best guesstimate run
 IO_APPROACH = DS_INDIRECT_BASE.io_approach.unique()
 SCENARIOS = DS_INDIRECT_BASE.scenario.unique()
 REF_YEARS = DS_INDIRECT_BASE.ref_year.unique()
