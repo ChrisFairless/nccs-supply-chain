@@ -4,13 +4,13 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 
 CONFIG = {
-    "run_title": "test_run",
+    "run_title": "best_guesstimate_17_01_2024",
     "io_approach": "ghosh",
     "n_sim_years": 100,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -70,7 +70,7 @@ CONFIG = {
         },
         {
             "hazard": "river_flood",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -131,7 +131,7 @@ CONFIG = {
         },
         {
             "hazard": "wildfire",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -180,7 +180,7 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
