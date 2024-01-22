@@ -4,7 +4,7 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 
 CONFIG = {
-    "run_title": "best_guesstimate_17_01_2024",
+    "run_title": "best_guesstimate_22_01_2024",
     "io_approach": "ghosh",
     "n_sim_years": 100,
     "runs": [
@@ -55,17 +55,17 @@ CONFIG = {
                           'Zimbabwe'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                # {"scenario": "rcp26", "ref_year": "2040"}, #have the run for this for some countries
-                {"scenario": "rcp26", "ref_year": "2060"},  # TODO @mastaia run this
+                # {"scenario": "rcp26", "ref_year": "2040"},
+                {"scenario": "rcp26", "ref_year": "2060"},
                 # {"scenario": "rcp26", "ref_year": "2080"},
                 # {"scenario": "rcp45", "ref_year": "2040"},
                 # {"scenario": "rcp45", "ref_year": "2060"},
                 # {"scenario": "rcp45", "ref_year": "2080"},
                 # {"scenario": "rcp60", "ref_year": "2040"},
-                # {"scenario": "rcp60", "ref_year": "2060"},#have the run for this one
+                # {"scenario": "rcp60", "ref_year": "2060"},
                 # {"scenario": "rcp60", "ref_year": "2080"},
                 # {"scenario": "rcp85", "ref_year": "2040"},
-                {"scenario": "rcp85", "ref_year": "2060"},  # have the run for this for some countries
+                {"scenario": "rcp85", "ref_year": "2060"},
             ]
         },
         {
@@ -116,16 +116,16 @@ CONFIG = {
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 # {"scenario": "rcp26", "ref_year": 2020},
-                # {"scenario": "rcp26", "ref_year": 2040}, #have the run for this
-                {"scenario": "rcp26", "ref_year": 2060},  # TODO @mastaia run this code
+                # {"scenario": "rcp26", "ref_year": 2040},
+                {"scenario": "rcp26", "ref_year": 2060},
                 # {"scenario": "rcp26", "ref_year": 2080},
                 # {"scenario": "rcp60", "ref_year": 2020},
                 # {"scenario": "rcp60", "ref_year": 2040},
-                # {"scenario": "rcp60", "ref_year": 2060}, #have the run for this
+                # {"scenario": "rcp60", "ref_year": 2060},
                 # {"scenario": "rcp60", "ref_year": 2080},
                 # {"scenario": "rcp85", "ref_year": 2020},
                 # {"scenario": "rcp85", "ref_year": 2040},
-                {"scenario": "rcp85", "ref_year": 2060},  # have the run for this
+                {"scenario": "rcp85", "ref_year": 2060},
                 # {"scenario": "rcp85", "ref_year": 2080},
             ]
         },

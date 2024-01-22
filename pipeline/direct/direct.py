@@ -73,7 +73,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
 @cache
 def load_forestry_exposure():
     # Load an exposure from an hdf5 file
-    input_file_forest = 'resources/exposures/forestry/forestry_values_MRIO_avg(draft).h5'
+    input_file_forest = 'resources/exposures/forestry/forestry_values_MRIO_avg(upd_2).h5'
     h5_file = pd.read_hdf(input_file_forest)
     # Generate an Exposures instance from DataFrame
     exp = Exposures(h5_file)
