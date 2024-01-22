@@ -54,7 +54,7 @@ def get_impf_set_tc():
 def get_hazard(country,
                year_range,
                scenario: typing.Literal["historical", "rcp60"] = "historical",
-               crop_type: CropType = "whe",
+               crop_type: CropType = "whe", #mai instead of wheat
                irr: IrrigationType = "firr"):
     # TODO how to map the year to the years in this model
     # TODO What about the firr and noirr?

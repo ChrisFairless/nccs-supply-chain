@@ -11,7 +11,7 @@ CONFIG = {
         {
             "hazard": "tropical_cyclone",
             "sectors": ["manufacturing"],
-            "countries": ['Fiji','Germany','Brazil'],
+            "countries": ['Fiji', 'United States', 'Germany'],
             "scenario_years": [
                 {"scenario": "rcp26", "ref_year": "2060"}
 
