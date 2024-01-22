@@ -71,7 +71,6 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
         for each event with impacts. Columns are the same as the chosen MRIOT and rows are the
         hazard events ids.
     """
-    # TODO check if which one should be used: secs_shock or secs_imp (see definitions above)
     # I would argue to still use secs_shock as it accounts for the exposure impact ratio (The attribute
     # self.secs_shock is proportional to the ratio between self.secs_imp and self.secs_exp, so self.secs_shock
     # is a number between 0 and 1. self.secs_shock will be used in the indirect impact calculation to assses
@@ -81,8 +80,8 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
         row_fract_per_county = 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1))
-        return row_fract_per_county * supchain.secs_shock.loc[:, (impacted_secs, "ROW")]  # TODO secs_shock vs secs_imp
-    return supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)]  # TODO secs_shock vs secs_imp
+        return row_fract_per_county * supchain.secs_shock.loc[:, (impacted_secs, "ROW")]
+    return supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)]
 
 
 def get_supply_chain() -> SupplyChain:
@@ -220,7 +219,6 @@ def dump_supchain_to_csv(supchain,
         # We scale all values such that countries in the rest of the world category
         # are divided evenly by the number of countries in ROW. Countries explicitely in the MRIO
         # table have a rotw_factor of 1
-        # TODO check again the units of the output, does the exposure value unit match the mriot value unit?
         rp_value = v.sort_values(ascending=False).iloc[index_rp] * rotw_factor
         mean = (v.sum() / n_sim) * rotw_factor
         max_val = v.max() * rotw_factor
