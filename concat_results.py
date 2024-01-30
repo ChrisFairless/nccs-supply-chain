@@ -10,7 +10,7 @@ To run concat_results.py please update the RUN_TITLE
 
 ### INDIRECT
 
-RUN_TITLE = "test_run"
+RUN_TITLE = "best_guesstimate_22_01_2024"
 
 data_files = glob.glob(f"{get_indirect_output_dir(RUN_TITLE)}/indirect_impacts_*.csv")
 dfs = []
@@ -61,7 +61,7 @@ with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
 
 ### DIRECT
 
-RUN_TITLE = "test_run"
+RUN_TITLE = "best_guesstimate_22_01_2024"
 
 data_files = glob.glob(f"{get_direct_output_dir(RUN_TITLE)}/direct_impacts_*.csv")
 dfs = []

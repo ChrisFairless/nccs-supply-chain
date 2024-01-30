@@ -20,7 +20,7 @@ first: run the the terminal the following command: python dashboard.py
 next: bokeh serve dashboard.py --show
 """
 
-RUN_TITLE = "test_run"
+RUN_TITLE = "best_guesstimate_22_01_2024"
 
 with open(f"{get_resource_dir()}/countries_wgs84.geojson", "r") as f:
     countries = json.load(f)

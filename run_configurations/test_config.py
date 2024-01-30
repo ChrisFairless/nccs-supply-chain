@@ -9,11 +9,11 @@ CONFIG = {
     "n_sim_years": 100,
     "runs": [
         {
-            "hazard": "tropical_cyclone",
+            "hazard": "wildfire",
             "sectors": ["manufacturing"],
-            "countries": ['Fiji', 'United States', 'Germany'],
+            "countries": ['Germany'],
             "scenario_years": [
-                {"scenario": "rcp26", "ref_year": "2060"}
+                {"scenario": "None", "ref_year": "historical"}
 
             ]
         },

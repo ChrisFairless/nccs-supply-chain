@@ -5,7 +5,7 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 
 CONFIG = {
     "run_title": "best_guesstimate_22_01_2024",
-    "io_approach": "ghosh",
+    "io_approach": "leontief",
     "n_sim_years": 100,
     "runs": [
         {
