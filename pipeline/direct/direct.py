@@ -13,12 +13,12 @@ from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
 
-import stormeurope
 # for the wilfire impact function:
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 import pipeline.direct.agriculture as agriculture
+import pipeline.direct.stormeurope as stormeurope
 
 # /wildfire.py
 
@@ -214,12 +214,12 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 }
             )
     elif haz_type == "storm_europe":
+        country_iso3num = pycountry.countries.get(alpha_3=country_iso3alpha).numeric
         haz = stormeurope.get_hazard(
             scenario=scenario,
             country_iso3alpha=country_iso3alpha
         )
-        country_iso3num = pycountry.countries.get(alpha_3=country_iso3alpha).numeric
-        return haz.select(reg_id = country_iso3num)
+        return haz
 
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard
