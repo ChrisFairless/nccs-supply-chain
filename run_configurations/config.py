@@ -224,7 +224,7 @@ CONFIG = {
                           'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                           'Zimbabwe'],
             "scenario_years": [
-                {"scenario": "None", "ref_year": "present"},
+                {"scenario": "None", "ref_year": "present"}, #TODO update "present" to "historical" in future runs as it is 1980-2010!
                 # These combinations are possible, but since the windstorm is not yet developed fully, we exclude them.
                 # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this
                 # {"scenario": "ssp245", "ref_year": "present"},

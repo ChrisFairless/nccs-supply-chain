@@ -50,8 +50,8 @@ def nccs_yearsets_simple(impact_list, n_sim_years, seed=1312):
     i.e. when Cyclone X is selected in year Y for one yearset, it is selected in all cyclone yearsets
     '''
     random.seed(seed)
-    return [yimp_from_imp_simple(imp, n_sim_years, seed=random.randint(1, 999999999)) for imp in impact_list]
-
+    return [yimp_from_imp_simple(imp, n_sim_years, seed=random.randint(1, 999999999)) for imp in impact_list] #TODO adjust code such that the subsector is the same each time
+    # return [yimp_from_imp_simple(imp, n_sim_years, seed=seed) for imp in impact_list] #TODO adjust code such that the subsector is the same each time
 
 def yimp_from_imp_simple(imp, n_sim_years, seed=1312):
     lam = np.sum(imp.frequency)
