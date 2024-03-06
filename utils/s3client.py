@@ -40,6 +40,8 @@ def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, Non
     if output_path is None:
         output_path = s3_filename
 
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     s3 = get_client()
     return s3.download_file(
         BUCKET_NAME,

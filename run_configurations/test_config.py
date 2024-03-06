@@ -9,8 +9,8 @@ CONFIG = {
     "n_sim_years": 100,
     "runs": [
         {
-            "hazard": "wildfire",
-            "sectors": ["manufacturing"],
+            "hazard": "storm_europe",
+            "sectors": ["service"],
             "countries": ['Germany'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"}
