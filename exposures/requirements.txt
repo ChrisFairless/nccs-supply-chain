@@ -1,0 +1,4 @@
+rioxarray
+xarray
+numpy
+pandas
