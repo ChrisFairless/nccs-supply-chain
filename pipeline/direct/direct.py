@@ -82,6 +82,21 @@ def load_forestry_exposure():
     exp.check()
     return exp
 
+#TODO implemement a general function to open the subexposures splitted in countries
+#TODO agree on a folder saving struture for the S3 Bucket to download them from there
+def load_manufacturing_exposure(country, sector):
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    # Load an exposure from a hdf5 file
+    input_file_forest = f'resources/exposures/manufacturing/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled_{country_iso3alpha}.h5'
+    h5_file = pd.read_hdf(input_file_forest)
+    # Generate an Exposures instance from DataFrame
+    exp = Exposures(h5_file)
+    exp.set_geometry_points()
+    exp.gdf['value'] = exp.gdf.value
+    exp.check()
+    return exp
+
+
 
 def get_sector_exposure(sector, country):
     if sector == 'service':
@@ -119,6 +134,9 @@ def get_sector_exposure(sector, country):
 
     if sector == 'forestry':
         exp = load_forestry_exposure()
+
+    if sector == 'wood':
+        exp = load_manufacturing_exposure(country, sector)
 
     return exp
 

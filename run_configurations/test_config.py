@@ -10,8 +10,8 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["manufacturing"],
-            "countries": ['Germany'],
+            "sectors": ["wood"],
+            "countries": ['Germany', 'United States', 'Argentina', 'China', 'Cuba'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"}
 

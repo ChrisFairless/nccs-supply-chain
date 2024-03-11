@@ -11,7 +11,8 @@ SUPER_SEC = {
     "mining": [3],
     "electricity": [23],
     "agriculture": [0],
-    "forestry": [1]
+    "forestry": [1],
+    "wood":[6]
 }
 
 
