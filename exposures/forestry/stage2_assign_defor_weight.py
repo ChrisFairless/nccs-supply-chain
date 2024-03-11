@@ -37,7 +37,7 @@ def weight_calc(df):
     b = len(df.loc[df['weight'] == 1])
 
     y = len(df) / (2*a + b) # for sensitivity analysis change weight from 2 to 10
-    x = 2 * y
+    x = 2 * y # for sensitivity analysis change weight from 2 to 10
 
     return x, y
 
