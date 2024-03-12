@@ -4,7 +4,7 @@ from shapely import wkb
 
 
 # example for one file
-
+#TODO change and save the raw data files also somewhere?
 df = pd.read_feather(r"C:\Users\AndreaAngelidou\Documents\nccs-correntics\utilities\data\max_method\utilities_exposure_all.feather")
 gdf = gpd.GeoDataFrame(df)
 gdf['geometry'] = gdf['geometry'].apply(lambda x: wkb.loads(x, hex=True))
