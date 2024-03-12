@@ -13,6 +13,11 @@ from climada_petals.engine import SupplyChain
 import logging
 LOGGER = logging.getLogger()
 
+from exposures.utils import root_dir
+
+# Get the root directory
+project_root = root_dir()
+
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 def get_manufacturing_exp(data, countries, mriot_type, mriot_year, repr_sectors, variable):
@@ -130,8 +135,8 @@ def get_ROW_factor_WorldBank_food(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Worldbank data
-    WB_manufac = pd.read_csv(r'C:\github\nccs-correntics\manufacturing\manufacturing_general_exposure\WorldBank_Manufac_output_without_regions.csv')
-    Food_manufact = pd.read_csv(r'C:\github\nccs-correntics\manufacturing\manufacturing_sub_exposures\WorldBank_food_perc_of_manufac_without_regions.csv')
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
+    Food_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/WorldBank_food_perc_of_manufac_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -160,8 +165,8 @@ def get_ROW_factor_WorldBank_chemical(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Worldbank data
-    WB_manufac = pd.read_csv(r'C:\github\nccs-correntics\manufacturing\manufacturing_general_exposure\WorldBank_Manufac_output_without_regions.csv')
-    Chemical_manufact = pd.read_csv(r'C:\github\nccs-correntics\manufacturing\manufacturing_sub_exposures\WorldBank_chemical_perc_of_manufac_without_regions.csv')
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
+    Chemical_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing/manufacturing_sub_exposures/WorldBank_chemical_perc_of_manufac_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -193,7 +198,7 @@ def get_ROW_factor_WorldBank_manufac(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Manufacturing of countries
-    WB_manufac = pd.read_csv(r'C:\github\nccs-correntics\manufacturing\manufacturing_general_exposure\WorldBank_Manufac_output_without_regions.csv')
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -248,7 +253,7 @@ mriot_type = 'WIOD16'
 mriot_year = 2011
 
 for variable, filename in files.items():
-    data = pd.read_hdf(f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}.h5")
+    data = pd.read_hdf(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}.h5")
     repr_sectors = sectors[variable]
 
     #get the countries within each sub-exposure
@@ -270,11 +275,11 @@ for variable, filename in files.items():
 
     # Save a shape file to check it in QGIS
     df_shape = exp.gdf.drop(columns=["emission_t", "normalized_emissions"])
-    df_shape.to_file(f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.shp", driver="ESRI Shapefile")
+    df_shape.to_file(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.shp", driver="ESRI Shapefile")
 
     # Save the final complete file to a climada available format h5
     df = exp.gdf.drop(columns=["geometry", "emission_t", "normalized_emissions"])
-    df.to_hdf(f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.h5", key="data", mode="w")
+    df.to_hdf(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.h5", key="data", mode="w")
 
     # Count the number of zeros
     num_rows_with_zero = len(df[df['value'] == 0])
@@ -283,7 +288,7 @@ for variable, filename in files.items():
     #Save individual country files
     for region_id in df['region_id'].unique():
         subset_df = df[df['region_id'] == region_id]
-        filename_country = f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/country_split/{filename}_values_Manfac_scaled_{region_id}.h5"
+        filename_country = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/country_split/{filename}_values_Manfac_scaled_{region_id}.h5"
         subset_df.to_hdf(filename_country, key="data", mode="w")
 
 
@@ -337,7 +342,7 @@ for variable, filename in files.items():
     ax1.set_title('Top 30 Countries by Sum of Values')
 
     plt.tight_layout()
-    plt.savefig(f'C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.png', bbox_inches='tight')
+    plt.savefig(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.png', bbox_inches='tight")
     plt.show()
 
     #country sum or normalized emission

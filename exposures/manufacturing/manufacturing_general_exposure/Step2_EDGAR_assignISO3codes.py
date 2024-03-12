@@ -7,18 +7,21 @@ import shapely.vectorized
 from tqdm import tqdm
 import os
 
-_SHAPEFILE = gpd.read_file(r"C:/github/nccs-correntics/mining/preprocess_raw_files/TM_WORLD_BORDERS-0.3.shp")
+from exposures.utils import root_dir
 
+# Get the root directory
+project_root = root_dir()
 
-year= 2011
-input_file = f"C:/github/nccs-correntics/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"
-output_file = f"C:/github/nccs-correntics/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5"
+_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/core/TM_WORLD_BORDERS-0.3.shp")
+
+year = 2011
+input_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"
+output_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5"
 
 column_latitude = 'latitude'
 column_longitude = 'longitude'
 
 df = pd.read_hdf(input_file)
-
 
 # Convert string values in latitude and longitude columns
 df[column_latitude] = pd.to_numeric(df[column_latitude], errors='coerce')
@@ -30,7 +33,8 @@ gdf = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df[column_longitude], df[
 # Skip rows where latitude or longitude is NAN
 gdf = gdf.dropna(subset=[column_longitude, column_latitude])
 
-#For 3 million rows it took about 2.5 hours
+
+# For 3 million rows it took about 2.5 hours
 def get_country_vectorized_ISO_2(coordinates):
     iso3_codes = np.empty(len(coordinates), dtype=object)
     for idx, country in tqdm(_SHAPEFILE.iterrows(), total=len(_SHAPEFILE), desc='Processing countries'):
@@ -48,8 +52,8 @@ gdf['region_id'] = get_country_vectorized_ISO_2(gdf.geometry)
 df1 = pd.DataFrame(gdf.drop(columns='geometry'))
 
 ##Count the number of rows where no country could be assigned
-print("Number of rows where no country could be assigned: ",df1["region_id"].isnull().sum())
+print("Number of rows where no country could be assigned: ", df1["region_id"].isnull().sum())
 
-#Drop those columns
+# Drop those columns
 df2 = df1.dropna(subset=['region_id'])
 df2.to_hdf(output_file, key='data', mode='w')

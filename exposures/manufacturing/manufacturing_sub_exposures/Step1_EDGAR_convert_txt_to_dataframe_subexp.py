@@ -1,6 +1,7 @@
 import xarray as xr
 import pandas as pd
 from io import StringIO
+from exposures.utils import root_dir
 
 """
 The hdf5 also needs a package called tables, which is why it is best to also run this code in the
@@ -9,6 +10,8 @@ virtual environment .venv (Python 3.10 (nccs-correntics)
 
 Additionally, had to remove the two top lines within the header of the txt file of the raw data
 """
+# Get the root directory
+project_root = root_dir()
 year = 2011
 emission_threshold = 0 # Insert a threshold of NOx emissions to account for manufacturing activities only
 emission_threshold_scaled = 100
@@ -53,7 +56,7 @@ substances = {
 
 for variable, filename in files.items():
     # Read the text file into a string
-    with open(f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/{filename}", 'r') as file:
+    with open(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/{filename}", 'r') as file:
         data = file.read()
         substance=substances[variable]
 
@@ -81,7 +84,7 @@ for variable, filename in files.items():
     print(variable, f"filtered_df>{emission_threshold}t:", filtered_df)
 
     # Define HDF filename based on variable and year
-    hdf_filename = f"C:/github/nccs-correntics/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{variable}_{substance}_emissions_{year}_above_{emission_threshold}t_0.1deg.h5"
+    hdf_filename = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{variable}_{substance}_emissions_{year}_above_{emission_threshold}t_0.1deg.h5"
 
     # Save to HDF file
     filtered_df.to_hdf(hdf_filename, key='data', mode='w')

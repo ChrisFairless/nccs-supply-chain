@@ -2,14 +2,18 @@ import xarray as xr
 import pandas as pd
 import geopandas as gpd
 from io import StringIO
+from exposures.utils import root_dir
+
+# Get the root directory
+project_root = root_dir()
 
 year = 2011
 
-with open(r"C:\github\nccs-correntics\manufacturing\manufacturing_sub_exposures\raw_data_EDGAR\EDGARv6.1_CO_2011_IRO.txt",
+with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_IRO.txt",
           'r') as file:
     IRO_data = file.read()
 
-with open(r"C:\github\nccs-correntics\manufacturing\manufacturing_sub_exposures\raw_data_EDGAR\EDGARv6.1_CO_2011_NFE.txt",
+with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_NFE.txt",
           'r') as file:
     NFE_data = file.read()
 
@@ -31,26 +35,12 @@ summed_df_final = summed_df.drop(['lon_lat_combined'], axis=1)
 
 
 # Save the file again as a text file, so be consistent with the whole approach
-output_file_path = r'C:\github\nccs-correntics\manufacturing\manufacturing_sub_exposures\raw_data_EDGAR\EDGARv6.1_CO_2011_BASICMETALS_combined.txt'
+output_file_path = f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_BASICMETALS_combined.txt"
 
 # Save the DataFrame to a text file with semicolon as the delimiter
 summed_df_final.to_csv(output_file_path, sep=';', index=False)
 
 print(f"DataFrame saved to {output_file_path}")
-
-
-
-
-# # Create the final DataFrame with desired structure
-# summed_df_final = pd.DataFrame({
-#     'latitude': summed_df_final['lat'],
-#     'longitude': summed_df_final['lon'],
-#     'emission_t': summed_df_final[f'emission {year} (tons)']
-# })
-# print(summed_df_final)
-
-
-
 
 """Some check points"""
 #count the occurence of unique values in the "lon_lat_combined colum
