@@ -153,9 +153,7 @@ exp = get_manufacturing_exp(data=data,
                             repr_sectors=repr_sectors
                             )
 
-# TODO save the files
-
-
+# TODO save the files to the S3 bucket
 # Save a shape file to check it in QGIS
 df_shape = exp.gdf.drop(columns=["emi_nox", "normalized_emissions"])
 df_shape.to_file(
@@ -167,6 +165,13 @@ df = exp.gdf.drop(columns=["geometry", "emi_nox", "normalized_emissions"])
 df.to_hdf(
     f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5",
     key="data", mode="w")  # hih res
+
+
+# Save individual country files #TODO save individual country files to S3 bucket
+for region_id in df['region_id'].unique():
+    subset_df = df[df['region_id'] == region_id]
+    filename_country = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
+    subset_df.to_hdf(filename_country, key="data", mode="w")
 
 # count number of zeros
 num_rows_with_zero = len(df[df['value'] == 0])

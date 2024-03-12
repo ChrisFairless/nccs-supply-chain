@@ -220,6 +220,12 @@ df.to_hdf(
     f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.h5",
     key="data", mode="w")  # hih res
 
+# Save individual country files #TODO save country splited files to S3 bucket
+for region_id in df['region_id'].unique():
+    subset_df = df[df['region_id'] == region_id]
+    filename_country = f"{project_root}/exposures/mining/intermediate_data_MAUS/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
+    subset_df.to_hdf(filename_country, key="data", mode="w")
+
 # count number of zeros
 num_rows_with_zero = len(df[df['value'] == 0])
 

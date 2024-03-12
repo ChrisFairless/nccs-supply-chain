@@ -114,4 +114,11 @@ for subscore in subscores:
 
     df = exp.gdf.drop(columns='geometry')
 
+    #TODO save final file to S3 bucket and save country splitted file
     df.to_hdf(f"data/{subscore}_MRIO.h5", key="data", mode='w') # final file to be used in CLIMADA NCCS project
+    #Split exposure into countries
+    # Save individual country files #TODO save country splited files to S3 bucket
+    for region_id in df['region_id'].unique():
+        subset_df = df[df['region_id'] == region_id]
+        filename_country = f"data/{subscore}_MRIO_{region_id}.h5"
+        subset_df.to_hdf(filename_country, key="data", mode="w")

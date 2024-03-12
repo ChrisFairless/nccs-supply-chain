@@ -99,4 +99,12 @@ exp = get_forestry_exp_new_2(
 
 df = exp.gdf.drop(columns='geometry')
 
+#TODO save final file to S3 bucket
+
 df.to_hdf("data/forestry_values_MRIO_avg(WB-v2).h5", key="data", mode='w') # final file to be used in CLIMADA NCCS project
+
+# Save individual country files #TODO save country splited files to S3 bucket
+for region_id in df['region_id'].unique():
+    subset_df = df[df['region_id'] == region_id]
+    filename_country = f"data/forestry_values_MRIO_avg(WB-v2)_{region_id}.h5"
+    subset_df.to_hdf(filename_country, key="data", mode="w")
