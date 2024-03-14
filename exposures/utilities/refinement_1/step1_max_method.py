@@ -7,7 +7,7 @@ from geofeather.pygeos import to_geofeather, from_geofeather
 from itertools import repeat
 from osgeo import gdal
 import copy
-gdal.SetConfigOption("OSM_CONFIG_FILE", os.path.join("..", "osmconf.ini"))
+gdal.SetConfigOption("OSM_CONFIG_FILE", os.path.join("../..", "osmconf.ini"))
 
 import numpy as np
 from multiprocessing import Pool,cpu_count

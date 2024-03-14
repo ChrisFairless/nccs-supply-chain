@@ -10,7 +10,7 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -70,7 +70,7 @@ CONFIG = {
         },
         {
             "hazard": "river_flood",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -131,7 +131,7 @@ CONFIG = {
         },
         {
             "hazard": "wildfire",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -180,7 +180,7 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',

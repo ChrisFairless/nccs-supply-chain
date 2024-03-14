@@ -9,6 +9,12 @@ import logging
 
 LOGGER = logging.getLogger()
 
+from exposures.utils import root_dir
+from utils.s3client import upload_to_s3_bucket
+
+# Get the root directory
+project_root = root_dir()
+
 def get_utilities_exp(
         countries=None,
         mriot_type='WIOD16',
@@ -76,7 +82,7 @@ def get_ROW_factor_GDP(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the GDP of counries
-    gdp_worldbank = pd.read_csv(r'GDP_Worldbank_modified_without_regions.csv')
+    gdp_worldbank = pd.read_csv(f"{project_root}/exposures/utilities/refinement_1/GDP_Worldbank_modified_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code'
     ROW_gdp_worldbank = gdp_worldbank[['Country Code', str(mriot_year)]][~gdp_worldbank['Country Code'].isin(IO_countries)]
@@ -100,7 +106,7 @@ for subscore in subscores:
     elif subscore == "Subscore_waste":
         repr_sectors = 'Sewerage; waste collection, treatment and disposal activities; materials recovery; remediation activities and other waste management services '
 
-    data = pd.read_hdf(f"data/{subscore}_ISO3_normalized.h5") # file from step 4 excluding national parks and protected areas
+    data = pd.read_hdf(f"{project_root}/exposures/utilities/refinement_1/intermediate_data/{subscore}_ISO3_normalized.h5") # file from step 4 excluding national parks and protected areas
     countries = data["region_id"].unique().tolist()
     countries.sort()
 
@@ -112,13 +118,22 @@ for subscore in subscores:
         repr_sectors=repr_sectors,
     data=data)
 
+    # Save final file to a climada available format h5
     df = exp.gdf.drop(columns='geometry')
+    filename_h5 =f"{project_root}/exposures/utilities/refinement_1/{subscore}/{subscore}_MRIO.h5"
+    s3_filename_h5 =f"exposures/utilities/refinement_1/{subscore}/{subscore}_MRIO.h5"
+    df.to_hdf(filename_h5, key="data", mode='w') # final file to be used in CLIMADA NCCS project
+    # upload the file to the s3 Bucket
+    upload_to_s3_bucket(filename_h5, s3_filename_h5)
+    print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
-    #TODO save final file to S3 bucket and save country splitted file
-    df.to_hdf(f"data/{subscore}_MRIO.h5", key="data", mode='w') # final file to be used in CLIMADA NCCS project
     #Split exposure into countries
-    # Save individual country files #TODO save country splited files to S3 bucket
+    # Save individual country files
     for region_id in df['region_id'].unique():
         subset_df = df[df['region_id'] == region_id]
-        filename_country = f"data/{subscore}_MRIO_{region_id}.h5"
+        filename_country = f"{project_root}/exposures/utilities/refinement_1/{subscore}/country_split/{subscore}_MRIO_{region_id}.h5"
+        s3_filename_country = f"exposures/utilities/refinement_1/{subscore}/country_split/{subscore}_MRIO_{region_id}.h5"
         subset_df.to_hdf(filename_country, key="data", mode="w")
+        # upload the individual country files to s3 bucket
+        upload_to_s3_bucket(filename_country, s3_filename_country)
+        print(f"upload of {s3_filename_country} to s3 bucket successful")
