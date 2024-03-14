@@ -14,6 +14,7 @@ import logging
 LOGGER = logging.getLogger()
 
 from exposures.utils import root_dir
+from utils.s3client import upload_to_s3_bucket
 
 # Get the root directory
 project_root = root_dir()
@@ -135,8 +136,8 @@ def get_ROW_factor_WorldBank_food(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Worldbank data
-    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
-    Food_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/WorldBank_food_perc_of_manufac_without_regions.csv")
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/WorldBank_Manufac_output_without_regions.csv")
+    Food_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/WorldBank_food_perc_of_manufac_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -165,8 +166,8 @@ def get_ROW_factor_WorldBank_chemical(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Worldbank data
-    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
-    Chemical_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing/manufacturing_sub_exposures/WorldBank_chemical_perc_of_manufac_without_regions.csv")
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/WorldBank_Manufac_output_without_regions.csv")
+    Chemical_manufact = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing/manufacturing_sub_exposures/refinement_1/WorldBank_chemical_perc_of_manufac_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -198,7 +199,7 @@ def get_ROW_factor_WorldBank_manufac(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the Manufacturing of countries
-    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
+    WB_manufac = pd.read_csv(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/WorldBank_Manufac_output_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -216,44 +217,45 @@ emission_threshold = 0 # Insert a threshold of NOx emissions to account for manu
 emission_threshold_scaled = 100
 
 
-# files = {
-#     'food_and_paper': f'food_and_paper_NOX_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'refin_and_transform': f'refin_and_transform_NOx_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'chemical_process':f'chemical_process_NMVOC_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'non_metallic_mineral': f'non_metallic_mineral_PM10_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'basic_metals': f'basic_metals_CO_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'pharmaceutical': f'pharmaceutical_NMVOC_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
-#     'wood':f'wood_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
-#     'rubber_and_plastic':f'rubber_and_plastic_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
-#     # Add more files as needed
-# }
-#
-# sectors = {'food_and_paper': "Manufacture of food products, beverages and tobacco products",
-#            'refin_and_transform': "Manufacture of coke and refined petroleum products ",
-#            'chemical_process': 'Manufacture of chemicals and chemical products ',
-#            'non_metallic_mineral':'Manufacture of other non-metallic mineral products',
-#            'basic_metals':'Manufacture of basic metals',
-#            'pharmaceutical':'Manufacture of basic pharmaceutical products and pharmaceutical preparations',
-#            'wood':'Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials',
-#            'rubber_and_plastic':'Manufacture of rubber and plastic products',
-#            # Add more sectors as needed
-# }
-
-#only activate this to run for individual runs
 files = {
-        'wood':f'wood_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
+    # 'food_and_paper': f'food_and_paper_NOX_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    # 'refin_and_transform': f'refin_and_transform_NOx_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    'chemical_process':f'chemical_process_NMVOC_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    'non_metallic_mineral': f'non_metallic_mineral_PM10_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    'basic_metals': f'basic_metals_CO_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    'pharmaceutical': f'pharmaceutical_NMVOC_emissions_{year}_above_{emission_threshold}t_0.1deg_ISO3',
+    'wood':f'wood_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
+    'rubber_and_plastic':f'rubber_and_plastic_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
+    # Add more files as needed
 }
 
 sectors = {
-        'wood':'Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials',
-
+    # 'food_and_paper': "Manufacture of food products, beverages and tobacco products",
+    #        'refin_and_transform': "Manufacture of coke and refined petroleum products ",
+           'chemical_process': 'Manufacture of chemicals and chemical products ',
+           'non_metallic_mineral':'Manufacture of other non-metallic mineral products',
+           'basic_metals':'Manufacture of basic metals',
+           'pharmaceutical':'Manufacture of basic pharmaceutical products and pharmaceutical preparations',
+           'wood':'Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials',
+           'rubber_and_plastic':'Manufacture of rubber and plastic products',
+           # Add more sectors as needed
 }
+
+#only activate this to run for individual runs
+# files = {
+#         'wood':f'wood_NOx_emissions_{year}_above_{emission_threshold_scaled}t_0.1deg_ISO3',
+# }
+#
+# sectors = {
+#         'wood':'Manufacture of wood and of products of wood and cork, except furniture; manufacture of articles of straw and plaiting materials',
+#
+# }
 
 mriot_type = 'WIOD16'
 mriot_year = 2011
 
 for variable, filename in files.items():
-    data = pd.read_hdf(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}.h5")
+    data = pd.read_hdf(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/intermediate_data_EDGAR/{filename}.h5")
     repr_sectors = sectors[variable]
 
     #get the countries within each sub-exposure
@@ -273,89 +275,106 @@ for variable, filename in files.items():
                                  variable=variable
                                  )
 
+    """
+    Saving of file, first, locally and secondly also to the s3 Bukcet
+    """
+
     # Save a shape file to check it in QGIS
     df_shape = exp.gdf.drop(columns=["emission_t", "normalized_emissions"])
-    df_shape.to_file(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.shp", driver="ESRI Shapefile")
+    filename_shp = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/{filename}_values_Manfac_scaled.shp"
+    s3_filename_shp =f"exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/{filename}_values_Manfac_scaled.shp"
+    df_shape.to_file(filename_shp, driver="ESRI Shapefile")
+    # upload the file to the s3 Bucket
+    upload_to_s3_bucket(filename_shp, s3_filename_shp)
+    print(f"upload of {s3_filename_shp} to s3 bucket successful")
 
     # Save the final complete file to a climada available format h5
     df = exp.gdf.drop(columns=["geometry", "emission_t", "normalized_emissions"])
-    df.to_hdf(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.h5", key="data", mode="w")
-
-    # Count the number of zeros
-    num_rows_with_zero = len(df[df['value'] == 0])
-    print(f"num_rows_with_zero for {variable}", num_rows_with_zero)
+    filename_h5 = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/{filename}_values_Manfac_scaled.h5"
+    s3_filename_h5 =f"exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/{filename}_values_Manfac_scaled.h5"
+    df.to_hdf(filename_h5, key="data", mode="w")
+    # upload the file to the s3 Bucket
+    upload_to_s3_bucket(filename_h5, s3_filename_h5)
+    print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
     #Save individual country files
     for region_id in df['region_id'].unique():
         subset_df = df[df['region_id'] == region_id]
-        filename_country = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/country_split/{filename}_values_Manfac_scaled_{region_id}.h5"
+        filename_country = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/country_split/{filename}_values_Manfac_scaled_{region_id}.h5"
+        s3_filename_country = f"exposures/manufacturing/manufacturing_sub_exposures/refinement_1/{variable}/country_split/{filename}_values_Manfac_scaled_{region_id}.h5"
         subset_df.to_hdf(filename_country, key="data", mode="w")
+        # upload the individual country files to s3 bucket
+        upload_to_s3_bucket(filename_country, s3_filename_country)
+        print(f"upload of {s3_filename_country} to s3 bucket successful")
 
 
-    """Check points, not needed fot the final output, but create some credibility"""
-
-    # #### Some checkpoints:
-    #country sum of value
-    value_sum_per_country = df.groupby('region_id')['value'].sum().reset_index()
-    print(f"value_sum_per_country for {variable}", value_sum_per_country)
-    #plot a barblot with this
-    # Plot the bar chart for the sum of values per country
-    # Sort the values and select the top 30
-    sorted_value_sum_per_country = value_sum_per_country.sort_values(by='value', ascending=False).head(30)
-
-    #Number of points per country
-    num_points_per_country = exp.gdf.groupby('region_id').size()
-    # Sort the values and select the top 30
-    sorted_num_points_per_country = num_points_per_country.sort_values(ascending=False).head(30)
-
-    import matplotlib.pyplot as plt
-    from matplotlib.colors import Normalize
-    from matplotlib.gridspec import GridSpec
-
-    # Create a 2x2 grid of subplots
-    fig = plt.figure(figsize=(30, 18))
-    gs = GridSpec(2, 2, width_ratios=[2, 1])
-
-    # Plot the world map with scatter plot
-    ax0 = plt.subplot(gs[0, 0])
-    worldmap.plot(color="lightgrey", ax=ax0)
-    norm = Normalize(vmin=exp.gdf['value'].min(), vmax=exp.gdf['value'].mean())
-    sc = ax0.scatter(exp.gdf['longitude'], exp.gdf['latitude'], c=exp.gdf['value'], cmap='cividis', norm=norm,
-                     s=0.01)
-    cbar = plt.colorbar(sc, ax=ax0, label='Value')
-    ax0.set_xlabel('Longitude')
-    ax0.set_ylabel('Latitude')
-    ax0.set_title(f'{variable} Exposure with MRIO values scaled by {repr_sectors} production in M.USD')
-
-    # Plot the bar chart for the number of points per country (switched order)
-    ax2 = plt.subplot(gs[0, 1])
-    sorted_num_points_per_country.plot(kind='bar', ax=ax2)
-    ax2.set_ylabel('Number of Points')
-    ax2.set_xlabel('Country Code')
-    ax2.set_title('Top 30 Countries by Number of Points')
-
-    # Plot the bar chart for the sum of values per country (switched order)
-    ax1 = plt.subplot(gs[1, :])
-    sorted_value_sum_per_country.plot(x='region_id', y='value', kind='bar', ax=ax1)
-    ax1.set_ylabel('Sum of Values')
-    ax1.set_xlabel('Country Code')
-    ax1.set_title('Top 30 Countries by Sum of Values')
-
-    plt.tight_layout()
-    plt.savefig(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.png', bbox_inches='tight")
-    plt.show()
-
-    #country sum or normalized emission
-    #should be 1 everwhere
-    norm_emi_sum = exp.gdf.groupby('region_id')['normalized_emissions'].sum().reset_index()
-    print(f"norm_emi_sum for {variable}", norm_emi_sum)
-
-    #Check the largest production ocuntries for a given sector
-    from climada_petals.engine import SupplyChain
-    mriot_type = 'WIOD16'
-    mriot_year = 2011
-    mriot = SupplyChain.from_mriot(mriot_type=mriot_type,mriot_year=mriot_year).mriot
-    sector_production = mriot.x.loc[(slice(None), repr_sectors), 'total production']
-    sector_production_sorted = sector_production.sort_values(ascending=False)
-    print(f"MRIO production values for sector {repr_sectors} sorted for each country", sector_production_sorted)
+    # """Check points, not needed fot the final output, but create some credibility"""
+    # # Count the number of zeros
+    # num_rows_with_zero = len(df[df['value'] == 0])
+    # print(f"num_rows_with_zero for {variable}", num_rows_with_zero)
+    #
+    # # #### Some checkpoints:
+    # #country sum of value
+    # value_sum_per_country = df.groupby('region_id')['value'].sum().reset_index()
+    # print(f"value_sum_per_country for {variable}", value_sum_per_country)
+    # #plot a barblot with this
+    # # Plot the bar chart for the sum of values per country
+    # # Sort the values and select the top 30
+    # sorted_value_sum_per_country = value_sum_per_country.sort_values(by='value', ascending=False).head(30)
+    #
+    # #Number of points per country
+    # num_points_per_country = exp.gdf.groupby('region_id').size()
+    # # Sort the values and select the top 30
+    # sorted_num_points_per_country = num_points_per_country.sort_values(ascending=False).head(30)
+    #
+    # import matplotlib.pyplot as plt
+    # from matplotlib.colors import Normalize
+    # from matplotlib.gridspec import GridSpec
+    #
+    # # Create a 2x2 grid of subplots
+    # fig = plt.figure(figsize=(30, 18))
+    # gs = GridSpec(2, 2, width_ratios=[2, 1])
+    #
+    # # Plot the world map with scatter plot
+    # ax0 = plt.subplot(gs[0, 0])
+    # worldmap.plot(color="lightgrey", ax=ax0)
+    # norm = Normalize(vmin=exp.gdf['value'].min(), vmax=exp.gdf['value'].mean())
+    # sc = ax0.scatter(exp.gdf['longitude'], exp.gdf['latitude'], c=exp.gdf['value'], cmap='cividis', norm=norm,
+    #                  s=0.01)
+    # cbar = plt.colorbar(sc, ax=ax0, label='Value')
+    # ax0.set_xlabel('Longitude')
+    # ax0.set_ylabel('Latitude')
+    # ax0.set_title(f'{variable} Exposure with MRIO values scaled by {repr_sectors} production in M.USD')
+    #
+    # # Plot the bar chart for the number of points per country (switched order)
+    # ax2 = plt.subplot(gs[0, 1])
+    # sorted_num_points_per_country.plot(kind='bar', ax=ax2)
+    # ax2.set_ylabel('Number of Points')
+    # ax2.set_xlabel('Country Code')
+    # ax2.set_title('Top 30 Countries by Number of Points')
+    #
+    # # Plot the bar chart for the sum of values per country (switched order)
+    # ax1 = plt.subplot(gs[1, :])
+    # sorted_value_sum_per_country.plot(x='region_id', y='value', kind='bar', ax=ax1)
+    # ax1.set_ylabel('Sum of Values')
+    # ax1.set_xlabel('Country Code')
+    # ax1.set_title('Top 30 Countries by Sum of Values')
+    #
+    # plt.tight_layout()
+    # plt.savefig(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/intermediate_data_EDGAR/{filename}_values_Manfac_scaled.png', bbox_inches='tight")
+    # plt.show()
+    #
+    # #country sum or normalized emission
+    # #should be 1 everwhere
+    # norm_emi_sum = exp.gdf.groupby('region_id')['normalized_emissions'].sum().reset_index()
+    # print(f"norm_emi_sum for {variable}", norm_emi_sum)
+    #
+    # #Check the largest production ocuntries for a given sector
+    # from climada_petals.engine import SupplyChain
+    # mriot_type = 'WIOD16'
+    # mriot_year = 2011
+    # mriot = SupplyChain.from_mriot(mriot_type=mriot_type,mriot_year=mriot_year).mriot
+    # sector_production = mriot.x.loc[(slice(None), repr_sectors), 'total production']
+    # sector_production_sorted = sector_production.sort_values(ascending=False)
+    # print(f"MRIO production values for sector {repr_sectors} sorted for each country", sector_production_sorted)
 

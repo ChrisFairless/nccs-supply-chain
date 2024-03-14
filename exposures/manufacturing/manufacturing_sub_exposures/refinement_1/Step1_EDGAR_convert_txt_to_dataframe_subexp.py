@@ -56,7 +56,7 @@ substances = {
 
 for variable, filename in files.items():
     # Read the text file into a string
-    with open(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/{filename}", 'r') as file:
+    with open(f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/raw_data_EDGAR/{filename}", 'r') as file:
         data = file.read()
         substance=substances[variable]
 
@@ -84,7 +84,7 @@ for variable, filename in files.items():
     print(variable, f"filtered_df>{emission_threshold}t:", filtered_df)
 
     # Define HDF filename based on variable and year
-    hdf_filename = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{variable}_{substance}_emissions_{year}_above_{emission_threshold}t_0.1deg.h5"
+    hdf_filename = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/intermediate_data_EDGAR/{variable}_{substance}_emissions_{year}_above_{emission_threshold}t_0.1deg.h5"
 
     # Save to HDF file
     filtered_df.to_hdf(hdf_filename, key='data', mode='w')

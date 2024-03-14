@@ -12,7 +12,7 @@ from exposures.utils import root_dir
 # Get the root directory
 project_root = root_dir()
 
-_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/core/TM_WORLD_BORDERS-0.3.shp")
+_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/refinement_1/core/TM_WORLD_BORDERS-0.3.shp")
 
 year = 2011
 input_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"

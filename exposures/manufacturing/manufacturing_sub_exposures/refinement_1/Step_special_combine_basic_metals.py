@@ -9,11 +9,11 @@ project_root = root_dir()
 
 year = 2011
 
-with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_IRO.txt",
+with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/refinement_1/raw_data_EDGAR/EDGARv6.1_CO_2011_IRO.txt",
           'r') as file:
     IRO_data = file.read()
 
-with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_NFE.txt",
+with open(f"{project_root}/manufacturing/manufacturing_sub_exposures/refinement_1/raw_data_EDGAR/EDGARv6.1_CO_2011_NFE.txt",
           'r') as file:
     NFE_data = file.read()
 
@@ -35,7 +35,7 @@ summed_df_final = summed_df.drop(['lon_lat_combined'], axis=1)
 
 
 # Save the file again as a text file, so be consistent with the whole approach
-output_file_path = f"{project_root}/manufacturing/manufacturing_sub_exposures/raw_data_EDGAR/EDGARv6.1_CO_2011_BASICMETALS_combined.txt"
+output_file_path = f"{project_root}/manufacturing/manufacturing_sub_exposures/refinement_1/raw_data_EDGAR/EDGARv6.1_CO_2011_BASICMETALS_combined.txt"
 
 # Save the DataFrame to a text file with semicolon as the delimiter
 summed_df_final.to_csv(output_file_path, sep=';', index=False)
@@ -59,7 +59,7 @@ print(sorted_duplicate_rows)
 #get the for an exllicti lat lon combination the final row
 # Replace (-0.1, 42.8) with the lon_lat_combined value you're interested in
 target_lon_lat_combined = '(-46.4, -23.4)'
-row_for_target_value = summed_gdf[summed_gdf['lon_lat_combined'] == target_lon_lat_combined]
+row_for_target_value = summed_df[summed_df['lon_lat_combined'] == target_lon_lat_combined]
 emission_for_target_value = row_for_target_value['emission 2011 (tons)'].values
 print(f"Emission for lon_lat_combined {target_lon_lat_combined}: {emission_for_target_value}")
 

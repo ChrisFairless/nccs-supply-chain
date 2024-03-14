@@ -12,7 +12,7 @@ from exposures.utils import root_dir
 # Get the root directory
 project_root = root_dir()
 
-_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/preprocess_raw_files/TM_WORLD_BORDERS-0.3.shp")
+_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/refinement_1/core/TM_WORLD_BORDERS-0.3.shp")
 
 year = 2011
 emission_threshold = 0  # Insert a threshold of NOx emissions to account for manufacturing activities only
@@ -38,8 +38,8 @@ files = {
 }
 
 for variable, filename in files.items():
-    input_file = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}.h5"
-    output_file = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/intermediate_data_EDGAR/{filename}_ISO3.h5"
+    input_file = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/intermediate_data_EDGAR/{filename}.h5"
+    output_file = f"{project_root}/exposures/manufacturing/manufacturing_sub_exposures/refinement_1/intermediate_data_EDGAR/{filename}_ISO3.h5"
 
     column_latitude = 'latitude'
     column_longitude = 'longitude'
