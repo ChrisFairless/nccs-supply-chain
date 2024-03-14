@@ -17,5 +17,5 @@ from exposures.utils import root_dir
 # Get the root directory
 project_root = root_dir()
 
-rds = rioxarray.open_rasterio(f"{project_root}/exposures/mining/raw_data_MAUS/global_miningarea_v2_30arcsecond.tif")
-rds.to_dataset(name="vale").to_netcdf(f"{project_root}/exposures/mining/raw_data_MAUS/global_miningarea_v2_30arcsecond_converted.nc")
+rds = rioxarray.open_rasterio(f"{project_root}/exposures/mining/refinement_1/raw_data_MAUS/global_miningarea_v2_30arcsecond.tif")
+rds.to_dataset(name="vale").to_netcdf(f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted.nc")

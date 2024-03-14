@@ -1,5 +1,5 @@
 import os
 def root_dir():
     """gets root directory"""
-    return os.path.dirname(__file__) + "/.."
+    return os.path.abspath(os.path.dirname(__file__) + "/..")
 

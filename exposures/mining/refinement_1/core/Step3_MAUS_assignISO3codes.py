@@ -12,10 +12,10 @@ from exposures.utils import root_dir
 # Get the root directory
 project_root = root_dir()
 
-_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/core/TM_WORLD_BORDERS-0.3.shp")
+_SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/refinement_1/core/TM_WORLD_BORDERS-0.3.shp")
 
-input_file = f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted.h5"
-output_file = f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3.h5"
+input_file = f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted.h5"
+output_file = f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3.h5"
 
 column_latitude = 'latitude'
 column_longitude = 'longitude'
@@ -58,4 +58,4 @@ print("Number of rows where no country could be assigned: ",df1["region_id"].isn
 df2 = df1.dropna(subset=['region_id'])
 
 #Save the final file:
-df2.to_hdf(f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5", key='data', mode='w') #high res
+df2.to_hdf(f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5", key='data', mode='w') #high res

@@ -1,3 +1,5 @@
+import os.path
+
 import pandas as pd
 import xarray
 import numpy as np
@@ -13,10 +15,11 @@ LOGGER = logging.getLogger()
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 from exposures.utils import root_dir
+from utils.s3client import upload_to_s3_bucket
 
 # Get the root directory
 project_root = root_dir()
-
+print(os.path.abspath(project_root))
 
 # TODO include the S3 save statement
 
@@ -29,7 +32,7 @@ def get_mining_exp(countries=None,
     glob_prod, repr_sectors, IO_countries = get_prod_secs(mriot_type, mriot_year, repr_sectors)
 
     data = pd.read_hdf(
-        f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5")
+        f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5")
     cnt_dfs = []
     for iso3_cnt in countries:
         cnt_df = data.loc[data['region_id'] == iso3_cnt]
@@ -122,7 +125,7 @@ def get_ROW_factor_GDP(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     # load the GDP of counries
-    gdp_worldbank = pd.read_csv(f"{project_root}/exposures/mining/core/GDP_Worldbank_modified_without_regions.csv")
+    gdp_worldbank = pd.read_csv(f"{project_root}/exposures/mining/refinement_1/core/GDP_Worldbank_modified_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -142,8 +145,8 @@ def get_ROW_factor_mineral_rent_GDP(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     # load the GDP of counries
-    gdp_worldbank = pd.read_csv(f"{project_root}/exposures/mining/core/GDP_Worldbank_modified_without_regions.csv")
-    mineral_rent = pd.read_csv(f"{project_root}/exposures/mining/core/WorldBank_mineral_rents_modified_without_regions.csv")
+    gdp_worldbank = pd.read_csv(f"{project_root}/exposures/mining/refinement_1/core/GDP_Worldbank_modified_without_regions.csv")
+    mineral_rent = pd.read_csv(f"{project_root}/exposures/mining/refinement_1/core/WorldBank_mineral_rents_modified_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -177,7 +180,7 @@ def get_ROW_factor_WorldMiningData(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     # load the MP (mineral production) of countries
-    WorldMiningData = pd.read_excel(f"{project_root}/exposures/mining/core/WorldMiningData_2021_Total_Mineral_Production.xlsx")
+    WorldMiningData = pd.read_excel(f"{project_root}/exposures/mining/refinement_1/core/WorldMiningData_2021_Total_Mineral_Production.xlsx")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -194,7 +197,7 @@ def get_ROW_factor_WorldMiningData(mriot_year, IO_countries, countries):
 
 
 data = pd.read_hdf(
-    f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5")
+    f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved.h5")
 countries = data["region_id"].unique().tolist()
 countries.sort()
 
@@ -206,25 +209,44 @@ exp = get_mining_exp(
     repr_sectors='Mining and quarrying'
 )
 
-# TODO include an S3 Bucket save statement of the final files
+"""
+Saving of file, first, locally and secondly also to the s3 Bukcet
+"""
 
 # Save a shape file to check it in QGIS
 df_shape = exp.gdf.drop(columns=["area", "normalized_area"])
-df_shape.to_file(
-    f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.shp",
-    driver="ESRI Shapefile")
+filename_shp = f"{project_root}/exposures/mining/refinement_1/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.shp"
+s3_filename_shp =f"exposures/mining/refinement_1/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.shp"
+df_shape.to_file(filename_shp,driver="ESRI Shapefile")
+# upload the file to the s3 Bucket
+upload_to_s3_bucket(filename_shp, s3_filename_shp)
+print(f"upload of {s3_filename_shp} to s3 bucket successful")
+
 
 # Save final file to a climada available format h5
 df = exp.gdf.drop(columns=["geometry", "area", "normalized_area"])
-df.to_hdf(
-    f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.h5",
-    key="data", mode="w")  # hih res
+filename_h5 = f"{project_root}/exposures/mining/refinement_1/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.h5"
+s3_filename_h5 =f"exposures/mining/refinement_1/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.h5"
+df.to_hdf(filename_h5,key="data", mode="w")  # hih res
+# upload the file to the s3 Bucket
+upload_to_s3_bucket(filename_h5, s3_filename_h5)
+print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
-# Save individual country files #TODO save country splited files to S3 bucket
+# Save individual country files
 for region_id in df['region_id'].unique():
     subset_df = df[df['region_id'] == region_id]
-    filename_country = f"{project_root}/exposures/mining/intermediate_data_MAUS/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
+    filename_country = f"{project_root}/exposures/mining/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
+    s3_filename_country =f"exposures/mining/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
     subset_df.to_hdf(filename_country, key="data", mode="w")
+
+    #upload the individual country files to s3 bucket
+    upload_to_s3_bucket(filename_country, s3_filename_country)
+    print(f"upload of {s3_filename_country} to s3 bucket successful")
+
+
+
+
+
 
 # count number of zeros
 num_rows_with_zero = len(df[df['value'] == 0])
@@ -248,7 +270,6 @@ ax.set_title('Mining Exposure with MRIO values scaled by area of the mine in M.U
 # Show the plot
 plt.show()
 
-# #### Some checkpoints:
 # country sum of value
 value_sum_per_country = df.groupby('region_id')['value'].sum().reset_index()
 print(f"value_sum_per_country for Mining", value_sum_per_country)
@@ -298,7 +319,7 @@ ax1.set_title('Top 30 Countries by Sum of Values')
 
 plt.tight_layout()
 plt.savefig(
-    f"{project_root}/exposures/mining/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.png",
+    f"{project_root}/exposures/mining/refinement_1/intermediate_data_MAUS/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled.png",
     bbox_inches='tight')
 plt.show()
 
