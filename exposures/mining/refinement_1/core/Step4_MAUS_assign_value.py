@@ -21,8 +21,10 @@ from utils.s3client import upload_to_s3_bucket
 project_root = root_dir()
 print(os.path.abspath(project_root))
 
-# TODO include the S3 save statement
-
+"""
+Important Note, when running the script with a new version or modifications, make sure to delete teh files on the s3 bucket
+or that they are properly replace. Goal to onyl have the relevant files on the s3 bucket and no duplicates
+"""
 
 def get_mining_exp(countries=None,
                    mriot_type='WIOD16',
@@ -238,7 +240,6 @@ for region_id in df['region_id'].unique():
     filename_country = f"{project_root}/exposures/mining/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
     s3_filename_country =f"exposures/mining/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled_{region_id}.h5"
     subset_df.to_hdf(filename_country, key="data", mode="w")
-
     #upload the individual country files to s3 bucket
     upload_to_s3_bucket(filename_country, s3_filename_country)
     print(f"upload of {s3_filename_country} to s3 bucket successful")

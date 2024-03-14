@@ -10,6 +10,7 @@ from climada_petals.engine import SupplyChain
 import logging
 
 from exposures.utils import root_dir
+from utils.s3client import upload_to_s3_bucket
 
 # Get the root directory
 project_root = root_dir()
@@ -17,8 +18,11 @@ project_root = root_dir()
 LOGGER = logging.getLogger()
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
-#TODO import utils root
-#TODO include S3 bucket save statement
+"""
+Important Note, when running the script with a new version or modifications, make sure to delete teh files on the s3 bucket
+or that they are properly replace. Goal to onyl have the relevant files on the s3 bucket and no duplicates
+"""
+
 
 # Define Function that modifies the data
 
@@ -102,7 +106,7 @@ def get_ROW_factor_WorldBank_manufac(mriot_year, IO_countries, countries):
 
     # load the Manufacturing of countries
     WB_manufac = pd.read_csv(
-        f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/WorldBank_Manufac_output_without_regions.csv")
+        f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/WorldBank_Manufac_output_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
@@ -141,7 +145,7 @@ repr_sectors = ["Manufacture of food products, beverages and tobacco products",
                 ]
 
 data = pd.read_hdf(
-    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5")
+    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5")
 countries = data["region_id"].unique().tolist()
 countries.sort()
 
@@ -153,30 +157,46 @@ exp = get_manufacturing_exp(data=data,
                             repr_sectors=repr_sectors
                             )
 
-# TODO save the files to the S3 bucket
+"""
+Saving of file, first, locally and secondly also to the s3 Bukcet
+"""
+
 # Save a shape file to check it in QGIS
 df_shape = exp.gdf.drop(columns=["emi_nox", "normalized_emissions"])
-df_shape.to_file(
-    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp",
-    driver="ESRI Shapefile")
+filename_shp =f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
+s3_filename_shp =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
+df_shape.to_file(filename_shp,driver="ESRI Shapefile")
+# upload the file to the s3 Bucket
+upload_to_s3_bucket(filename_shp, s3_filename_shp)
+print(f"upload of {s3_filename_shp} to s3 bucket successful")
+
 
 # Save final file to a climada available format h5
 df = exp.gdf.drop(columns=["geometry", "emi_nox", "normalized_emissions"])
-df.to_hdf(
-    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5",
-    key="data", mode="w")  # hih res
+filename_h5 = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
+s3_filename_h5 =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
+df.to_hdf(filename_h5,key="data", mode="w")  # hih res
+# upload the file to the s3 Bucket
+upload_to_s3_bucket(filename_h5, s3_filename_h5)
+print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
 
-# Save individual country files #TODO save individual country files to S3 bucket
+# Save individual country files
 for region_id in df['region_id'].unique():
     subset_df = df[df['region_id'] == region_id]
-    filename_country = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
+    filename_country = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
+    s3_filename_country =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
     subset_df.to_hdf(filename_country, key="data", mode="w")
+    #upload the individual country files to s3 bucket
+    upload_to_s3_bucket(filename_country, s3_filename_country)
+    print(f"upload of {s3_filename_country} to s3 bucket successful")
+
+
+
+"""Check points, not needed fot the final output, but create some credibility"""
 
 # count number of zeros
 num_rows_with_zero = len(df[df['value'] == 0])
-
-"""Check points, not needed fot the final output, but create some credibility"""
 
 #
 # ##total emissions
@@ -234,7 +254,7 @@ ax1.set_title('Top 30 Countries by Sum of Values')
 
 plt.tight_layout()
 plt.savefig(
-    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.png",
+    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.png",
     bbox_inches='tight')
 plt.show()
 

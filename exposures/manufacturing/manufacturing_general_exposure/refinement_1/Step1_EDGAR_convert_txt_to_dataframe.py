@@ -19,7 +19,7 @@ Additionally, had to remove the two top lines within the header of the txt file 
 year = 2011  # what is the year of the emissions
 
 # Read the text file into a string
-with open(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/raw_data_EDGAR/EDGARv6.1_NOx_{year}_TOTALS.txt",
+with open(f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/raw_data_EDGAR/EDGARv6.1_NOx_{year}_TOTALS.txt",
           'r') as file:
     data = file.read()
 
@@ -41,6 +41,6 @@ num_rows_with_zero = len(df_final[df_final['emi_nox'] == 0])
 # Filter rows where emi_nox >= 100
 filtered_df = df_final[df_final['emi_nox'] >= 100]
 
-hdf_filename = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"  # high res
+hdf_filename = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"  # high res
 
 filtered_df.to_hdf(hdf_filename, key='data', mode='w')

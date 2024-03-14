@@ -15,8 +15,8 @@ project_root = root_dir()
 _SHAPEFILE = gpd.read_file(f"{project_root}/exposures/mining/core/TM_WORLD_BORDERS-0.3.shp")
 
 year = 2011
-input_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"
-output_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5"
+input_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg.h5"
+output_file = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5"
 
 column_latitude = 'latitude'
 column_longitude = 'longitude'
