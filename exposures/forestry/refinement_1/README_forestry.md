@@ -145,4 +145,4 @@ Final file name: **"forestry_values_MRIO_avg(WB-v2).h5"**
 
 3. **Sensitivity test:** Current version with deforestation and applying World Bank production scaling for ROW
    (sensitivity test with 10 weight on deforestation points):
-![forestry-new(sensitivity-10weight).png](forestry-new%28sensitivity-10weight%29.png)
+![forestry-new(sensitivity-10weight).png](forestry-new(sensitivity-10weight).png)

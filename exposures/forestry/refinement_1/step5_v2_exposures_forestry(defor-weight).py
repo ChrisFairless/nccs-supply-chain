@@ -13,6 +13,12 @@ import logging
 
 LOGGER = logging.getLogger()
 
+from exposures.utils import root_dir
+from utils.s3client import upload_to_s3_bucket
+
+# Get the root directory
+project_root = root_dir()
+
 def get_forestry_exp_new_2(
         countries=None,
         mriot_type='WIOD16',
@@ -26,7 +32,7 @@ def get_forestry_exp_new_2(
 
     cnt_dfs = []
 
-    data = pd.read_hdf("data/forest_exp_osm_defor(v2).h5") # file from step 4 excluding national parks and protected areas + deforestation
+    data = pd.read_hdf(f"{project_root}/exposures/forestry/refinement_1/intermediate_data/forest_exp_osm_defor(v2).h5") # file from step 4 excluding national parks and protected areas + deforestation
 
     for iso3_cnt in countries:
 
@@ -71,7 +77,7 @@ def get_ROW_factor_WB_forestry(mriot_year, IO_countries, countries):
     IO_countries = IO_countries
 
     #load the forestry production of counries
-    forestry_prod_WB = pd.read_csv('WorldBank_forestry_production.csv')
+    forestry_prod_WB = pd.read_csv(f'{project_root}/exposures/forestry/refinement_1/WorldBank_forestry_production.csv')
 
     # Select only the specified year column and filter rows based on the 'Country Code'
     ROW_forestry_prod_WB = forestry_prod_WB[['Country Code', str(mriot_year)]][~forestry_prod_WB['Country Code'].isin(IO_countries)]
@@ -85,7 +91,7 @@ def get_ROW_factor_WB_forestry(mriot_year, IO_countries, countries):
     return ROW_forestry_prod_WB
 
 
-data = pd.read_hdf("data/forest_exp_osm_defor(v2).h5") # file from step 4 excluding national parks and protected areas + deforestation
+data = pd.read_hdf(f"{project_root}/exposures/forestry/refinement_1/intermediate_data/forest_exp_osm_defor(v2).h5") # file from step 4 excluding national parks and protected areas + deforestation
 countries = data["region_id"].unique().tolist()
 countries.sort()
 del data
@@ -97,14 +103,33 @@ exp = get_forestry_exp_new_2(
     mriot_year=2011,
     repr_sectors='Forestry and logging')
 
+
+# # Save a shape file to check it in QGIS
+# df_shape = exp.gdf
+# filename_shp = f"{project_root}/exposures/forestry/refinement_1/forestry_values_MRIO_avg(WB-v2).shp"
+# s3_filename_shp = f"exposures/forestry/refinement_1/forestry_values_MRIO_avg(WB-v2).shp"
+# df_shape.to_file(filename_shp,driver="ESRI Shapefile")
+# # upload the file to the s3 Bucket
+# upload_to_s3_bucket(filename_shp, s3_filename_shp)
+# print(f"upload of {s3_filename_shp} to s3 bucket successful")
+
+
+# Save final file to a climada available format h5
 df = exp.gdf.drop(columns='geometry')
-
-#TODO save final file to S3 bucket
-
-df.to_hdf("data/forestry_values_MRIO_avg(WB-v2).h5", key="data", mode='w') # final file to be used in CLIMADA NCCS project
+filename_h5 =f"{project_root}/exposures/forestry/refinement_1/forestry_values_MRIO_avg(WB-v2).h5"
+s3_filename_h5 =f"exposures/forestry/refinement_1/forestry_values_MRIO_avg(WB-v2).h5"
+df.to_hdf(filename_h5, key="data", mode='w') # final file to be used in CLIMADA NCCS project
+# upload the file to the s3 Bucket
+upload_to_s3_bucket(filename_h5, s3_filename_h5)
+print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
 # Save individual country files #TODO save country splited files to S3 bucket
 for region_id in df['region_id'].unique():
     subset_df = df[df['region_id'] == region_id]
-    filename_country = f"data/forestry_values_MRIO_avg(WB-v2)_{region_id}.h5"
+    filename_country = f"{project_root}/exposures/forestry/refinement_1/country_split/forestry_values_MRIO_avg(WB-v2)_{region_id}.h5"
+    s3_filename_country = f"exposures/forestry/refinement_1/country_split/forestry_values_MRIO_avg(WB-v2)_{region_id}.h5"
     subset_df.to_hdf(filename_country, key="data", mode="w")
+    #upload the individual country files to s3 bucket
+    upload_to_s3_bucket(filename_country, s3_filename_country)
+    print(f"upload of {s3_filename_country} to s3 bucket successful")
+
