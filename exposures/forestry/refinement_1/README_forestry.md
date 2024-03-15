@@ -85,7 +85,7 @@ Geofofabrik as the ISO3 code was not recognized using the code.
    is **"forest_exp_osm_step4.h5"**.
 
 The green points represent the final forestry exposure points. The red points represent the excluded national parks and
-protected areas.
+protected areas. The input file to this step contained globally 5'377'349 forest points. In total, 622'656 national park and protected area points were removed, leaving us with at final value of 4'754'693 forestry points globally. 
 ![img.png](img.png)
 
 ## Step 4: Download deforestation dataset:
