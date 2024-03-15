@@ -19,7 +19,7 @@
 - Step 3: Assign for each row (lat/lon location) a country ISO code that is needed by the Climada SupplyChain module. Code: https://github.com/Correntics/nccs-correntics/blob/main/utilities/step3_region_ID.py
 - Step 4: At this step we create a new column "normalized_country", where the Subscore of given sector is normalized at country level following the maximum method (i.e. divide the values by the maximum value of the country). Code: https://github.com/Correntics/nccs-correntics/blob/main/utilities/step4_normalize_country_level.py
 - Step 5: Assign for each datapoint a value according to the total production of each sector within a country : 
-  - Assign the mriot value of each sector and multiply it with the normalized factor of the country. Code: https://github.com/Correntics/nccs-correntics/blob/main/utilities/step5_MRIO_values.py
+  - Assign the mriot value of each sector and multiply it with the "normalized_area" of the country. Code: https://github.com/Correntics/nccs-correntics/blob/main/utilities/step5_MRIO_values.py
    ```
    # Total value per country based on:
     mriot_type='WIOD16',
@@ -67,11 +67,10 @@
 
 
 **Visual: Plots on normalized data by country for each sector**
-![Subscore_energy_cnormalized.png](data%2FSubscore_energy_cnormalized.png)
-![Subscore_water_cnormalized.png](data%2FSubscore_water_cnormalized.png)
-![Subscore_waste_cnormalized.png](data%2FSubscore_waste_cnormalized.png)
-
+![Subscore_energy_cnormalized.png](visuals%2FSubscore_energy_cnormalized.png)
+![Subscore_water_cnormalized.png](visuals%2FSubscore_water_cnormalized.png)
+![Subscore_waste_cnormalized.png](visuals%2FSubscore_waste_cnormalized.png)
 **Visual: Plots with MRIO value**
-![Subscore_energy_MRIO.png](data%2FSubscore_energy_MRIO.png)
-![Subscore_waste_MRIO.png](data%2FSubscore_waste_MRIO.png)
-![Subscore_water_MRIO.png](data%2FSubscore_water_MRIO.png)
+![Subscore_energy_MRIO.png](visuals%2FSubscore_energy_MRIO.png)
+![Subscore_water_MRIO.png](visuals%2FSubscore_water_MRIO.png)
+![Subscore_waste_MRIO.png](visuals%2FSubscore_waste_MRIO.png)

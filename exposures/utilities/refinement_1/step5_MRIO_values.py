@@ -38,8 +38,20 @@ def get_utilities_exp(
 
         cnt_df = data.loc[data['region_id'] == iso3_cnt]
 
+        # calculate total amount of infrastructure per country
+        country_sum_area = cnt_df['country_normalized'].sum()
+
         try:
-            cnt_df['value'] = glob_prod.loc[iso3_cnt].loc[repr_sectors].sum().values[0] * cnt_df["country_normalized"]
+            if country_sum_area != 0:
+                # Normalize 'amount' values by dividing by total amount
+                cnt_df['normalized_area'] = cnt_df['country_normalized'] / country_sum_area
+            else:
+                cnt_df['normalized_area'] = cnt_df['country_normalized']
+        except Exception as e:
+            print(f"Area of {cnt_df} is not zero")
+
+        try:
+            cnt_df['value'] = glob_prod.loc[iso3_cnt].loc[repr_sectors].sum().values[0] * cnt_df["normalized_area"]
         except KeyError:
             LOGGER.warning('You are simulating a country for which there are no production data in the chosen IOT')
             # code under option 1:
@@ -49,12 +61,12 @@ def get_utilities_exp(
             try:
                 ROW_gdp_factor = ROW_gdp_lookup.loc[ROW_gdp_lookup['Country Code'] == iso3_cnt, 'Normalized_GDP'].values[0]
                 ROW_country_production = ((glob_prod.loc['ROW'].loc[repr_sectors].sum()).values[0] * ROW_gdp_factor)
-                cnt_df['value'] = ROW_country_production * cnt_df["country_normalized"]
+                cnt_df['value'] = ROW_country_production * cnt_df["normalized_area"]
             except:
                 print(f"For the country {iso3_cnt} there is no GDP value available, 0 value is assigned")
                 ROW_gdp_factor = 0
                 ROW_country_production = ((glob_prod.loc['ROW'].loc[repr_sectors].sum()).values[0] * ROW_gdp_factor)
-                cnt_df['value'] = ROW_country_production * cnt_df["country_normalized"]
+                cnt_df['value'] = ROW_country_production * cnt_df["normalized_area"]
 
         cnt_dfs.append(cnt_df)
 
