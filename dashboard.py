@@ -8,8 +8,10 @@ import pandas as pd
 import xyzservices.providers as xyz
 from bokeh.io import curdoc
 from bokeh.layouts import layout
-from bokeh.models import (ColumnDataSource, DataTable, Div, GeoJSONDataSource, LogColorMapper, Patches, Select,
-                          TabPanel, TableColumn, Tabs)
+from bokeh.models import (
+    ColumnDataSource, DataTable, Div, GeoJSONDataSource, LogColorMapper, Patches, Select,
+    TabPanel, TableColumn, Tabs
+)
 from bokeh.plotting import figure
 
 from utils.folder_naming import get_indirect_output_dir, get_resource_dir
@@ -44,7 +46,8 @@ if not os.path.isfile("complete.csv"):
     DS_INDIRECT_BASE.drop(columns=['Unnamed: 0'], inplace=True)
     DS_INDIRECT_BASE["ref_year"] = DS_INDIRECT_BASE["ref_year"].astype(str)
     DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["iAAPL"].copy()
-    # DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["impact_aai"].copy() #TODO to be removed, old configurations, and used for best guesstimate run
+    # DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["impact_aai"].copy() #TODO to be removed, old configurations,
+    #  and used for best guesstimate run
     DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
     DS_INDIRECT_BASE.to_csv("complete.csv")
 else:
@@ -54,12 +57,13 @@ else:
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
 METRICS = ["iAAPL", "irAAPL", "iPL100", "irPL100"]
-# METRICS = ["impact_max", "imapct_max_%", "impact_aai", "rel_impact_aai_%","impact_rp_10", "rel_impact_rp_100_%"] #TODO to be removed, old configurations, and used for best guesstimate run
+# METRICS = ["impact_max", "imapct_max_%", "impact_aai", "rel_impact_aai_%","impact_rp_10", "rel_impact_rp_100_%"]
+# #TODO to be removed, old configurations, and used for best guesstimate run
 IO_APPROACH = DS_INDIRECT_BASE.io_approach.unique()
 SCENARIOS = DS_INDIRECT_BASE.scenario.unique()
 REF_YEARS = DS_INDIRECT_BASE.ref_year.unique()
 
-# Defaults for the dropdowns when opening the dashbaard
+# Defaults for the dropdowns when opening the dashboard
 selected_hazard_type = HAZARD_TYPES[0]
 selected_impacted_sector = IMPACTED_SECTORS[0]
 selected_metric = METRICS[0]
@@ -72,14 +76,15 @@ SELECTED_COUNTRY = None  # The country which is shocked
 SELECTED_SECTOR = None  # The sector which is indirectly impacted
 
 
-def filter_data(ds: pd.DataFrame,
-                imp_country=None,
-                sector=None,
-                hazard_type=None,
-                sector_of_impact=None,
-                scenario=None,
-                ref_year=None,
-                io_approach=None):
+def filter_data(
+        ds: pd.DataFrame,
+        imp_country=None,
+        sector=None,
+        hazard_type=None,
+        sector_of_impact=None,
+        scenario=None,
+        ref_year=None,
+        io_approach=None):
     if imp_country is not None:
         ds = ds[ds.country_of_impact_iso_a3 == imp_country]
     if sector_of_impact is not None:
@@ -105,7 +110,7 @@ def get_country_source(ds, gj):
     sub = ds.groupby("country_of_impact_iso_a3")['value'].sum(numeric_only=True)
 
     for (country, summed) in sub.items():
-        country_geom = gj.get(country, None)
+        country_geom = gj.get(country, None).copy()
 
         if country_geom is None:
             logging.warning(f"Could not find country {country}, omitting.")
@@ -147,14 +152,15 @@ def update_barplot_source(ds):
     p_barpot.x_range.factors = source_barplot.data['sectors']
 
 
-def update_plots(selected_imp_country,
-                 selected_sector,
-                 selected_hazard_type,
-                 selected_impacted_sector,
-                 metric,  # TODO shouldn't it be selected_metric?
-                 selected_scenario,
-                 selected_ref_year,
-                 selected_io_approach):
+def update_plots(
+        selected_imp_country,
+        selected_sector,
+        selected_hazard_type,
+        selected_impacted_sector,
+        metric,  # TODO shouldn't it be selected_metric?
+        selected_scenario,
+        selected_ref_year,
+        selected_io_approach):
     # TODO Find all update_plots calls and update them to use the new parameters
     DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE[metric]
     print(
