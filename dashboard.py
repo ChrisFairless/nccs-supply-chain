@@ -26,7 +26,7 @@ with open(f"{get_resource_dir()}/countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
-if not os.path.isfile("complet.csv"):
+if not os.path.isfile("complete.csv"):
     data_files = glob.glob(f"{get_indirect_output_dir(RUN_TITLE)}/indirect_impacts_*.csv")
     dfs = []
     for filename in data_files:
