@@ -31,7 +31,7 @@ def get_impf_set():
 
 
 def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
-    country_iso3num = str(pycountry.countries.get(alpha_3=country_iso3alpha).numeric)
+    country_iso3num = str(int(pycountry.countries.get(alpha_3=country_iso3alpha).numeric))
     s3_filepath = f'stormeurope_hazard/stormeurope_{scenario}_{country_iso3num}.hdf5' #replaced old statement
     outputfile=f'{save_dir}/stormeurope_{scenario}_{country_iso3num}.hdf5'
 
@@ -39,7 +39,7 @@ def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_D
 
 
 def get_hazard(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
-    country_iso3num = str(pycountry.countries.get(alpha_3=country_iso3alpha).numeric) #changed here
+    country_iso3num = str(int(pycountry.countries.get(alpha_3=country_iso3alpha).numeric)) #changed here
     if scenario == "observed":
         return get_era5(country_iso3num)
     cmip_scenario = WS_SCENARIO_LOOKUP[scenario]
@@ -207,7 +207,7 @@ def subset_to_countries(haz, country_iso3num_list = None, buffer = 0.6):
 
 def _subset_one_country(haz, reg_id, buffer):
     region_ids = [x for x in np.unique(haz.centroids.region_id) if x != 0]
-    haz_country = haz.select(reg_id = reg_id)
+    haz_country = haz.select(reg_id = int(reg_id))
     extent = u_coord.latlon_bounds(haz_country.centroids.lat, haz_country.centroids.lon, buffer=buffer)
     haz_out = haz.select(extent = (extent[0], extent[2], extent[1], extent[3]))
     haz_out = haz_out.select(reg_id = region_ids)  # Remove coastal grid cells. Controversial but I think it's worth not including them
