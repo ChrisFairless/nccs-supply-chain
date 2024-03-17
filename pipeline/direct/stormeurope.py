@@ -178,8 +178,8 @@ def regrid(haz, regrid_centroids, threshold=50):
     return haz
 
 
-# We don't just subset to centroids with the country's region ID because sometimes a location's nearest centroid is
-# across the border. Instead subset to a bounding box a little larger than the country + grid spacing, BUT dropping 
+# We don't just subset to centroids with the country's region ID because sometimes an exposure's nearest centroid is
+# across the border. Instead subset to a bounding box a little larger than the country + 0.5 * grid spacing, BUT dropping 
 # all centroids over the ocean. The reasoning is that exposures close to a border should be able to map to hazard 
 # across the border if its centroid is closer than the hazard centroids within the country, with the exception of 
 # hazard centroids over the ocean, since wind speeds tend to be much much higher over open water and we'd rather map to
@@ -191,6 +191,8 @@ def subset_to_countries(haz, country_iso3num_list = None, buffer = 0.6):
         country_iso3num_list = [country_iso3num_list]
     if not isinstance(country_iso3num_list, list):
         raise ValueError('Please provide an integer or list of integers as country IDs in parameter country_iso3num_list')
+    if haz.centroids.region_id is None:
+        haz.centroids.set_region_id()
 
     if len(country_iso3num_list) == 0:
         country_iso3num_list = np.unique(haz.centroids.region_id)
@@ -206,12 +208,17 @@ def subset_to_countries(haz, country_iso3num_list = None, buffer = 0.6):
 
 
 def _subset_one_country(haz, reg_id, buffer):
-    region_ids = [x for x in np.unique(haz.centroids.region_id) if x != 0]
+    # Get a bounding box for the country
     haz_country = haz.select(reg_id = int(reg_id))
     extent = u_coord.latlon_bounds(haz_country.centroids.lat, haz_country.centroids.lon, buffer=buffer)
+
+    # Subset the hazard
     haz_out = haz.select(extent = (extent[0], extent[2], extent[1], extent[3]))
-    haz_out = haz_out.select(reg_id = region_ids)  # Remove coastal grid cells. Controversial but I think it's worth not including them
-    # haz_out.centroids.set_lat_lon_to_meta()
+
+    # Remove coastal grid cells. Controversial but I think it's worth not including them
+    region_ids = [x for x in np.unique(haz_out.centroids.region_id) if x != 0]
+    haz_out = haz_out.select(reg_id = region_ids)
+
     if haz_out.centroids.size == 0:
         raise ValueError(f'No centroids found over land for this location: {reg_id}')
     return haz_out
