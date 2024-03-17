@@ -27,7 +27,7 @@ DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
 
 
 def get_impf_set():
-    return ImpactFuncSet(ImpfStormEurope.from_schwierz())
+    return ImpactFuncSet([ImpfStormEurope.from_schwierz()])
 
 
 def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
