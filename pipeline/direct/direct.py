@@ -195,10 +195,10 @@ def get_sector_impf_ws():
 
 def get_sector_bi(sector):
     return ImpactFuncComposable.from_step_impf(
-        intensity = [0, 0.7, 1],
+        intensity = (0, 0.7, 1),
         haz_type = "BI",
-        mdd = [0, 1, 1],
-        paa = [1, 1, 1],
+        mdd = (0, 1),
+        paa = (1, 1),
         impf_id = 1
     )
 
