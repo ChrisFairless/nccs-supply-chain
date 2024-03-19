@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from copy import deepcopy
+from scipy import sparse
 
 from pipeline.direct.calc_yearset import nccs_yearsets_simple
 from pipeline.direct.test.create_test_impact import dummy_impact, dummy_impact_yearly
@@ -43,7 +44,10 @@ class TestYearsets(unittest.TestCase):
         """If we generate yearsets a second time with the same seed we get the same sampling"""
         yimp1 = nccs_yearsets_simple([self.dummy_imp], n_sim_years = self.n_sim_years, seed=seed)
         yimp2 = nccs_yearsets_simple([self.dummy_imp], n_sim_years = self.n_sim_years, seed=seed)
+        yimp3 = nccs_yearsets_simple([self.dummy_imp, self.dummy_imp], n_sim_years = self.n_sim_years, seed=seed)
         np.testing.assert_allclose(yimp1[0].at_event, yimp2[0].at_event)
+        np.testing.assert_allclose(yimp1[0].at_event, yimp3[0].at_event)
+        np.testing.assert_allclose(yimp1[0].at_event, yimp3[1].at_event)
 
     def test_yearsets_sample_differently_without_a_seed(self):
         """...but if we don't set the seed we get a different sampling"""
