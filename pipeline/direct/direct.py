@@ -73,7 +73,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
 @cache
 def load_forestry_exposure():
     # Load an exposure from an hdf5 file
-    input_file_forest = 'resources/exposures/forestry/forestry_values_MRIO_avg(upd_2).h5'
+    input_file_forest = f'{get_resource_dir()}/forestry/best_guesstimate/forestry_values_MRIO_avg(upd_2).h5'
     h5_file = pd.read_hdf(input_file_forest)
     # Generate an Exposures instance from DataFrame
     exp = Exposures(h5_file)
@@ -83,7 +83,7 @@ def load_forestry_exposure():
     return exp
 
 #TODO implemement a general function to open the subexposures splitted in countries
-#TODO agree on a folder saving struture for the S3 Bucket to download them from there
+#TODO implement load statements from the s3 bucket
 def load_manufacturing_exposure(country, sector):
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     # Load an exposure from a hdf5 file
@@ -111,7 +111,7 @@ def get_sector_exposure(sector, country):
     # add more sectors
     if sector == 'mining':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/mining/mining_500_exposure.xlsx'
+        input_file = f'{get_resource_dir()}/mining/best_guesstimate/mining_500_exposure.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)
@@ -121,7 +121,7 @@ def get_sector_exposure(sector, country):
 
     if sector == 'electricity':
         # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/utilities/utilities_power_plant_global_database_WRI.xlsx'
+        input_file = f'{get_resource_dir()}/utilities/best_guesstimate/utilities_power_plant_global_database_WRI.xlsx'
         excel_data = pd.read_excel(input_file)
         # Generate an Exposures instance from DataFrame
         exp = Exposures(excel_data)

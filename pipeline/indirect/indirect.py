@@ -19,6 +19,7 @@ SUPER_SEC = {
     "non_metallic_mineral":[13],
     "basic_metals":[14],
     "energy": [23],
+    "electricity": [23],
     "water":[24],
     "waste":[25],
     "service": range(26, 56),
