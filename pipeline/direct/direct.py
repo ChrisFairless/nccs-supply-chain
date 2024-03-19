@@ -12,6 +12,8 @@ from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
+from utils.s3client import download_from_s3_bucket
+from exposures.utils import root_dir
 
 # for the wilfire impact function:
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
@@ -19,6 +21,7 @@ from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 import pipeline.direct.agriculture as agriculture
 
+project_root = root_dir()
 # /wildfire.py
 
 # newly added
@@ -96,6 +99,33 @@ def load_manufacturing_exposure(country, sector):
     exp.check()
     return exp
 
+def download_exposure_from_s3(country, sector, file_short):
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    s3_filepath = f'exposures/{sector}/{file_short}_{country_iso3alpha}.h5'
+    outputfile=f'{project_root}/exposures/{sector}/{file_short}_{country_iso3alpha}.h5'
+    download_from_s3_bucket(s3_filepath, outputfile)
+    h5_file = pd.read_hdf(outputfile)
+    # Generate an Exposures instance from DataFrame
+    exp = Exposures(h5_file)
+    exp.set_geometry_points()
+    exp.gdf['value'] = exp.gdf.value
+    exp.check()
+    return exp
+
+def download_sub_exposure_from_s3(country, sector, file_short):
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    s3_filepath = f'exposures/{file_short}_{country_iso3alpha}.h5'
+    outputfile=f'{project_root}/exposures/{file_short}_{country_iso3alpha}.h5'
+    download_from_s3_bucket(s3_filepath, outputfile)
+    h5_file = pd.read_hdf(outputfile)
+    # Generate an Exposures instance from DataFrame
+    exp = Exposures(h5_file)
+    exp.set_geometry_points()
+    exp.gdf['value'] = exp.gdf.value
+    exp.check()
+    return exp
+
+
 
 
 def get_sector_exposure(sector, country):
@@ -135,8 +165,9 @@ def get_sector_exposure(sector, country):
     if sector == 'forestry':
         exp = load_forestry_exposure()
 
-    if sector == 'wood':
-        exp = load_manufacturing_exposure(country, sector)
+    if sector == 'pharmaceutical':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/pharmaceutical_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_sub_exposure_from_s3(country, sector, file_short)
 
     return exp
 
