@@ -142,6 +142,7 @@ repr_sectors = ["Manufacture of food products, beverages and tobacco products",
                 "Manufacture of motor vehicles, trailers and semi-trailers",
                 "Manufacture of other transport equipment",
                 "Manufacture of furniture; other manufacturing",
+                "Repair and installation of machinery and equipment"
                 ]
 
 data = pd.read_hdf(
