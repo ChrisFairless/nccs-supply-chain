@@ -73,31 +73,18 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
-@cache
-def load_forestry_exposure():
-    # Load an exposure from an hdf5 file
-    input_file_forest = f'{get_resource_dir()}/forestry/best_guesstimate/forestry_values_MRIO_avg(upd_2).h5'
-    h5_file = pd.read_hdf(input_file_forest)
-    # Generate an Exposures instance from DataFrame
-    exp = Exposures(h5_file)
-    exp.set_geometry_points()
-    exp.gdf['value'] = exp.gdf.value
-    exp.check()
-    return exp
+# @cache
+# def load_forestry_exposure():
+#     # Load an exposure from an hdf5 file
+#     input_file_forest = f'{get_resource_dir()}/forestry/best_guesstimate/forestry_values_MRIO_avg(upd_2).h5'
+#     h5_file = pd.read_hdf(input_file_forest)
+#     # Generate an Exposures instance from DataFrame
+#     exp = Exposures(h5_file)
+#     exp.set_geometry_points()
+#     exp.gdf['value'] = exp.gdf.value
+#     exp.check()
+#     return exp
 
-#TODO implemement a general function to open the subexposures splitted in countries
-#TODO implement load statements from the s3 bucket
-def load_manufacturing_exposure(country, sector):
-    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
-    # Load an exposure from a hdf5 file
-    input_file_forest = f'resources/exposures/manufacturing/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled_{country_iso3alpha}.h5'
-    h5_file = pd.read_hdf(input_file_forest)
-    # Generate an Exposures instance from DataFrame
-    exp = Exposures(h5_file)
-    exp.set_geometry_points()
-    exp.gdf['value'] = exp.gdf.value
-    exp.check()
-    return exp
 
 def download_exposure_from_s3(country,file_short):
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
@@ -114,8 +101,15 @@ def download_exposure_from_s3(country,file_short):
 
 
 
-
 def get_sector_exposure(sector, country):
+    """
+    There are now commeneted versions that worked previously only locally, as the files were not synched. The best guesstimate
+    results are now also availabe in the s3 bucket and could be selected by changing the file path to the s3 bucket
+    would require to create a new donwload function, as for instance the mining file is an xlsx and would not work with the opening command
+    """
+
+
+
     if sector == 'service':
         client = Client()
         exp = client.get_litpop(country)
@@ -127,6 +121,7 @@ def get_sector_exposure(sector, country):
         # exp = client.get_litpop(country)  # first guess with litpop
         # exp.gdf['value'] = exp.gdf['value']  # / 100
 
+        #current active version
         file_short = f'manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country,  file_short)
 
