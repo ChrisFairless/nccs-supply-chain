@@ -5,10 +5,10 @@ OUTPUT_DIR = "./results"
 
 def get_resource_dir():
     """
-    Returns the absolute path to the resources directory
+    Returns the absolute path to the exposures directory
     :return:
     """
-    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../resources")
+    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../exposures")
 
 
 def get_output_dir():

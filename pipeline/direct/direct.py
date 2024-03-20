@@ -12,6 +12,8 @@ from climada.entity import ImpactFuncSet, ImpfTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
+from utils.s3client import download_from_s3_bucket
+from exposures.utils import root_dir
 
 # for the wilfire impact function:
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
@@ -20,6 +22,7 @@ from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 import pipeline.direct.agriculture as agriculture
 import pipeline.direct.stormeurope as stormeurope
 
+project_root = root_dir()
 # /wildfire.py
 
 # newly added
@@ -71,11 +74,25 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
-@cache
-def load_forestry_exposure():
-    # Load an exposure from an hdf5 file
-    input_file_forest = 'resources/exposures/forestry/forestry_values_MRIO_avg(upd_2).h5'
-    h5_file = pd.read_hdf(input_file_forest)
+# @cache
+# def load_forestry_exposure():
+#     # Load an exposure from an hdf5 file
+#     input_file_forest = f'{get_resource_dir()}/forestry/best_guesstimate/forestry_values_MRIO_avg(upd_2).h5'
+#     h5_file = pd.read_hdf(input_file_forest)
+#     # Generate an Exposures instance from DataFrame
+#     exp = Exposures(h5_file)
+#     exp.set_geometry_points()
+#     exp.gdf['value'] = exp.gdf.value
+#     exp.check()
+#     return exp
+
+
+def download_exposure_from_s3(country,file_short):
+    country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    s3_filepath = f'exposures/{file_short}_{country_iso3alpha}.h5'
+    outputfile=f'{project_root}/exposures/{file_short}_{country_iso3alpha}.h5'
+    download_from_s3_bucket(s3_filepath, outputfile)
+    h5_file = pd.read_hdf(outputfile)
     # Generate an Exposures instance from DataFrame
     exp = Exposures(h5_file)
     exp.set_geometry_points()
@@ -84,43 +101,109 @@ def load_forestry_exposure():
     return exp
 
 
+
 def get_sector_exposure(sector, country):
+    """
+    There are now commeneted versions that worked previously only locally, as the files were not synched. The best guesstimate
+    results are now also availabe in the s3 bucket and could be selected by changing the file path to the s3 bucket
+    would require to create a new donwload function, as for instance the mining file is an xlsx and would not work with the opening command
+    """
+
+
+
     if sector == 'service':
         client = Client()
         exp = client.get_litpop(country)
         exp.gdf['value'] = exp.gdf['value']  # / 100
 
     if sector == 'manufacturing':
-        client = Client()
-        exp = client.get_litpop(country)  # first guess with litpop
-        exp.gdf['value'] = exp.gdf['value']  # / 100
+        # best guesstimate run used this:
+        # client = Client()
+        # exp = client.get_litpop(country)  # first guess with litpop
+        # exp.gdf['value'] = exp.gdf['value']  # / 100
 
-    # add more sectors
+        #current active version
+        file_short = f'manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
     if sector == 'mining':
-        # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/mining/mining_500_exposure.xlsx'
-        excel_data = pd.read_excel(input_file)
-        # Generate an Exposures instance from DataFrame
-        exp = Exposures(excel_data)
-        exp.set_geometry_points()
-        exp.gdf['value'] = exp.gdf.value
-        exp.check()
+        # best guesstimate run used this:
+        # # load an exposure from an excel file
+        # input_file = f'{get_resource_dir()}/mining/best_guesstimate/mining_500_exposure.xlsx'
+        # excel_data = pd.read_excel(input_file)
+        # # Generate an Exposures instance from DataFrame
+        # exp = Exposures(excel_data)
+        # exp.set_geometry_points()
+        # exp.gdf['value'] = exp.gdf.value
+        # exp.check()
 
-    if sector == 'electricity':
-        # load an exposure from an excel file
-        input_file = f'{get_resource_dir()}/exposures/utilities/utilities_power_plant_global_database_WRI.xlsx'
-        excel_data = pd.read_excel(input_file)
-        # Generate an Exposures instance from DataFrame
-        exp = Exposures(excel_data)
-        exp.set_geometry_points()
-        exp.gdf['value'] = exp.gdf.value
-        exp.check()
+        file_short = f'{sector}/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
+        #only used for best guesstimate
+    # if sector == 'electricity':
+    #     # load an exposure from an excel file
+    #     input_file = f'{get_resource_dir()}/utilities/best_guesstimate/utilities_power_plant_global_database_WRI.xlsx'
+    #     excel_data = pd.read_excel(input_file)
+    #     # Generate an Exposures instance from DataFrame
+    #     exp = Exposures(excel_data)
+    #     exp.set_geometry_points()
+    #     exp.gdf['value'] = exp.gdf.value
+    #     exp.check()
 
     if sector == 'agriculture':
         exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
 
     if sector == 'forestry':
-        exp = load_forestry_exposure()
+        # exp = load_forestry_exposure() #only used for best guesstimate
+        file_short = f'forestry/refinement_1/country_split/{sector}_values_MRIO_avg(WB-v2)'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    #Utilities
+    if sector == 'energy':
+        file_short = f'utilities/refinement_1/Subscore_{sector}/country_split/Subscore_{sector}_MRIO'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'waste':
+        file_short = f'utilities/refinement_1/Subscore_{sector}/country_split/Subscore_{sector}_MRIO'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'water':
+        file_short = f'utilities/refinement_1/Subscore_{sector}/country_split/Subscore_{sector}_MRIO'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    #raw materials
+    if sector == 'pharmaceutical':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'basic_metals':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_CO_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'chemical':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_process/country_split/{sector}_process_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'food':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_and_paper/country_split/{sector}_and_paper_NOX_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country,  file_short)
+
+    if sector == 'non_metallic_mineral':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_PM10_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country, file_short)
+
+    if sector == 'refin_and_transform':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country, file_short)
+
+    if sector == 'rubber_and_plastic':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country, file_short)
+
+    if sector == 'wood':
+        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        exp = download_exposure_from_s3(country, file_short)
 
     return exp
 

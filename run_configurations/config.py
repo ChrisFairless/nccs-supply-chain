@@ -10,7 +10,7 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -70,7 +70,7 @@ CONFIG = {
         },
         {
             "hazard": "river_flood",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -131,7 +131,7 @@ CONFIG = {
         },
         {
             "hazard": "wildfire",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -180,7 +180,7 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture","forestry"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -224,12 +224,12 @@ CONFIG = {
                           'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                           'Zimbabwe'],
             "scenario_years": [
-                {"scenario": "None", "ref_year": "present"}, #TODO update "present" to "historical" in future runs as it is 1980-2010!
+                {"scenario": "None", "ref_year": "historical"},
                 # These combinations are possible, but since the windstorm is not yet developed fully, we exclude them.
-                # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this
+                # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this and rename to time period it is
                 # {"scenario": "ssp245", "ref_year": "present"},
                 # {"scenario": "ssp370", "ref_year": "present"},
-                # {"scenario": "ssp585", "ref_year": "present"}, #TODO run this
+                # {"scenario": "ssp585", "ref_year": "present"}, #TODO run this and rename to time period it is
             ]
         },
 
