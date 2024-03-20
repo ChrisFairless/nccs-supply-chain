@@ -20,6 +20,7 @@ from exposures.utils import root_dir
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 import pipeline.direct.agriculture as agriculture
+import pipeline.direct.stormeurope as stormeurope
 
 project_root = root_dir()
 # /wildfire.py
@@ -33,7 +34,6 @@ HAZ_TYPE_LOOKUP = {
     'storm_europe': 'WS',
     "relative_crop_yield": "RC",
 }
-
 
 # Method to loop through configuration lists of and run an impact calculation for 
 # each combination on the list
@@ -57,6 +57,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                     )
                 except Exception as e:
                     print(f"Error calculating direct impacts for {country} {sector} {haz_type}: {e}")
+                    raise e
 
     return pd.DataFrame(result)
 
@@ -219,7 +220,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'WF':
         return ImpactFuncSet([get_sector_impf_wf()])
     if haz_type == 'WS':
-        return ImpactFuncSet([get_sector_impf_ws()])
+        return stormeurope.get_impf_set()
     if haz_type == 'RC':
         return agriculture.get_impf_set()
     Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
@@ -251,17 +252,11 @@ def get_sector_impf_wf():
     return impf
 
 
-def get_sector_impf_ws():
-    impf = ImpfStormEurope.from_schwierz()
-    return impf
-
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     client = Client()
     if haz_type == 'tropical_cyclone':
-
         if scenario == 'None' and ref_year == 'historical':
-
             return client.get_hazard(
                 haz_type, properties={
                     'country_iso3alpha': country_iso3alpha,
@@ -303,15 +298,12 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 }
             )
     elif haz_type == "storm_europe":
-        return client.get_hazard(
-            haz_type, properties={
-                'spatial_coverage': 'Europe',
-                'gcm': 'EC-Earth3-Veg',
-                'climate_scenario': scenario
-            }
+        country_iso3num = pycountry.countries.get(alpha_3=country_iso3alpha).numeric
+        haz = stormeurope.get_hazard(
+            scenario=scenario,
+            country_iso3alpha=country_iso3alpha
         )
-        # TODO filter to bounding box
-    # TODO currently always returns the same hazard
+        return haz
 
     elif haz_type == "relative_crop_yield":
         # TODO currently always returns the same hazard

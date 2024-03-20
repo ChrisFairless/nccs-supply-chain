@@ -52,6 +52,7 @@ if not os.path.isfile("complete.csv"):
     DS_INDIRECT_BASE.to_csv("complete.csv")
 else:
     DS_INDIRECT_BASE = pd.read_csv("complete.csv")
+    DS_INDIRECT_BASE.scenario = ['None' if pd.isna(s) else s for s in DS_INDIRECT_BASE.scenario]
 
 HAZARD_TYPES = DS_INDIRECT_BASE.hazard_type.unique()
 IMPACTED_SECTORS = DS_INDIRECT_BASE.sector_of_impact.unique()
