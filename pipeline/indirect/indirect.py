@@ -13,15 +13,17 @@ SUPER_SEC = {
     "food":[4],
     "wood": [6],
     "refin_and_transform":[9],
-    "chemcials":[10],
+    "chemical":[10],
     "pharmaceutical":[11],
     "rubber_and_plastic":[12],
     "non_metallic_mineral":[13],
     "basic_metals":[14],
+    #utilities
     "energy": [23],
     "electricity": [23],
     "water":[24],
     "waste":[25],
+    #service
     "service": range(26, 56),
 }
 

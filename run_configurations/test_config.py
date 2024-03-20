@@ -10,7 +10,7 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["pharmaceutical"],
+            "sectors": ["pharmaceutical", "basic_metals", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform", "waste", "water", "energy", "forestry", "mining", "manufacturing"],
             "countries": ['United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"}
