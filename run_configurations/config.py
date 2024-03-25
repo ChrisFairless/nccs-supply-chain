@@ -4,13 +4,13 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 
 CONFIG = {
-    "run_title": "test_run",
-    "io_approach": "ghosh",
+    "run_title": "best_guesstimate_22_01_2024",
+    "io_approach": "leontief",
     "n_sim_years": 100,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -55,22 +55,22 @@ CONFIG = {
                           'Zimbabwe'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                # {"scenario": "rcp26", "ref_year": "2040"}, #have the run for this for some countries
-                {"scenario": "rcp26", "ref_year": "2060"},  # TODO @mastaia run this
+                # {"scenario": "rcp26", "ref_year": "2040"},
+                {"scenario": "rcp26", "ref_year": "2060"},
                 # {"scenario": "rcp26", "ref_year": "2080"},
                 # {"scenario": "rcp45", "ref_year": "2040"},
                 # {"scenario": "rcp45", "ref_year": "2060"},
                 # {"scenario": "rcp45", "ref_year": "2080"},
                 # {"scenario": "rcp60", "ref_year": "2040"},
-                # {"scenario": "rcp60", "ref_year": "2060"},#have the run for this one
+                # {"scenario": "rcp60", "ref_year": "2060"},
                 # {"scenario": "rcp60", "ref_year": "2080"},
                 # {"scenario": "rcp85", "ref_year": "2040"},
-                {"scenario": "rcp85", "ref_year": "2060"},  # have the run for this for some countries
+                {"scenario": "rcp85", "ref_year": "2060"},
             ]
         },
         {
             "hazard": "river_flood",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -116,22 +116,22 @@ CONFIG = {
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 # {"scenario": "rcp26", "ref_year": 2020},
-                # {"scenario": "rcp26", "ref_year": 2040}, #have the run for this
-                {"scenario": "rcp26", "ref_year": 2060},  # TODO @mastaia run this code
+                # {"scenario": "rcp26", "ref_year": 2040},
+                {"scenario": "rcp26", "ref_year": 2060},
                 # {"scenario": "rcp26", "ref_year": 2080},
                 # {"scenario": "rcp60", "ref_year": 2020},
                 # {"scenario": "rcp60", "ref_year": 2040},
-                # {"scenario": "rcp60", "ref_year": 2060}, #have the run for this
+                # {"scenario": "rcp60", "ref_year": 2060},
                 # {"scenario": "rcp60", "ref_year": 2080},
                 # {"scenario": "rcp85", "ref_year": 2020},
                 # {"scenario": "rcp85", "ref_year": 2040},
-                {"scenario": "rcp85", "ref_year": 2060},  # have the run for this
+                {"scenario": "rcp85", "ref_year": 2060},
                 # {"scenario": "rcp85", "ref_year": 2080},
             ]
         },
         {
             "hazard": "wildfire",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -180,7 +180,7 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "sectors": ["mining", "manufacturing", "service", "electricity", "agriculture"],
+            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -224,12 +224,12 @@ CONFIG = {
                           'Vanuatu', 'Venezuela, Bolivarian Republic of', 'Viet Nam', 'Yemen', 'Zambia',
                           'Zimbabwe'],
             "scenario_years": [
-                {"scenario": "None", "ref_year": "present"},
+                {"scenario": "None", "ref_year": "historical"},
                 # These combinations are possible, but since the windstorm is not yet developed fully, we exclude them.
-                # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this
+                # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this and rename to time period it is
                 # {"scenario": "ssp245", "ref_year": "present"},
                 # {"scenario": "ssp370", "ref_year": "present"},
-                # {"scenario": "ssp585", "ref_year": "present"}, #TODO run this
+                # {"scenario": "ssp585", "ref_year": "present"}, #TODO run this and rename to time period it is
             ]
         },
 

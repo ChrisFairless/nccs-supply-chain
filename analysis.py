@@ -86,6 +86,7 @@ def calc_supply_chain_impacts(
 
         except ValueError as e:
             print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
+
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
 
@@ -114,6 +115,7 @@ def run_pipeline(country_list,
             )
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list} due to {e}")
+            raise e
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
@@ -146,6 +148,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from run_configurations.test_config import CONFIG
+    from run_configurations.test_config import CONFIG #change here to test_config if needed
 
     run_pipeline_from_config(CONFIG)

@@ -13,10 +13,9 @@ climada_petals/
 *.nc4
 /results/test_run/direct/test_run_direct_impacts_complete.xlsx
 /results/test_run/indirect/test_run_indirect_impacts_complete.xlsx
-/resources/exposures/forestry/forest_exp_region_final.h5
-.h5
+*.h5
 /results/test_run/direct/test_run_direct_impacts_complete.xlsx
 /results/test_run/indirect/test_run_indirect_impacts_complete.xlsx
-
-
-resources/exposures/forestry/forestry_values_MRIO_avg(draft).h5
+resources/exposures/forestry/forestry_values_MRIO_avg(upd_2).h5
+results/best_guesstimate_22_01_2024/direct/best_guesstimate_22_01_2024_direct_impacts_complete.xlsx
+results/best_guesstimate_22_01_2024/indirect/best_guesstimate_22_01_2024_indirect_impacts_complete.xlsx

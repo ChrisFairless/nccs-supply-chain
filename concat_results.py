@@ -10,7 +10,7 @@ To run concat_results.py please update the RUN_TITLE
 
 ### INDIRECT
 
-RUN_TITLE = "test_run"
+RUN_TITLE = "best_guesstimate_22_01_2024"
 
 data_files = glob.glob(f"{get_indirect_output_dir(RUN_TITLE)}/indirect_impacts_*.csv")
 dfs = []
@@ -32,12 +32,12 @@ DS_INDIRECT_BASE.to_csv(f"{get_indirect_output_dir(RUN_TITLE)}/{RUN_TITLE}_indir
 term_definitions = {
     'mrio_sector_number': 'sector number according to the MRIO table',
     'sector': 'sector name according to the MRIO table',
-    'total_sectorial_production_mriot_CHE': 'total production of this sector in Switzerland (CHE) from MRIO table [in mEUR]',
-    'imaxPL': 'indirect maximum production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in mEUR]',
+    'total_sectorial_production_mriot_CHE': 'total production of this sector in Switzerland (CHE) from MRIO table [in M USD]',
+    'imaxPL': 'indirect maximum production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in M USD]',
     'irmaxPL': 'indirect relative maximum production loss. Percentage of the imaxPL of this sector in relation to the total production in CHE of this sector [in %]',
-    'iAAPL': 'indirect average annual production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact an average over the simulated year range reflecting the mean conditions [in mEUR] ',
+    'iAAPL': 'indirect average annual production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact an average over the simulated year range reflecting the mean conditions [in M USD] ',
     'irAAPL': 'indirect relative average annual production loss. Percentage of the iAAPL of this sectors in relation to the total production in CHE of this sector [in %]',
-    'iPL100': 'indirect production loss (impact) of events with a fixed return period of 100 to CHE sector by shocking cuntry_of_impact in sector_of_impact [in mEUR]',
+    'iPL100': 'indirect production loss (impact) of events with a fixed return period of 100 to CHE sector by shocking cuntry_of_impact in sector_of_impact [in M USD]',
     'irPL100': 'indirect reative production loss at RP100. Percentage of the iPL100 impact to this sectors relation to the total production in CHE of this sector [in %]',
     'hazard_type':'hazard which impacts the country_of_impact_ with its sector_of_impact',
     'sector_of_impact': 'selected sector that was shocked by the hazard and determines the used exposure',
@@ -61,7 +61,7 @@ with pd.ExcelWriter(output_path, engine='xlsxwriter') as writer:
 
 ### DIRECT
 
-RUN_TITLE = "test_run"
+RUN_TITLE = "best_guesstimate_22_01_2024"
 
 data_files = glob.glob(f"{get_direct_output_dir(RUN_TITLE)}/direct_impacts_*.csv")
 dfs = []
@@ -84,12 +84,12 @@ DS_DIRECT_BASE.to_csv(f"{get_direct_output_dir(RUN_TITLE)}/{RUN_TITLE}_direct_im
 term_definitions = {
     'mrio_sector_number': 'sector number according to the MRIO table',
     'sector': 'sector name according to the MRIO table',
-    'total_sectorial_production_mriot': 'total production of this sector in country_of_impact from MRIO table [in mEUR]',
-    'maxPL': 'direct maximum production loss (impact) to sector by shocking sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in mEUR]',
+    'total_sectorial_production_mriot': 'total production of this sector in country_of_impact from MRIO table [in M USD]',
+    'maxPL': 'direct maximum production loss (impact) to sector by shocking sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in M USD]',
     'rmaxPL': 'direct relative maximum production loss. Percentage of the maxPL of this sector in relation to the total production of this sector [in %]',
-    'AAPL': 'direct average annual production loss (impact) to sector by shocking sector_of_impact an average over the simulated year range reflecting the mean conditions [in mEUR] ',
+    'AAPL': 'direct average annual production loss (impact) to sector by shocking sector_of_impact an average over the simulated year range reflecting the mean conditions [in M USD] ',
     'rAAPL': 'direct relative average annual production loss. Percentage of the AAPL of this sectors in relation to the total production of this sector [in %]',
-    'PL100': 'direct production loss (impact) of events with a fixed return period of 100 to sector by shocking in sector_of_impact [in mEUR]',
+    'PL100': 'direct production loss (impact) of events with a fixed return period of 100 to sector by shocking in sector_of_impact [in M USD]',
     'rPL100': 'direct reative production loss at RP100. Percentage of the PL100 impact to this sectors in relation to the total production of this sector [in %]',
     'hazard_type':'hazard which impacts the country_of_impact_ with its sector_of_impact',
     'sector_of_impact': 'selected sector that was shocked by the hazard and determines the used exposure',
