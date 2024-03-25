@@ -8,7 +8,7 @@ import pandas as pd
 import pycountry
 from climada.engine.impact_calc import ImpactCalc
 from climada.entity import Exposures
-from climada.entity import ImpactFuncSet, ImpfTropCyclone
+from climada.entity import ImpactFunc, ImpactFuncSet, ImpfTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
@@ -18,7 +18,7 @@ from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_C
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 import pipeline.direct.agriculture as agriculture
-from pipeline.direct.combine_impact_funcs import ImpactFuncComposable, ImpfStormEuropeComposable, ImpfTropCycloneComposable, ImpfWildfireComposable
+from pipeline.direct.combine_impact_funcs import ImpactFuncComposable
 
 # /wildfire.py
 
@@ -32,9 +32,7 @@ HAZ_TYPE_LOOKUP = {
     "relative_crop_yield": "RC",
 }
 
-DEFAULT_SECTOR_INTERRUPTION = {
-    0.7
-}
+DEFAULT_SECTOR_INTERRUPTION = 0.7
 
 # Method to loop through configuration lists of and run an impact calculation for 
 # each combination on the list
@@ -134,39 +132,42 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
 
-    if haz_type == 'TC':
-        impf = get_sector_impf_tc(country_iso3alpha)
-        impf = impf.compose(get_sector_bi(sector), name = impf_name)
-        return ImpactFuncSet([impf])
-
-    if haz_type == 'RF':
-        impf = get_sector_impf_rf(country_iso3alpha)
-        impf = impf.compose(get_sector_bi(sector), name = impf_name)
-        return ImpactFuncSet([impf])
-    
-    if haz_type == 'WF':
-        impf = get_sector_impf_wf(country_iso3alpha)
-        impf = impf.compose(get_sector_bi(sector), name = impf_name)
-        return ImpactFuncSet([impf])
-
-    if haz_type == 'WS':
-        impf = get_sector_impf_ws(country_iso3alpha)
-        impf = impf.compose(get_sector_bi(sector), name = impf_name)
-        return ImpactFuncSet([impf])
-    
     if haz_type == 'RC':
         return agriculture.get_impf_set()
-    
-    Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
-    impf = get_sector_impf_tc(country_iso3alpha)
-    impf = impf.compose(get_sector_bi(sector), name = impf_name)
+
+    if haz_type == 'TC':
+        impf = get_sector_impf_tc(country_iso3alpha)
+    elif haz_type == 'RF':
+        impf = get_sector_impf_rf(country_iso3alpha)
+    elif haz_type == 'WF':
+        impf = get_sector_impf_wf(country_iso3alpha)
+    elif haz_type == 'WS':
+        impf = get_sector_impf_ws(country_iso3alpha)
+    else:
+        Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
+        impf = get_sector_impf_tc(country_iso3alpha)
+
+    impf.name = impf_name
     return ImpactFuncSet([impf])
 
 
-def get_sector_impf_tc(country_iso3alpha, haz_type='TC'):
+# Default business interruption:
+# use fractional loss up to a given threshold and above that assume 100% loss
+# TODO: get a better default: unlikely that the actual interruption to production is this extreme
+def default_bi(thresh=DEFAULT_SECTOR_INTERRUPTION):
+    return ImpactFunc(
+        haz_type="BI",
+        intensity=[0, thresh, thresh, 1],
+        mdd=[0, thresh, 1, 1],
+        paa=[1, 1, 1, 1]
+    )
+
+
+def get_sector_impf_tc(country_iso3alpha):
     # TODO: load regional impfs based on country and
-    impf = ImpfTropCycloneComposable.from_emanuel_usa()
-    impf.haz_type = haz_type
+    impf = ImpfTropCyclone.from_emanuel_usa()
+    impf_bi = default_bi()
+    impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
     return impf
 
 
@@ -178,29 +179,25 @@ def get_sector_impf_rf(country_iso3alpha):
     impf_set = flood_imp_func_set()
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
-    return ImpactFuncComposable.from_impf(impf)
+    impf_bi = default_bi()
+    impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
+    return impf
 
 
 # for wildfire, not sure if it is working
 def get_sector_impf_wf():
-    impf = ImpfWildfireComposable.from_default_FIRMS()
+    impf = ImpfWildfire.from_default_FIRMS()
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle
+    impf_bi = default_bi()
+    impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
     return impf
 
 
 def get_sector_impf_ws():
-    impf = ImpfStormEuropeComposable.from_schwierz()
+    impf = ImpfStormEurope.from_schwierz()
+    impf_bi = default_bi()
+    impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
     return impf
-
-
-def get_sector_bi(sector):
-    return ImpactFuncComposable.from_step_impf(
-        intensity = (0, 0.7, 1),
-        haz_type = "BI",
-        mdd = (0, 1),
-        paa = (1, 1),
-        impf_id = 1
-    )
 
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
