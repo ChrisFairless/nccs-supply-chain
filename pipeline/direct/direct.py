@@ -228,7 +228,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     elif haz_type == 'WF':
         impf = get_sector_impf_wf()
     elif haz_type == 'WS':
-        impf = stormeurope.get_impf_set()
+        impf = get_sector_impf_ws()
     else:
         Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
         impf = get_sector_impf_tc(country_iso3alpha)
@@ -274,6 +274,13 @@ def get_sector_impf_rf(country_iso3alpha):
 def get_sector_impf_wf():
     impf = ImpfWildfire.from_default_FIRMS()
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle
+    impf_bi = default_bi()
+    impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
+    return impf
+
+
+def get_sector_impf_ws():
+    impf = ImpfStormEurope.from_schwierz()
     impf_bi = default_bi()
     impf = ImpactFuncComposable.from_impact_funcs([impf, impf_bi])
     return impf
