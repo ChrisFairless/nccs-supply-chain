@@ -1,4 +1,5 @@
 import os.path
+import traceback
 
 from pipeline.direct.calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
@@ -85,7 +86,9 @@ def calc_supply_chain_impacts(
             )
 
         except ValueError as e:
-            print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
+            print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            print(e)
 
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
@@ -114,7 +117,7 @@ def run_pipeline(country_list,
                 indirect_output_dir=indirect_output_dir
             )
         except Exception as e:
-            print(f"Could not calculate country {country} {sector_list} due to {e}")
+            print(f"Could not calculate country {country} {sector_list}:")
             raise e
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 

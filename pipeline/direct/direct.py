@@ -56,7 +56,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                         )
                     )
                 except Exception as e:
-                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}: {e}")
+                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}")
                     raise e
 
     return pd.DataFrame(result)
