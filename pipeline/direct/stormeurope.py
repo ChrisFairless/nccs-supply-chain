@@ -8,8 +8,6 @@ from scipy import sparse
 import climada.util.coordinates as u_coord
 from climada.util.api_client import Client
 from climada.hazard import Hazard
-from climada.entity import ImpactFuncSet
-from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from utils.s3client import download_from_s3_bucket
 
 WS_SCENARIO_LOOKUP = {
@@ -24,10 +22,6 @@ WS_SCENARIO_LOOKUP = {
 # Available scenarios: 'None' (historical), 'ssp126', 'ssp245', 'ssp370', 'ssp585'
 
 DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
-
-
-def get_impf_set():
-    return ImpactFuncSet([ImpfStormEurope.from_schwierz()])
 
 
 def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
