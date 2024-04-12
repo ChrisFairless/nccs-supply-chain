@@ -49,43 +49,44 @@ def calc_supply_chain_impacts(
     os.makedirs("results", exist_ok=True)
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
-    for _, row in analysis_df.iterrows():
-        try:
-            print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
-            supchain = supply_chain_climada(
-                get_sector_exposure(sector=row['sector'], country=row['country']),
-                row['impact_yearset'],
-                impacted_sector=row['sector'],
-                io_approach=io_approach
-            )
-            # save direct impacts to a csv
-            dump_direct_to_csv(
-                supchain=supchain,
-                haz_type=row['haz_type'],
-                sector=row['sector'],
-                scenario=scenario,
-                ref_year=ref_year,
-                country=row['country'],
-                n_sim=n_sim_years,
-                return_period=100,
-                output_dir=direct_output_dir
-            )
-            # save indirect impacts to a csv
-            dump_supchain_to_csv(
-                supchain=supchain,
-                haz_type=row['haz_type'],
-                sector=row['sector'],
-                scenario=scenario,
-                ref_year=ref_year,
-                country=row['country'],
-                n_sim=n_sim_years,
-                return_period=100,
-                io_approach=io_approach,
-                output_dir=indirect_output_dir
-            )
+    for io_a in io_approach:
+        for _, row in analysis_df.iterrows():
+            try:
+                print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+                supchain = supply_chain_climada(
+                    get_sector_exposure(sector=row['sector'], country=row['country']),
+                    row['impact_yearset'],
+                    impacted_sector=row['sector'],
+                    io_approach=io_a
+                )
+                # save direct impacts to a csv
+                dump_direct_to_csv(
+                    supchain=supchain,
+                    haz_type=row['haz_type'],
+                    sector=row['sector'],
+                    scenario=scenario,
+                    ref_year=ref_year,
+                    country=row['country'],
+                    n_sim=n_sim_years,
+                    return_period=100,
+                    output_dir=direct_output_dir
+                )
+                # save indirect impacts to a csv
+                dump_supchain_to_csv(
+                    supchain=supchain,
+                    haz_type=row['haz_type'],
+                    sector=row['sector'],
+                    scenario=scenario,
+                    ref_year=ref_year,
+                    country=row['country'],
+                    n_sim=n_sim_years,
+                    return_period=100,
+                    io_approach=io_a,
+                    output_dir=indirect_output_dir
+                )
 
-        except ValueError as e:
-            print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
+            except ValueError as e:
+                print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
 
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
@@ -115,7 +116,7 @@ def run_pipeline(country_list,
             )
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list} due to {e}")
-            raise e
+            #raise e
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
@@ -137,7 +138,7 @@ def run_pipeline_from_config(config):
                 scenario_year["scenario"],
                 scenario_year["ref_year"],
                 config["n_sim_years"],
-                config["io_approach"],
+                run["io_approach"],
                 direct_output_dir=direct_output_dir,
                 indirect_output_dir=indirect_output_dir
             )
@@ -148,6 +149,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from run_configurations.test_config import CONFIG #change here to test_config if needed
+    from run_configurations.config import CONFIG #change here to test_config if needed
 
     run_pipeline_from_config(CONFIG)

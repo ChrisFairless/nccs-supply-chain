@@ -57,7 +57,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                     )
                 except Exception as e:
                     print(f"Error calculating direct impacts for {country} {sector} {haz_type}: {e}")
-                    raise e
+                    #raise e
 
     return pd.DataFrame(result)
 
@@ -316,7 +316,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         else:
             return agriculture.get_hazard(
                 country=country_iso3alpha,
-                year_range=ref_year,
+                year_range="2006_2099",
                 scenario=scenario
             )
     else:

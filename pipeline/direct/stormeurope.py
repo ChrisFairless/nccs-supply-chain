@@ -30,9 +30,9 @@ def get_impf_set():
     return ImpactFuncSet([ImpfStormEurope.from_schwierz()])
 
 
-def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
+def download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir=DEFAULT_DATA_DIR):
     country_iso3num = str(int(pycountry.countries.get(alpha_3=country_iso3alpha).numeric))
-    s3_filepath = f'stormeurope_hazard/stormeurope_{scenario}_{country_iso3num}.hdf5' #replaced old statement
+    s3_filepath = f'stormeurope_hazard/stormeurope_{cmip_scenario}_{country_iso3num}.hdf5' #replaced old statement
     outputfile=f'{save_dir}/stormeurope_{scenario}_{country_iso3num}.hdf5'
 
     download_from_s3_bucket(s3_filepath, outputfile)
@@ -45,7 +45,7 @@ def get_hazard(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
     cmip_scenario = WS_SCENARIO_LOOKUP[scenario]
     filename = f'stormeurope_{cmip_scenario}_{country_iso3num}.hdf5'
     if not os.path.isfile(filename):
-        download_hazard_from_s3(cmip_scenario, country_iso3alpha, save_dir)
+        download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir)
         filename = f'{save_dir}/stormeurope_{scenario}_{country_iso3num}.hdf5' #inserted because otherwise file could not be opened
     return Hazard.from_hdf5(filename)
 
