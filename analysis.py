@@ -7,7 +7,7 @@ from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv,
 from utils import folder_naming
 
 
-def calc_supply_chain_impacts(
+def run_pipeline(
         country_list,
         hazard_list,
         sector_list,
@@ -91,33 +91,6 @@ def calc_supply_chain_impacts(
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
 
-
-def run_pipeline(country_list,
-                 hazard,
-                 sector_list,
-                 scenario,
-                 ref_year,
-                 n_sim_years,
-                 io_approach_list,
-                 direct_output_dir,
-                 indirect_output_dir):
-    for country in country_list:
-        try:
-            calc_supply_chain_impacts(
-                [country],  # replace by country_list if whole list should be calculated at once
-                [hazard],
-                sector_list,
-                scenario,
-                ref_year,
-                n_sim_years,
-                io_approach_list,
-                direct_output_dir=direct_output_dir,
-                indirect_output_dir=indirect_output_dir
-            )
-        except Exception as e:
-            print(f"Could not calculate country {country} {sector_list} due to {e}")
-            #raise e
-    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
 def run_pipeline_from_config(config):
