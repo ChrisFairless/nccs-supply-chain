@@ -14,7 +14,7 @@ def calc_supply_chain_impacts(
         scenario,
         ref_year,
         n_sim_years,
-        io_approach,
+        io_approach_list,
         save_by_country=False,
         save_by_hazard=False,
         save_by_sector=False,
@@ -49,7 +49,7 @@ def calc_supply_chain_impacts(
     os.makedirs("results", exist_ok=True)
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
-    for io_a in io_approach:
+    for io_a in io_approach_list:
         for _, row in analysis_df.iterrows():
             try:
                 print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
@@ -98,7 +98,7 @@ def run_pipeline(country_list,
                  scenario,
                  ref_year,
                  n_sim_years,
-                 io_approach,
+                 io_approach_list,
                  direct_output_dir,
                  indirect_output_dir):
     for country in country_list:
@@ -110,7 +110,7 @@ def run_pipeline(country_list,
                 scenario,
                 ref_year,
                 n_sim_years,
-                io_approach,
+                io_approach_list,
                 direct_output_dir=direct_output_dir,
                 indirect_output_dir=indirect_output_dir
             )
@@ -138,7 +138,7 @@ def run_pipeline_from_config(config):
                 scenario_year["scenario"],
                 scenario_year["ref_year"],
                 config["n_sim_years"],
-                run["io_approach"],
+                run["io_approach_list"],
                 direct_output_dir=direct_output_dir,
                 indirect_output_dir=indirect_output_dir
             )
