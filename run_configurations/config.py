@@ -2,15 +2,17 @@
 This file contains the full run of the pipeline. Some combinations are currently commented out, because they are not
 either not yet fully developed (windstorms) or has not yet been decided which combinations are relevant
 """
-
+#TODO add also other subsector to the configuration list
 CONFIG = {
-    "run_title": "best_guesstimate_22_01_2024",
-    "io_approach": "leontief",
+    "run_title": "refin_exposures_uncal_12_04_2024",
     "n_sim_years": 100,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
+            "io_approach": ["leontief", "ghosh"],
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
+                        "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
+                        "non_metallic_mineral", "refin_and_transform"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -70,7 +72,10 @@ CONFIG = {
         },
         {
             "hazard": "river_flood",
-            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
+            "io_approach": ["leontief", "ghosh"],
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
+                        "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
+                        "non_metallic_mineral", "refin_and_transform"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -131,7 +136,10 @@ CONFIG = {
         },
         {
             "hazard": "wildfire",
-            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
+            "io_approach": ["leontief", "ghosh"],
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
+                        "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
+                        "non_metallic_mineral", "refin_and_transform"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -180,7 +188,10 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "sectors": ["mining", "manufacturing", "service", "energy", "agriculture","forestry"],
+            "io_approach": ["leontief", "ghosh"],
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
+                        "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
+                        "non_metallic_mineral", "refin_and_transform"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
                           'Barbados',
@@ -226,15 +237,16 @@ CONFIG = {
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 # These combinations are possible, but since the windstorm is not yet developed fully, we exclude them.
-                # {"scenario": "ssp126", "ref_year": "present"}, #TODO run this and rename to time period it is
+                {"scenario": "rcp26", "ref_year": "future"},
                 # {"scenario": "ssp245", "ref_year": "present"},
                 # {"scenario": "ssp370", "ref_year": "present"},
-                # {"scenario": "ssp585", "ref_year": "present"}, #TODO run this and rename to time period it is
+                {"scenario": "rcp85", "ref_year": "future"},
             ]
         },
 
         {
             "hazard": "relative_crop_yield",
+            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
@@ -280,7 +292,7 @@ CONFIG = {
                           'Zimbabwe'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "2006_2099"},
+                {"scenario": "rcp60", "ref_year": "future"},
             ]
         }
     ]
