@@ -9,7 +9,7 @@ SUPER_SEC = {
     "agriculture": [0],
     "forestry": [1],
     "mining": [3],
-    "manufacturing": range(4, 21),
+    "manufacturing": [22]+ list(range(4, 21)),
     "food":[4],
     "wood": [6],
     "refin_and_transform":[9],
@@ -24,7 +24,7 @@ SUPER_SEC = {
     "water":[24],
     "waste":[25],
     #service
-    "service": [22] + list(range(26, 56)), #22 should also be included
+    "service": list(range(26, 56)), #22 should also be included
 }
 
 
