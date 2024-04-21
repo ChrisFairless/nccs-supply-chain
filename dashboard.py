@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Union
 
+import dotenv
 import pandas as pd
 import xyzservices.providers as xyz
 from bokeh.io import curdoc
@@ -16,7 +17,11 @@ from bokeh.plotting import figure
 
 import utils.folder_naming
 from utils.folder_naming import get_resources_dir
+from utils.s3client import download_complete_csvs_to_results
 
+logging.getLogger().setLevel(logging.INFO)
+
+dotenv.load_dotenv()
 """
 To run the dashboard.py 
 first: run the the terminal the following command: python dashboard.py
@@ -281,12 +286,17 @@ def update_state():
     global CURRENT_STATE
     global STATES
 
+    logging.info("Updating state")
     if CURRENT_STATE:
         CURRENT_STATE.select_hazard_type("some-nonexistent-hazard")  # Crash the dashboard while loading the data
 
     CURRENT_STATE = None
     STATES = {}
 
+    # Download the latest data
+    download_complete_csvs_to_results()
+
+    # Load the data
     for file in glob.glob(f"{utils.folder_naming.get_output_dir()}/**/indirect/complete.csv"):
         run = file.replace("\\", "/").split("/")[-3]
         state = generate_dataset_state(file, run)
