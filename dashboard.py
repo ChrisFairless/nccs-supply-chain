@@ -101,7 +101,6 @@ def filter_data(
     if io_approach is not None:
         ds = ds[ds.io_approach == io_approach]
 
-    print(len(ds))
     return ds
 
 

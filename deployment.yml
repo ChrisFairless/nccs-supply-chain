@@ -1,0 +1,95 @@
+# Rename <nccs-dashboard> with your service name
+#
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    name: nccs-dashboard
+  name: nccs-dashboard
+spec:
+  progressDeadlineSeconds: 2147483647
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nccs-dashboard
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nccs-dashboard
+    spec:
+      serviceAccountName: job-spawning-account
+      containers:
+        - env:
+            - name: SERVICE_EXEC
+              value: API
+          image: correnticscontainers.azurecr.io/nccs:v1.7.0
+          ports:
+            - containerPort: 5007
+              name: http
+              protocol: TCP
+          imagePullPolicy: Always
+          name: nccs-dashboard
+          resources: { }
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      imagePullSecrets:
+        - name: acr-secret
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: { }
+      terminationGracePeriodSeconds: 30
+      tolerations:
+        - key: "sku"
+          operator: "Equal"
+          value: "d4sv3"
+          effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nccs-dashboard
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      protocol: TCP
+      port: 5007
+      targetPort: http
+  selector:
+    app: nccs-dashboard
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-nccs-dashboard
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: ca-issuer
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "5000m"
+    nginx.org/client-max-body-size: "5000m"
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/add-base-url: "true"
+spec:
+  tls:
+    - hosts:
+        - api.correntics.ch
+      secretName: aks-ingress-tls
+  rules:
+    - host: api.correntics.ch
+      http:
+        paths:
+          - path: /nccs-dashboard/?(.*)
+            pathType: Prefix
+            backend:
+              service:
+                name: nccs-dashboard
+                port:
+                  number: 5007

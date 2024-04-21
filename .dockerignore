@@ -1,0 +1,10 @@
+venv
+.git
+results
+exosures
+pipeline
+results_row_adjusted
+docs
+climada_petals
+.idea
+.vscode
