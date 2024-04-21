@@ -35,7 +35,9 @@ spec:
                   secretKeyRef:
                     name: s3-secret-nccs
                     key: secret_access_key
-          image: correnticscontainers.azurecr.io/nccs:v1.9.0
+            - name: BOKEH_RESOURCES
+              value: cdn
+          image: correnticscontainers.azurecr.io/nccs:v1.14.0
           ports:
             - containerPort: 5007
               name: http
@@ -59,16 +61,16 @@ spec:
           effect: "NoSchedule"
 
 ---
-apiVersion: v1
-kind: Secret
-metadata:
-  name: s3-secret-nccs
-type: Opaque
-stringData:
-    access_key_id: <accesskey>
-    secret_access_key: <secretkey>
-
----
+#apiVersion: v1
+#kind: Secret
+#metadata:
+#  name: s3-secret-nccs
+#type: Opaque
+#stringData:
+#    access_key_id: <accesskey>
+#    secret_access_key: <secretkey>
+#
+#---
 apiVersion: v1
 kind: Service
 metadata:

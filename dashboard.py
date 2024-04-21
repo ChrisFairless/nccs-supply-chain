@@ -4,6 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import List, Union
 
+import numpy as np
 import dotenv
 import pandas as pd
 import xyzservices.providers as xyz
@@ -89,7 +90,7 @@ class DashboardState:
         self.update_plots()
 
     def load_data(self):
-        self.df = pd.read_csv(self.file_path)
+        self.df = pd.read_csv(self.file_path).replace({np.nan: None})
         self.df['value'] = self.df[self.selected_metric]
         self.update_plots()
 
@@ -97,8 +98,11 @@ class DashboardState:
         self.df['value'] = self.df[self.selected_metric]
         self.curr_view = self._base_filter_data()
         self.update_filter_options()
-        self._update_country_source(self.curr_view)
-        self._update_barplot_source(self.curr_view)
+        try:
+            self._update_country_source(self.curr_view)
+            self._update_barplot_source(self.curr_view)
+        except NameError as e:
+            logging.error(f"Error updating plots: {e}")
 
     def update_filter_options(self):
         print("Updating filter options")
@@ -108,12 +112,14 @@ class DashboardState:
 
         try:
             df_haz = self.df[self.df.hazard_type == self.selected_hazard_type]
-            selected_ref_year_options = sorted(df_haz.ref_year.unique())
+            selected_ref_year_options = df_haz.ref_year.unique()
+            selected_ref_year_options = sorted([str(e) for e in selected_ref_year_options])
             select_ref_year.options = selected_ref_year_options
             select_ref_year.value = self.selected_ref_year if self.selected_ref_year in selected_ref_year_options else \
                 selected_ref_year_options[0]
 
-            selected_scenario_options = sorted(df_haz.scenario.unique())
+            selected_scenario_options = df_haz.scenario.unique()
+            selected_scenario_options = sorted([str(e) for e in selected_scenario_options])
             select_scenario.options = selected_scenario_options
             select_scenario.value = self.selected_scenario if self.selected_scenario in selected_scenario_options else \
                 selected_scenario_options[0]
@@ -128,13 +134,11 @@ class DashboardState:
         if self.selected_hazard_type is not None:
             ds = ds[ds.hazard_type == self.selected_hazard_type]
         if self.selected_ref_year is not None:
-            ds = ds[ds.ref_year == str(self.selected_ref_year)]
+            ds = ds[ds.ref_year.astype(str) == str(self.selected_ref_year)]
         if self.selected_scenario is not None:
-            ds = ds[ds.scenario == self.selected_scenario]
+            ds = ds[ds.scenario.astype(str) == str(self.selected_scenario)]
         if self.selected_impacted_sector is not None:
             ds = ds[ds.sector_of_impact == self.selected_impacted_sector]
-        if self.selected_scenario is not None:
-            ds = ds[ds.scenario == self.selected_scenario]
 
         return ds
 
@@ -147,7 +151,6 @@ class DashboardState:
             geo_source = GeoJSONDataSource(geojson=to_gj_feature_collection(new_data))
             geo_source.selected.on_change('indices', on_country_selected)
             country_table_source = ColumnDataSource(table_data)
-
         else:
             geo_source.geojson = to_gj_feature_collection(new_data)
             country_table_source.data = table_data
@@ -167,7 +170,7 @@ class DashboardState:
 
 
 def generate_dataset_state(input_file: str, run_title: str):
-    df_indirect_base = pd.read_csv(input_file)
+    df_indirect_base = pd.read_csv(input_file).replace({np.nan: None})
 
     hazard_types = [str(e) for e in df_indirect_base.hazard_type.unique()]
     impacted_sectors = [str(e) for e in df_indirect_base.sector_of_impact.unique()]
@@ -231,6 +234,12 @@ def get_barplot_source(ds):
 
 
 def to_gj_feature_collection(features):
+    if len(features) == 0:
+        # we add four points to make the map show something
+        features = [
+            {"type": "Feature", "properties": {"value": 1}, "geometry": {"type": "Point", "coordinates": [-90, -180]}},
+            {"type": "Feature", "properties": {"value": 1}, "geometry": {"type": "Point", "coordinates": [90, 180]}},
+        ]
     return json.dumps({"type": "FeatureCollection", "features": features})
 
 
@@ -294,7 +303,10 @@ def update_state():
     STATES = {}
 
     # Download the latest data
-    download_complete_csvs_to_results()
+    try:
+        download_complete_csvs_to_results()
+    except Exception as e:
+        logging.error(f"Error downloading data: {e}")
 
     # Load the data
     for file in glob.glob(f"{utils.folder_naming.get_output_dir()}/**/indirect/complete.csv"):
