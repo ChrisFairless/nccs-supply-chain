@@ -169,12 +169,12 @@ class DashboardState:
 def generate_dataset_state(input_file: str, run_title: str):
     df_indirect_base = pd.read_csv(input_file)
 
-    hazard_types = df_indirect_base.hazard_type.unique()
-    impacted_sectors = df_indirect_base.sector_of_impact.unique()
+    hazard_types = [str(e) for e in df_indirect_base.hazard_type.unique()]
+    impacted_sectors = [str(e) for e in df_indirect_base.sector_of_impact.unique()]
     metrics = ["iAAPL", "irAAPL", "iPL100", "irPL100"]
-    io_approaches = df_indirect_base.io_approach.unique()
-    scenarios = df_indirect_base.scenario.unique()
-    ref_years = df_indirect_base.ref_year.unique()
+    io_approaches = [str(e) for e in df_indirect_base.io_approach.unique()]
+    scenarios = [str(e) for e in df_indirect_base.scenario.unique()]
+    ref_years = [str(e) for e in df_indirect_base.ref_year.unique()]
 
     state = DashboardState(
         run_title=run_title,

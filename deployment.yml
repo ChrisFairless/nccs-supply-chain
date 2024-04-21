@@ -25,7 +25,17 @@ spec:
         - env:
             - name: SERVICE_EXEC
               value: API
-          image: correnticscontainers.azurecr.io/nccs:v1.7.0
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: s3-secret-nccs
+                  key: access_key_id
+            - name: S3_ACCESS_KEY
+              valueFrom:
+                  secretKeyRef:
+                    name: s3-secret-nccs
+                    key: secret_access_key
+          image: correnticscontainers.azurecr.io/nccs:v1.9.0
           ports:
             - containerPort: 5007
               name: http
@@ -47,6 +57,16 @@ spec:
           operator: "Equal"
           value: "d4sv3"
           effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s3-secret-nccs
+type: Opaque
+stringData:
+    access_key_id: <accesskey>
+    secret_access_key: <secretkey>
 
 ---
 apiVersion: v1
