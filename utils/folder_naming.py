@@ -1,6 +1,6 @@
 import os
 
-OUTPUT_DIR = "./results"
+OUTPUT_DIR = os.path.abspath(f"{os.path.dirname(__file__)}/../results")
 
 
 def get_resource_dir():
