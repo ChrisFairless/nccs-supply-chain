@@ -6,10 +6,11 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 CONFIG = {
     "run_title": "test_run",
     "n_sim_years": 100,
+    "io_approach_list": ["leontief", "ghosh"],
+    "seed": 161,
     "runs": [
         {
             "hazard": "storm_europe",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
             "countries": ['Germany'],
             "scenario_years": [
@@ -20,7 +21,6 @@ CONFIG = {
         },
         {
             "hazard": "relative_crop_yield",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture"],
             "countries": ['United States','Fiji'],
             "scenario_years": [
@@ -31,7 +31,6 @@ CONFIG = {
 
         {
             "hazard": "wildfire",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
             "countries": ['Afghanistan', "United States"],
             "scenario_years": [
@@ -41,7 +40,6 @@ CONFIG = {
 
         {
             "hazard": "river_flood",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
             "countries": ["United States", "China"],
             "scenario_years": [
@@ -54,7 +52,6 @@ CONFIG = {
 
         {
             "hazard": "tropical_cyclone",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
             "countries": ['Haiti', "China"],
             "scenario_years": [

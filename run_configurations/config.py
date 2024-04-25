@@ -7,6 +7,7 @@ CONFIG = {
     "run_title": "refin_exposures_uncal_12_04_2024",
     "io_approach": ["leontief", "ghosh"],
     "n_sim_years": 100,
+    "seed": 161,
     "runs": [
         {
             "hazard": "tropical_cyclone",
