@@ -106,12 +106,13 @@ def run_pipeline_from_config(config):
         for scenario_year in run["scenario_years"]:
             run_pipeline(
                 run["countries"],
-                run["hazard"],
+                [run["hazard"]],
                 run["sectors"],
                 scenario_year["scenario"],
                 scenario_year["ref_year"],
                 config["n_sim_years"],
-                run["io_approach_list"],
+                config["io_approach_list"],
+                seed=config["seed"],
                 direct_output_dir=direct_output_dir,
                 indirect_output_dir=indirect_output_dir
             )
