@@ -10,6 +10,13 @@ def get_resource_dir():
     """
     return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../exposures")
 
+def get_resources_dir():
+    """
+    Returns the absolute path to the resources directory
+    :return:
+    """
+    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../resources")
+
 
 def get_output_dir():
     return OUTPUT_DIR

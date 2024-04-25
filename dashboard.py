@@ -14,7 +14,7 @@ from bokeh.models import (
 )
 from bokeh.plotting import figure
 
-from utils.folder_naming import get_indirect_output_dir, get_resource_dir
+from utils.folder_naming import get_indirect_output_dir, get_resources_dir
 
 """
 To run the dashboard.py 
@@ -22,9 +22,9 @@ first: run the the terminal the following command: python dashboard.py
 next: bokeh serve dashboard.py --show
 """
 
-RUN_TITLE = "best_guesstimate_22_01_2024"
+RUN_TITLE = "refin_exposures_uncal_12_04_2024"
 
-with open(f"{get_resource_dir()}/countries_wgs84.geojson", "r") as f:
+with open(f"{get_resources_dir()}/countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
     COUNTRIES_BY_NAME = {c['properties']['ISO_A3']: c for c in countries['features']}  # ISO_A3 would way safer
 
