@@ -93,7 +93,7 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
         row_fract_per_county = 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1))
-        return row_fract_per_county * supchain.secs_shock.loc[:, (impacted_secs, "ROW")]
+        return row_fract_per_county * supchain.secs_shock.loc[:, ("ROW", impacted_secs)] #TODO check if this value also gets propagated to the indirect supply chain
     return supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)]
 
 
