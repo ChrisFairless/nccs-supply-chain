@@ -4,66 +4,30 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 
 CONFIG = {
-    "run_title": "test_run",
+    "run_title": "debugging",
     "n_sim_years": 100,
     "runs": [
         {
-            "hazard": "storm_europe",
-            "io_approach": ["leontief", "ghosh"],
-            "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
-            "countries": ['Germany'],
-            "scenario_years": [
-                {"scenario": "rcp26", "ref_year": "future"},
-                {"scenario": "rcp85", "ref_year": "future"},
-
-            ]
-        },
-        {
-            "hazard": "relative_crop_yield",
-            "io_approach": ["leontief", "ghosh"],
-            "sectors": ["agriculture"],
-            "countries": ['United States','Fiji'],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
-            ]
-        },
-
-        {
-            "hazard": "wildfire",
-            "io_approach": ["leontief", "ghosh"],
-            "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
-            "countries": ['Afghanistan', "United States"],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-            ]
-        },
-
-        {
             "hazard": "river_flood",
             "io_approach": ["leontief", "ghosh"],
-            "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
-            "countries": ["United States", "China"],
+            "sectors": ["manufacturing"],
+            "countries": ["Burundi"],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
+                # {"scenario": "rcp26", "ref_year": 2020},
+                # {"scenario": "rcp26", "ref_year": 2040},
                 {"scenario": "rcp26", "ref_year": 2060},
+                # {"scenario": "rcp26", "ref_year": 2080},
+                # {"scenario": "rcp60", "ref_year": 2020},
+                # {"scenario": "rcp60", "ref_year": 2040},
+                # {"scenario": "rcp60", "ref_year": 2060},
+                # {"scenario": "rcp60", "ref_year": 2080},
+                # {"scenario": "rcp85", "ref_year": 2020},
+                # {"scenario": "rcp85", "ref_year": 2040},
                 {"scenario": "rcp85", "ref_year": 2060},
-
+                # {"scenario": "rcp85", "ref_year": 2080},
             ]
         },
-
-        {
-            "hazard": "tropical_cyclone",
-            "io_approach": ["leontief", "ghosh"],
-            "sectors": ["agriculture","forestry","mining", "manufacturing","service","energy", "water", "waste", "basic_metals","pharmaceutical", "food", "wood", "chemical","rubber_and_plastic","non_metallic_mineral","refin_and_transform"],
-            "countries": ['Haiti', "China"],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp26", "ref_year": "2060"},
-                {"scenario": "rcp85", "ref_year": "2060"},
-            ]
-        },
-
     ]
 }
 

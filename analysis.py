@@ -149,6 +149,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from run_configurations.config import CONFIG, CONFIG2  # change here to test_config if needed
+    from run_configurations.test_config import CONFIG  # change here to test_config if needed
 
-    run_pipeline_from_config(CONFIG2)
+    run_pipeline_from_config(CONFIG)

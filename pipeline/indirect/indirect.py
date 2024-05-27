@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import pycountry
 from climada_petals.engine import SupplyChain
+from exposures.utils import root_dir
+project_root = root_dir()
 
 # original
 # SERVICE_SEC = {"service": range(26, 56)}
@@ -41,8 +43,35 @@ def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
     """
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
-        return 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1))
-    return 1.0
+        #return 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)) # simple method #TODO to be deleted
+
+        #Using the GDP values to create a factor
+        ROW_GDP = get_gdp_modifier(supchain)
+        gdp_factor =  ROW_GDP.loc[ROW_GDP['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
+        if np.isnan(gdp_factor):
+            gdp_factor = 0
+    else:
+        gdp_factor = 1
+
+    return gdp_factor
+
+
+def get_gdp_modifier(supchain: SupplyChain):
+    mriot_year = 2011 # select this year to be consistent within the approach
+    IO_countries = supchain.mriot.get_regions()
+
+    # load the GDP of counries
+    gdp_worldbank = pd.read_csv(f"{project_root}/resources/GDP_Worldbank_without_regions.csv")
+
+    # Select only the specified year column and filter rows based on the 'Country Code',
+    # select only the countries with are not within the IO table
+    ROW_gdp_worldbank = gdp_worldbank[['Country Code', str(mriot_year)]][
+        ~gdp_worldbank['Country Code'].isin(IO_countries)]
+
+    ROW_total_GDP = ROW_gdp_worldbank[str(mriot_year)].sum()
+    # Create a new column with normalized GDP values
+    ROW_gdp_worldbank['Normalized_GDP'] = ROW_gdp_worldbank[str(mriot_year)] / ROW_total_GDP
+    return ROW_gdp_worldbank
 
 
 def get_secs_prod(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_total=195):
@@ -67,7 +96,7 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
     """
     Calculate the country modifier for a given country in a supply chain.
     If the country is listed in the mrio table then the modifier is 1.0.
-    else the modifier is 1 / (n_total - (number of countries in the mrio table - 1)).
+    else the modifier is according to the GDP
 
     :param supchain:
     :param country_iso3alpha:
@@ -90,10 +119,19 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
     # how much production loss is experienced by each sector.)
     # if using secs_shock again, the value extractions would need to change again
 
+    #Simplest scaling without any GPD connection
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
-        row_fract_per_county = 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1))
-        return row_fract_per_county * supchain.secs_shock.loc[:, ("ROW", impacted_secs)] #TODO check if this value also gets propagated to the indirect supply chain
+
+        #row_fract_per_county = 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)) #simplest version TODO to be deleted
+
+        #Using the GDP values to create a factor
+        ROW_GDP = get_gdp_modifier(supchain)
+        row_fract_per_county =  ROW_GDP.loc[ROW_GDP['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
+        if np.isnan(row_fract_per_county):
+            row_fract_per_county = 0
+
+        return row_fract_per_county * supchain.secs_shock.loc[:, ("ROW", impacted_secs)]
     return supchain.secs_shock.loc[:, (country_iso3alpha, impacted_secs)]
 
 
@@ -106,7 +144,7 @@ def supply_chain_climada(exposure, direct_impact, io_approach, impacted_sector="
     sec_range = SUPER_SEC[impacted_sector]
     supchain: SupplyChain = get_supply_chain()
 
-    # Assign exposure and stock direct_impact to MRIOT country-sector
+    # Assign exposure and shock direct_impact to MRIOT country-sector
 
     #
     impacted_secs = supchain.mriot.get_sectors()[sec_range].tolist()
@@ -221,7 +259,7 @@ def dump_supchain_to_csv(supchain,
     secs_prod = supchain.mriot.x.loc[("CHE"), :]
 
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
-    rotw_factor = get_country_modifier(supchain, country)
+    rotw_factor = get_country_modifier(supchain, country_iso3alpha)
 
     # create a lookup table for each sector and its total production
     lookup = {}
