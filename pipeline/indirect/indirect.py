@@ -3,7 +3,7 @@ import pandas as pd
 import pycountry
 from climada_petals.engine import SupplyChain
 from exposures.utils import root_dir
-project_root = root_dir()
+
 
 # original
 # SERVICE_SEC = {"service": range(26, 56)}
@@ -43,11 +43,9 @@ def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
     """
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
-        #return 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)) # simple method #TODO to be deleted
-
         #Using the GDP values to create a factor
-        ROW_GDP = get_gdp_modifier(supchain)
-        gdp_factor =  ROW_GDP.loc[ROW_GDP['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
+        row_gdp = get_gdp_modifier(supchain)
+        gdp_factor = row_gdp.loc[row_gdp['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
         if np.isnan(gdp_factor):
             gdp_factor = 0
     else:
@@ -58,20 +56,21 @@ def get_country_modifier(supchain: SupplyChain, country_iso3alpha, n_total=195):
 
 def get_gdp_modifier(supchain: SupplyChain):
     mriot_year = 2011 # select this year to be consistent within the approach
-    IO_countries = supchain.mriot.get_regions()
+    io_countries = supchain.mriot.get_regions()
 
     # load the GDP of counries
+    project_root = root_dir()
     gdp_worldbank = pd.read_csv(f"{project_root}/resources/GDP_Worldbank_without_regions.csv")
 
     # Select only the specified year column and filter rows based on the 'Country Code',
     # select only the countries with are not within the IO table
-    ROW_gdp_worldbank = gdp_worldbank[['Country Code', str(mriot_year)]][
-        ~gdp_worldbank['Country Code'].isin(IO_countries)]
+    row_gdp_worldbank = gdp_worldbank[['Country Code', str(mriot_year)]][
+        ~gdp_worldbank['Country Code'].isin(io_countries)]
 
-    ROW_total_GDP = ROW_gdp_worldbank[str(mriot_year)].sum()
+    ROW_total_GDP = row_gdp_worldbank[str(mriot_year)].sum()
     # Create a new column with normalized GDP values
-    ROW_gdp_worldbank['Normalized_GDP'] = ROW_gdp_worldbank[str(mriot_year)] / ROW_total_GDP
-    return ROW_gdp_worldbank
+    row_gdp_worldbank['Normalized_GDP'] = row_gdp_worldbank[str(mriot_year)] / ROW_total_GDP
+    return row_gdp_worldbank
 
 
 def get_secs_prod(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_total=195):
@@ -119,15 +118,12 @@ def get_secs_shock(supchain: SupplyChain, country_iso3alpha, impacted_secs, n_to
     # how much production loss is experienced by each sector.)
     # if using secs_shock again, the value extractions would need to change again
 
-    #Simplest scaling without any GPD connection
+    #Simplest scaling without any GDP connection
     mrio_region = supchain.map_exp_to_mriot(country_iso3alpha, "WIOD16")
     if mrio_region == 'ROW':
-
-        #row_fract_per_county = 1 / (n_total - (len(set(r[0] for r in supchain.mriot.x.axes[0])) - 1)) #simplest version TODO to be deleted
-
         #Using the GDP values to create a factor
-        ROW_GDP = get_gdp_modifier(supchain)
-        row_fract_per_county =  ROW_GDP.loc[ROW_GDP['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
+        row_gdp = get_gdp_modifier(supchain)
+        row_fract_per_county =  row_gdp.loc[row_gdp['Country Code'] == country_iso3alpha, 'Normalized_GDP'].values[0]
         if np.isnan(row_fract_per_county):
             row_fract_per_county = 0
 
