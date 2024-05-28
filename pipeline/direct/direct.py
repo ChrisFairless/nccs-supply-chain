@@ -247,7 +247,7 @@ def get_sector_impf_rf(country_iso3alpha):
 
 # for wildfire, not sure if it is working
 def get_sector_impf_wf():
-    impf = ImpfWildfire.from_default_FIRMS()
+    impf = ImpfWildfire.from_default_FIRMS(i_half=409.4) # adpated i_half according to hazard resolution of 4km: i_half=409.4
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
     return impf
 
