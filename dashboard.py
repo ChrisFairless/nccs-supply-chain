@@ -49,6 +49,7 @@ if not os.path.isfile("complete.csv"):
     # DS_INDIRECT_BASE["value"] = DS_INDIRECT_BASE["impact_aai"].copy() #TODO to be removed, old configurations,
     #  and used for best guesstimate run
     DS_INDIRECT_BASE['sector'] = [s[:50] for s in DS_INDIRECT_BASE['sector']]
+    DS_INDIRECT_BASE.scenario = ['None' if pd.isna(s) else s for s in DS_INDIRECT_BASE.scenario]
     DS_INDIRECT_BASE.to_csv("complete.csv")
 else:
     DS_INDIRECT_BASE = pd.read_csv("complete.csv")
