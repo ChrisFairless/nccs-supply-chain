@@ -1,4 +1,7 @@
 import os.path
+import multiprocessing
+from functools import partial
+import numpy as np
 
 from pipeline.direct.calc_yearset import nccs_yearsets_simple
 # from utils.s3client import download_from_s3_bucket, upload_to_s3_bucket
@@ -6,6 +9,7 @@ from pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_list
 from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
 from utils import folder_naming
 
+num_cores = multiprocessing.cpu_count() - 1  # Edit to reduce core usage
 
 def calc_supply_chain_impacts(
         country_list,
@@ -84,7 +88,6 @@ def calc_supply_chain_impacts(
                     io_approach=io_a,
                     output_dir=indirect_output_dir
                 )
-
             except ValueError as e:
                 print(f"Error calculating indirect impacts for {row['country']} {row['sector']}: {e}")
 
@@ -120,6 +123,37 @@ def run_pipeline(country_list,
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
+def run_pipeline_parallel(
+    country_list,
+    hazard,
+    sector_list,
+    scenario,
+    ref_year,
+    n_sim_years,
+    io_approach,
+    direct_output_dir,
+    indirect_output_dir
+    ):
+    chunksize = max(int(np.ceil(len(country_list)) / num_cores), 1)
+    chunked_countries = [country_list[i:i+chunksize] for i in range(0, len(country_list), chunksize)]
+    partial_impact_calc = partial(
+        run_pipeline,
+        hazard = hazard,
+        sector_list = sector_list,
+        scenario = scenario,
+        ref_year = ref_year,
+        n_sim_years = n_sim_years,
+        io_approach = io_approach,
+        direct_output_dir = direct_output_dir,
+        indirect_output_dir = indirect_output_dir
+    )
+
+    with multiprocessing.Pool(num_cores) as pool:
+        _ = pool.map(partial_impact_calc, chunked_countries)
+
+    print("Really done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+
+
 def run_pipeline_from_config(config):
 
     direct_output_dir = folder_naming.get_direct_output_dir(config['run_title'])
@@ -131,7 +165,7 @@ def run_pipeline_from_config(config):
 
     for run in config["runs"]:
         for scenario_year in run["scenario_years"]:
-            run_pipeline(
+            run_pipeline_parallel(
                 run["countries"],
                 run["hazard"],
                 run["sectors"],
