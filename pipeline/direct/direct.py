@@ -3,12 +3,12 @@
 
 from utils.folder_naming import get_resource_dir
 from functools import cache
-
 import pandas as pd
 import pycountry
+
 from climada.engine.impact_calc import ImpactCalc
 from climada.entity import Exposures
-from climada.entity import ImpactFuncSet, ImpfTropCyclone
+from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
@@ -19,8 +19,9 @@ from exposures.utils import root_dir
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
-import pipeline.direct.agriculture as agriculture
-import pipeline.direct.stormeurope as stormeurope
+from pipeline.direct import agriculture, stormeurope, business_interruption
+from pipeline.direct.combine_impact_funcs import ImpactFuncComposable
+
 
 project_root = root_dir()
 # /wildfire.py
@@ -108,8 +109,6 @@ def get_sector_exposure(sector, country):
     results are now also availabe in the s3 bucket and could be selected by changing the file path to the s3 bucket
     would require to create a new donwload function, as for instance the mining file is an xlsx and would not work with the opening command
     """
-
-
 
     if sector == 'service':
         client = Client()
@@ -214,7 +213,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
     if haz_type == 'TC':
-        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha)])
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector)])
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
     if haz_type == 'WF':
@@ -224,14 +223,26 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'RC':
         return agriculture.get_impf_set()
     Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
-    return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, haz_type)])
+    return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector, haz_type)])
 
 
-def get_sector_impf_tc(country_iso3alpha, haz_type='TC'):
-    # TODO: load regional impfs based on country and
-    impf = ImpfTropCyclone.from_emanuel_usa()
-    impf.haz_type = haz_type
-    return impf
+def get_sector_impf_tc(country_iso3alpha, sector, haz_type='TC'):
+    _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
+    region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
+    if len(region) != 1:
+        raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
+    region = region[0]
+    fun_id = impf_ids[region]
+    impf_tc = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)
+    impf_tc.haz_type = haz_type
+    impf_tc.id = 1
+    impf_bi = business_interruption.get_sector_BI(sector)
+    return ImpactFuncComposable.from_impact_funcs(
+        impf_list = [impf_tc, impf_bi],
+        id = 1,
+        name = "Business interruption: tropical_cyclone and " + sector,
+        enforce_unit_interval_impacts = True
+    )
 
 
 def get_sector_impf_rf(country_iso3alpha):
