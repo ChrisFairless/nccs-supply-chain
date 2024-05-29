@@ -1,5 +1,5 @@
 import os.path
-import multiprocessing
+import pathos as pa
 from functools import partial
 import numpy as np
 
@@ -9,7 +9,7 @@ from pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_list
 from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
 from utils import folder_naming
 
-num_cores = multiprocessing.cpu_count() - 1  # Edit to reduce core usage
+num_cores = pa.helpers.cpu_count() - 1  # Edit to reduce core usage
 
 def calc_supply_chain_impacts(
         country_list,
@@ -148,7 +148,7 @@ def run_pipeline_parallel(
         indirect_output_dir = indirect_output_dir
     )
 
-    with multiprocessing.Pool(num_cores) as pool:
+    with pa.multiprocessing.ProcessingPool(num_cores) as pool:
         _ = pool.map(partial_impact_calc, chunked_countries)
 
     print("Really done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
