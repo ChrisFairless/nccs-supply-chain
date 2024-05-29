@@ -28,6 +28,8 @@ project_root = root_dir()
 
 # newly added
 
+APPLY_BUSINESS_INTERRUPTION = False    # Turn this off to assume that % asset loss = % production loss. Mostly for debugging.
+
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
     'river_flood': 'RF',
@@ -210,23 +212,25 @@ def get_sector_exposure(sector, country):
 def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
+    if not APPLY_BUSINESS_INTERRUPTION or sector == 'agriculture':
+        sector_bi = None
+    else:
+        sector_bi = sector
+
     if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
     if haz_type == 'TC':
-        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector)])
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi)])
     if haz_type == 'RF':
-        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi)])
     if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_wf(sector)])
+        return ImpactFuncSet([get_sector_impf_wf(sector_bi)])
     if haz_type == 'WS':
-        return stormeurope.get_impf_set(sector)
-    if haz_type == 'RC':
-        return agriculture.get_impf_set()
-    Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
-    return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector, haz_type)])
+        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
+    raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
-def get_sector_impf_tc(country_iso3alpha, sector, haz_type='TC'):
+def get_sector_impf_tc(country_iso3alpha, sector_bi):
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
@@ -234,12 +238,13 @@ def get_sector_impf_tc(country_iso3alpha, sector, haz_type='TC'):
     region = region[0]
     fun_id = impf_ids[region]
     impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)
-    impf.haz_type = haz_type
     impf.id = 1
-    return convert_impf_to_sectoral_bi(impf, sector)
+    if not sector_bi:
+        return impf
+    return convert_impf_to_sectoral_bi(impf, sector_bi)
 
 
-def get_sector_impf_rf(country_iso3alpha, sector):
+def get_sector_impf_rf(country_iso3alpha, sector_bi):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
@@ -247,14 +252,25 @@ def get_sector_impf_rf(country_iso3alpha, sector):
     impf_set = flood_imp_func_set()
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
-    return convert_impf_to_sectoral_bi(impf, sector)
+    if not sector_bi:
+        return impf
+    return convert_impf_to_sectoral_bi(impf, sector_bi)
+
+
+def get_sector_impf_stormeurope(sector_bi):
+    impf = ImpfStormEurope.from_schwierz()
+    if not sector_bi:
+        return impf
+    return convert_impf_to_sectoral_bi(impf, sector_bi)
 
 
 # for wildfire, not sure if it is working
-def get_sector_impf_wf(sector):
+def get_sector_impf_wf(sector_bi):
     impf = ImpfWildfire.from_default_FIRMS(i_half=409.4) # adpated i_half according to hazard resolution of 4km: i_half=409.4
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
-    return convert_impf_to_sectoral_bi(impf, sector)
+    if not sector_bi:
+        return impf
+    return convert_impf_to_sectoral_bi(impf, sector_bi)
 
 
 

@@ -27,11 +27,6 @@ WS_SCENARIO_LOOKUP = {
 DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
 
 
-def get_impf_set(sector):
-    impf = convert_impf_to_sectoral_bi(ImpfStormEurope.from_schwierz(), sector)
-    return ImpactFuncSet([impf])
-
-
 def download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir=DEFAULT_DATA_DIR):
     country_iso3num = str(int(pycountry.countries.get(alpha_3=country_iso3alpha).numeric))
     s3_filepath = f'stormeurope_hazard/stormeurope_{cmip_scenario}_{country_iso3num}.hdf5' #replaced old statement
