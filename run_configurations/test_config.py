@@ -4,14 +4,14 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 
 CONFIG = {
-    "run_title": "debugging",
+    "run_title": "test_run",
     "n_sim_years": 100,
     "runs": [
         {
-            "hazard": "wildfire",
+            "hazard": "tropical_cyclone",
             "io_approach": ["leontief", "ghosh"],
             "sectors": ["manufacturing"],
-            "countries": ['Italy'],
+            "countries": ['United States', 'Ireland', 'Japan', 'Taiwan, Province of China', 'China', 'Korea, Republic of'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]

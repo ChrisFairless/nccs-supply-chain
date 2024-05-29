@@ -22,7 +22,7 @@ first: run the the terminal the following command: python dashboard.py
 next: bokeh serve dashboard.py --show
 """
 
-RUN_TITLE = "refin_exposures_uncal_12_04_2024"
+RUN_TITLE = "test_run"
 
 with open(f"{get_resources_dir()}/countries_wgs84.geojson", "r") as f:
     countries = json.load(f)
