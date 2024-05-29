@@ -60,7 +60,15 @@ class ImpactFuncComposable(ImpactFunc):
         # Ensure intensity and mdd are monotonically increasing (required for invert_mdd later)
         assert(is_monotonic(impf.intensity, only_increasing = True))
         assert(is_monotonic(impf.mdd, only_increasing = True))
-        return cls(**impf.__dict__)
+        return cls(
+            haz_type = impf.haz_type,
+            id = impf.id,
+            intensity = impf.intensity,
+            mdd = impf.mdd,
+            paa = impf.paa,
+            intensity_unit = impf.intensity_unit,
+            name = impf.name
+        )
     
     def compose(
             self,    
