@@ -19,8 +19,8 @@ from exposures.utils import root_dir
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
-from pipeline.direct import agriculture, stormeurope, business_interruption
-from pipeline.direct.combine_impact_funcs import ImpactFuncComposable
+from pipeline.direct import agriculture, stormeurope
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
 
 
 project_root = root_dir()
@@ -217,9 +217,9 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha)])
     if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_wf()])
+        return ImpactFuncSet([get_sector_impf_wf(sector)])
     if haz_type == 'WS':
-        return stormeurope.get_impf_set()
+        return stormeurope.get_impf_set(sector)
     if haz_type == 'RC':
         return agriculture.get_impf_set()
     Warning('No impact functions defined for this hazard. Using TC impact functions just so you have something')
@@ -233,19 +233,13 @@ def get_sector_impf_tc(country_iso3alpha, sector, haz_type='TC'):
         raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
     region = region[0]
     fun_id = impf_ids[region]
-    impf_tc = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)
-    impf_tc.haz_type = haz_type
-    impf_tc.id = 1
-    impf_bi = business_interruption.get_sector_BI(sector)
-    return ImpactFuncComposable.from_impact_funcs(
-        impf_list = [impf_tc, impf_bi],
-        id = 1,
-        name = "Business interruption: tropical_cyclone and " + sector,
-        enforce_unit_interval_impacts = True
-    )
+    impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)
+    impf.haz_type = haz_type
+    impf.id = 1
+    return convert_impf_to_sectoral_bi(impf, sector)
 
 
-def get_sector_impf_rf(country_iso3alpha):
+def get_sector_impf_rf(country_iso3alpha, sector):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
@@ -253,14 +247,14 @@ def get_sector_impf_rf(country_iso3alpha):
     impf_set = flood_imp_func_set()
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
-    return impf
+    return convert_impf_to_sectoral_bi(impf, sector)
 
 
 # for wildfire, not sure if it is working
-def get_sector_impf_wf():
+def get_sector_impf_wf(sector):
     impf = ImpfWildfire.from_default_FIRMS(i_half=409.4) # adpated i_half according to hazard resolution of 4km: i_half=409.4
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
-    return impf
+    return convert_impf_to_sectoral_bi(impf, sector)
 
 
 

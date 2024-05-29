@@ -5,6 +5,7 @@ import logging
 
 from climada.entity import ImpactFunc
 from utils.folder_naming import get_resources_dir
+from pipeline.direct.combine_impact_funcs import ImpactFuncComposable
 
 SECTOR_BI_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'TC_HAZUS_BI_industry_modifiers.csv')
 
@@ -42,4 +43,14 @@ def get_sector_BI(sector):
         paa=np.ones_like(bi.values),
         intensity_unit="",
         name="Business interruption: " + sector
+    )
+
+
+def convert_impf_to_sectoral_bi(impf, sector, id=1):
+    impf_bi = get_sector_BI(sector)
+    return ImpactFuncComposable.from_impact_funcs(
+        impf_list = [impf, impf_bi],
+        id = id,
+        name = f'Business interruption: {impf.haz_type} and {sector}',
+        enforce_unit_interval_impacts = True
     )

@@ -11,6 +11,7 @@ from climada.hazard import Hazard
 from climada.entity import ImpactFuncSet
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from utils.s3client import download_from_s3_bucket
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
 
 WS_SCENARIO_LOOKUP = {
     'rcp26': 'ssp126',
@@ -26,8 +27,9 @@ WS_SCENARIO_LOOKUP = {
 DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
 
 
-def get_impf_set():
-    return ImpactFuncSet([ImpfStormEurope.from_schwierz()])
+def get_impf_set(sector):
+    impf = convert_impf_to_sectoral_bi(ImpfStormEurope.from_schwierz(), sector)
+    return ImpactFuncSet([impf])
 
 
 def download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir=DEFAULT_DATA_DIR):
