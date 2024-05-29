@@ -69,6 +69,8 @@ def get_hazard(country,
             'year_range': year_range
         }
     )
+    if hasattr(hazard.centroids, 'gdf') and np.all(hazard.centroids.region_id == 1):   # if the region ids exist but are all 1 (happens in newer climada)
+        hazard.centroids.gdf.region_id = np.nan
     hazard.centroids.set_region_id()
     region_id = int(countries.get(alpha_3=country).numeric)
     return hazard.select(reg_id=region_id)
