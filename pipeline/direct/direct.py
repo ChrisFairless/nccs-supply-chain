@@ -245,6 +245,18 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi):
         return impf
     return convert_impf_to_sectoral_bi(impf, sector_bi)
 
+#####
+## Option 2, apply BI scaling but keep global emanuel function
+#####
+# def get_sector_impf_tc(country_iso3alpha, sector_bi):
+#     # TODO: load regional impfs based on country and
+#     haz_type = 'TC'
+#     impf = ImpfTropCyclone.from_emanuel_usa()
+#     impf.haz_type = haz_type
+#     if not sector_bi:
+#         return impf
+#     return convert_impf_to_sectoral_bi(impf, sector_bi)
+
 
 def get_sector_impf_rf(country_iso3alpha, sector_bi):
     # Use the flood module's lookup to get the regional impact function for the country
