@@ -28,7 +28,7 @@ project_root = root_dir()
 
 # newly added
 
-APPLY_BUSINESS_INTERRUPTION = False    # Turn this off to assume that % asset loss = % production loss. Mostly for debugging.
+APPLY_BUSINESS_INTERRUPTION = True    # Turn this off to assume that % asset loss = % production loss. Mostly for debugging.
 
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
@@ -227,6 +227,8 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
         return ImpactFuncSet([get_sector_impf_wf(sector_bi)])
     if haz_type == 'WS':
         return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
+    if haz_type == 'RC':
+        return agriculture.get_impf_set()
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
