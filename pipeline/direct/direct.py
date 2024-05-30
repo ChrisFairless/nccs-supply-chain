@@ -207,6 +207,7 @@ def get_sector_exposure(sector, country):
         exp = download_exposure_from_s3(country, file_short)
     
     if sector == 'economic_assets':
+        client = Client()
         exp = client.get_litpop(country)
 
     return exp
