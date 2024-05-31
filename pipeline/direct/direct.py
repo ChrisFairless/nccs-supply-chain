@@ -1,9 +1,11 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
-from utils.folder_naming import get_resource_dir
+from utils.folder_naming import get_resources_dir
 from functools import cache
+from pathlib import Path
 import pandas as pd
+import numpy as np
 import pycountry
 
 from climada.engine.impact_calc import ImpactCalc
@@ -233,13 +235,20 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
 
 
 def get_sector_impf_tc(country_iso3alpha, sector_bi):
+    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'calibrated_emanuel_v1.csv')
+    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file).set_index(['region'])
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
         raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
     region = region[0]
     fun_id = impf_ids[region]
-    impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)
+    impf = ImpfTropCyclone.from_emanuel_usa(
+        scale=calibrated_impf_parameters.loc[region, 'scale'],
+        v_thresh=calibrated_impf_parameters.loc[region, 'v_thresh'],
+        v_half=calibrated_impf_parameters.loc[region, 'v_half']
+    )
+    # impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
     impf.id = 1
     if not sector_bi:
         return impf
