@@ -214,6 +214,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
+
 def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
