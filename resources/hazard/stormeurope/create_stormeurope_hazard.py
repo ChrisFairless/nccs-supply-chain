@@ -4,6 +4,7 @@ import datetime
 from climada.util.api_client import Client
 from climada.hazard import Hazard
 import glob
+from pathlib import Path    
 
 import pipeline.direct.stormeurope as stormeurope
 from utils.s3client import upload_to_s3_bucket
@@ -18,6 +19,11 @@ from utils.s3client import upload_to_s3_bucket
 
 # Let's define a function that downloads something and deletes it when we're done:
 
+working_dir = Path('.', 'resources', 'hazard', 'storm_europe', 'data')
+
+if not os.path.exists(working_dir):
+    raise NotADirectoryError(f'Create a working directory at {working_dir} before you start. Temporary output will go here')
+
 gcm_all_df = stormeurope.get_cmip6_model_list()
 gcm_all_df = gcm_all_df[gcm_all_df['status'] == 'active']
 scenario_list = ['None', 'ssp126', 'ssp585']    # See stormeurope.py for available scenarios
@@ -26,9 +32,9 @@ country_iso3num_list = None  # Choose automatically
 client = Client()
 era5 = stormeurope.get_era5()
 
-assert(era5.centroids.meta['transform'][0] == 0.5)
-assert(era5.centroids.meta['transform'][4] == 0.5)
-
+# centroids have been refactored and these checks don't work any more...
+# assert(era5.centroids.meta['transform'][0] == 0.5)
+# assert(era5.centroids.meta['transform'][4] == 0.5)
 
 era5_by_country = stormeurope.subset_to_countries(era5)
 
@@ -37,17 +43,17 @@ client = Client(cache_enabled = None)  # Don't store downloaded files or we'll r
 # plot ERA5 and write to hdf5
 if False:
     plt = era5.plot_intensity(event=0)
-    plt.figure.savefig('temp_' + 'era5' + '_' + 'ALL' + '.png')
-    era5.write_hdf5('temp_era5_ALL.hdf5')
+    plt.figure.savefig(Path(working_dir, 'temp_' + 'era5' + '_' + 'ALL' + '.png'))
+    era5.write_hdf5(Path(working_dir, 'temp_era5_ALL.hdf5'))
 
-# Plot  ERA5 by country
+# Plot ERA5 by country
 if False:
     for country in era5_by_country.keys():
         try:
             plt = era5_by_country[country].plot_intensity(event=0)
-            plt.figure.savefig('temp_' + 'era5' + '_' + str(country) + '.png')
+            plt.figure.savefig(Path(working_dir, 'temp_' + 'era5' + '_' + str(country) + '.png'))
             plt = era5_by_country[country].centroids.plot()
-            plt.figure.savefig('temp_' + 'era5' + '_centroids_' + str(country) + '.png')
+            plt.figure.savefig(Path(working_dir, 'temp_' + 'era5' + '_centroids_' + str(country) + '.png'))
         except:
             print("Couldn't do country " + str(country))
 
@@ -59,6 +65,7 @@ for scenario in scenario_list:
         print(f"\nMODEL {i+1}/{len(gcm_list)}: {gcm}")
         print("Getting hazard")
         try:
+            # FIXME my hacky regrid doesn't work with the latest version of CLIMADA which has refactored centroids 
             haz = stormeurope.get_raw_hazard_from_climada_api_one_gcm(client, gcm, scenario)
             haz = stormeurope.aggregate_windstorm_by_year(haz)
             d_lon = haz.centroids.meta['transform'][0]
@@ -76,18 +83,19 @@ for scenario in scenario_list:
             for country in haz_by_country.keys():  #TODO really this should be the countries in era5: it's an error if after regridding there are no points for it
                 if country != 0:
                     filename = 'temp_' + scenario + '_' + gcm + '_' + str(country) + '.hdf5'
-                    haz_by_country[country].write_hdf5(filename)
-        except:
+                    haz_by_country[country].write_hdf5(Path(working_dir, filename))
+        except Exception as e:
             print("That didn't work. Skipping because we're in a rush")
+            print(e)
             
         # TODO investigate: it could be faster to split into countries and _then_ regrid.
         if False:
             plt = haz.plot_intensity(event=0)
-            plt.figure.savefig('temp_' + scenario + '_' + gcm + '_' + 'ALL' + '.png')
+            plt.figure.savefig(Path(working_dir, 'temp_' + scenario + '_' + gcm + '_' + 'ALL' + '.png'))
             for country in haz_by_country.keys():
                 if len(haz_by_country[country].centroids.lon) > 1:
                     plt = haz_by_country[country].plot_intensity(event=0)
-                    plt.figure.savefig('temp_' + scenario + '_' + gcm + '_' + str(country) + '.png')
+                    plt.figure.savefig(Path(working_dir, 'temp_' + scenario + '_' + gcm + '_' + str(country) + '.png'))
                 else:
                     print("Country is a single centroid: can't plot: " + str(country))
     
@@ -98,18 +106,18 @@ for scenario in scenario_list:
             filename_list = ['temp_' + scenario + '_' + gcm + '_' + str(country) + '.hdf5' for gcm in gcm_list]
             haz = Hazard.concat([Hazard.from_hdf5(f) for f in filename_list if os.path.isfile(f)])
             filename_combined_out = 'stormeurope_' + scenario + '_' + str(country) + '.hdf5'
-            haz.write_hdf5(filename_combined_out)
+            haz.write_hdf5(Path(working_dir, filename_combined_out))
             # if True:
             #     plt = haz.plot_intensity(event=0)
-            #     plt.figure.savefig('stormeurope_' + scenario + '_' + str(country) + '.png')
-            [os.remove(f) for f in filename_list if os.path.isfile(f)]
+            #     plt.figure.savefig(Path(working_dir, 'stormeurope_' + scenario + '_' + str(country) + '.png'))
+            [os.remove(Path(working_dir, f)) for f in filename_list if os.path.isfile(Path(working_dir, f))]
     
     # Clear up intermediate files
-
+    # TODO!
 
 # Upload to S3
 if True:
-    files_to_sync = glob.glob('stormeurope_*.hdf5')
+    files_to_sync = glob.glob(Path(working_dir, 'stormeurope_*.hdf5'))
 
     for f in files_to_sync:
         print(f)

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import pycountry
+import datetime
 import copy
 import os
 from pathlib import Path
@@ -47,6 +48,7 @@ def get_hazard(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
     return Hazard.from_hdf5(filename)
 
 
+# TODO save this pre-calculated on S3
 def get_era5(country_iso3num = None):
     client = Client()
     haz = client.get_hazard(
@@ -57,6 +59,7 @@ def get_era5(country_iso3num = None):
                 }
             )
     haz.centroids.set_lat_lon_to_meta()
+    haz = aggregate_windstorm_by_year(haz, is_historical=True)
     if country_iso3num:
         haz = subset_to_countries(haz, [country_iso3num])[country_iso3num]
     return haz
@@ -74,11 +77,23 @@ def get_raw_hazard_from_climada_api_one_gcm(client, gcm, ws_scenario):
     return haz
 
 
-def aggregate_windstorm_by_year(haz):
-    dt = np.diff(haz.date)
-    # years = [datetime.datetime.from_ordinal(d).year for d in haz.date]
-    # dy = np.diff(years)
-    ix_list = np.where(abs(dt) > 180)[0]
+def aggregate_windstorm_by_year(haz, is_historical=False):
+
+    if is_historical:
+        # Note: this splits by calendar year, not season
+        # TODO be more careful with this. Currently we only use ERA5 for validation when this is the behaviour we want
+        years = [datetime.datetime.fromordinal(d).year for d in haz.date]
+        dy = np.diff(years)
+        ix_list = np.where(dy > 0)[0]
+        year_ids = np.concatenate([np.array([years[0]]), np.cumsum(dy[ix_list]) + years[0]])
+
+    else:
+        # identify gaps between storms of > 6 months. These are the summer months that aren't included in the model outputs
+        dt = np.diff(haz.date)
+        dy = np.floor(dt/180)
+        ix_list = np.where(abs(dy) > 0)[0]
+        year_ids = np.concatenate([np.array([0]), np.cumsum(dy[ix_list])])
+
     ix_list = np.concatenate((
         np.array([0]),
         ix_list,
@@ -96,7 +111,7 @@ def aggregate_windstorm_by_year(haz):
                 haz_type = haz.haz_type,
                 units = haz.units,
                 centroids = haz.centroids,
-                event_id = np.array([i]),
+                event_id =  np.array([yid]),
                 frequency = np.array([event_frequency]),
                 frequency_unit = "1/year",
                 date = np.array([date_list[i]]),    # First event of the season, should probably be the first day of the season but we might never use it
@@ -104,12 +119,13 @@ def aggregate_windstorm_by_year(haz):
                     np.max(haz.intensity[start:stop, ], axis=0) #.toarray().transpose()
                 )
             )
-            for i, (start, stop) in enumerate(zip(ix_list[:-1], ix_list[1:]))
+            for i, (start, stop, yid) in enumerate(zip(ix_list[:-1], ix_list[1:], year_ids))
         ]
     )
 
     # validate
-    assert(np.mod(len(out_haz.event_id), 30) == 0)
+    if not is_historical:
+        assert(np.mod(len(out_haz.event_id), 30) == 0)
     assert(np.max(haz.intensity) == np.max(out_haz.intensity))
     # TODO more!
 
@@ -152,6 +168,7 @@ def change_centroids_for_real_screw_you_climada(haz, centroids, threshold):
 
 
 def regrid(haz, regrid_centroids, threshold=50):
+    # FIXME my hacky regrid doesn't work with the latest version of CLIMADA which has refactored centroids 
     if not haz.centroids.meta or len(haz.centroids.meta) == 0:
         haz.centroids.set_lat_lon_to_meta()
     if True:

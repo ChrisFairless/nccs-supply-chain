@@ -5,11 +5,12 @@ from utils.folder_naming import get_resources_dir
 from functools import cache
 from pathlib import Path
 import pandas as pd
+import os
 import numpy as np
 import pycountry
 import traceback
 
-from climada.engine.impact_calc import ImpactCalc
+from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
 from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
@@ -37,33 +38,6 @@ HAZ_TYPE_LOOKUP = {
     "relative_crop_yield": "RC",
 }
 
-# Method to loop through configuration lists of and run an impact calculation for 
-# each combination on the list
-# Simple, but can be sped up and memory usage reduced
-def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year, business_interruption=True, calibrated=True):
-    result = []
-    for haz_type in hazard_list:
-        for sector in sector_list:
-            for country in country_list:
-                try:
-                    # This could fail if a hazard is not available for a certain country or sector
-                    result.append(
-                        dict(
-                            haz_type=haz_type,
-                            sector=sector,
-                            country=country,
-                            scenario=scenario,
-                            ref_year=ref_year,
-                            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption, calibrated)
-                        )
-                    )
-                except Exception as e:
-                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}")
-                    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                    print(e)
-            
-    return pd.DataFrame(result)
-
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
@@ -74,8 +48,10 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, bu
     exp = get_sector_exposure(sector, country)  # was originally here
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
-    return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
-
+    imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
+    # Drop events with no impact to save space
+    # imp = imp.select(event_ids = [id for id, event_impact in zip(imp.event_id, imp.at_event) if event_impact > 0])
+    return imp
 
 # @cache
 # def load_forestry_exposure():
@@ -210,6 +186,8 @@ def get_sector_exposure(sector, country):
         client = Client()
         exp = client.get_litpop(country)
 
+    exp.gdf.reset_index(inplace=True)
+
     return exp
 
 
@@ -328,7 +306,8 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     if haz_type == 'tropical_cyclone':
         if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
-                haz_type, properties={
+                'tropical_cyclone',
+                properties={
                     'country_iso3alpha': country_iso3alpha,
                     'climate_scenario': 'None',
                     'event_type': 'synthetic'
@@ -336,9 +315,12 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             )
         else:
             return client.get_hazard(
-                haz_type, properties={
+                'tropical_cyclone',
+                properties={
                     'country_iso3alpha': country_iso3alpha,
-                    'climate_scenario': scenario, 'ref_year': str(ref_year)
+                    'climate_scenario': scenario,
+                    'ref_year': str(ref_year),
+                    'event_type': 'synthetic'
                 }
             )
     elif haz_type == 'river_flood':
@@ -393,3 +375,4 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         raise ValueError(
             f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
         )
+

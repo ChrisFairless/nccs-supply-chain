@@ -4,6 +4,9 @@ import typing
 
 import boto3
 import dotenv
+import botocore
+
+from botocore.errorfactory import ClientError
 
 from utils.folder_naming import get_output_dir
 
@@ -65,13 +68,27 @@ def upload_to_s3_bucket(input_filepath: str, s3_filename: typing.Union[str, None
     if s3_filename is None:
         s3_filename = os.path.basename(input_filepath)
 
-    s3 = get_client()
+    with get_client() as s3:
+        return s3.upload_file(
+            input_filepath,
+            BUCKET_NAME,
+            s3_filename
+        )
 
-    return s3.upload_file(
-        input_filepath,
-        BUCKET_NAME,
-        s3_filename
-    )
+def file_exists_on_s3_bucket(s3_filename: str):
+    with get_client() as s3:
+        try:
+            s3.head_object(BUCKET_NAME, s3_filename)
+            return True
+        except botocore.exceptions.ClientError as e:
+            if e.response['Error']['Code'] == "404":
+                # The key does not exist.
+                return False
+            elif e.response['Error']['Code'] == 403:
+                # Unauthorized, including invalid bucket
+                raise ClientError(e)
+            else:
+                raise ClientError(f"Unexpected error in the S3 client: {e}")
 
 
 def download_complete_csvs_to_results():

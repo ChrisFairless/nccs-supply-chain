@@ -8,7 +8,7 @@ def get_resource_dir():
     Returns the absolute path to the exposures directory
     :return:
     """
-    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../exposures")
+    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../resources")
 
 def get_resources_dir():
     """
