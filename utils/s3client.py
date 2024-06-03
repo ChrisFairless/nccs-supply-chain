@@ -81,19 +81,20 @@ def download_complete_csvs_to_results():
     """
     logging.info("Downloading all indirect/complete.csv files from the S3 bucket.")
     client = get_client()
-    response = client.list_objects_v2(Bucket=BUCKET_NAME, Prefix="results/")
-    for obj in response.get("Contents", []):
-        filename = obj["Key"]
-        logging.info(f"Scanning: {filename}")
-        if filename.endswith("indirect/complete.csv"):
-            if os.path.exists(filename):
-                logging.info(f"Skipping {filename} as it already exists.")
-                continue
-            os.makedirs(os.path.dirname(filename), exist_ok=True)
+    paginator = client.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix="results/"):
+        for obj in page.get("Contents", []):
+            filename = obj["Key"]
+            logging.info(f"Scanning: {filename}")
+            if filename.endswith("indirect/complete.csv"):
+                if os.path.exists(filename):
+                    logging.info(f"Skipping {filename} as it already exists.")
+                    continue
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
 
-            outfile = os.path.join(get_output_dir(), filename.replace("results/", ""))
-            logging.info(f"Downloading {filename} to {outfile}")
-            download_from_s3_bucket(filename, outfile)
+                outfile = os.path.join(get_output_dir(), filename.replace("results/", ""))
+                logging.info(f"Downloading {filename} to {outfile}")
+                download_from_s3_bucket(filename, outfile)
 
 
 if __name__ == '__main__':
