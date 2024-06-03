@@ -1,0 +1,6 @@
+bokeh
+boto3
+pandas
+python-dotenv
+xyzservices
+numpy
