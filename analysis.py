@@ -9,6 +9,7 @@ from datetime import datetime
 import typing
 import pathos as pa
 from functools import partial
+import pycountry
 
 from climada.engine import Impact
 
@@ -193,6 +194,26 @@ def run_pipeline_from_config(
         for i, row in df.iterrows():
             print("SUPPLY CHAIN ROW")
             print(row.to_dict())
+
+            if not row['_indirect_calculate']:
+                print('No yearset data available. Skipping supply chain calculation')
+                continue
+
+            # TODO put this in a function: it's used in the supply_chain_climada method too
+            country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
+            direct_path = f"{direct_output_dir}/" \
+                f"direct_impacts" \
+                f"_{row['hazard']}" \
+                f"_{row['sector'].replace(' ', '_')[:15]}" \
+                f"_{row['scenario']}" \
+                f"_{row['ref_year']}" \
+                f"_{country_iso3alpha}" \
+                f".csv"
+
+            if os.path.exists(direct_path):
+                print(f'Output already exists, skipping calculation: {direct_path}')
+                continue
+
             try:
                 print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
                 supchain = supply_chain_climada(
