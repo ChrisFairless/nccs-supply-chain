@@ -32,3 +32,13 @@ def get_direct_output_dir(run_title):
 
 def get_indirect_output_dir(run_title):
     return f"{OUTPUT_DIR}/{run_title}/indirect"
+
+
+def get_direct_namestring(prefix, extension, haz_type, sector, scenario, ref_year, country_iso3alpha):
+    return f"{prefix}" \
+           f"_{haz_type}" \
+           f"_{sector.replace(' ', '_')[:15]}" \
+           f"_{scenario}" \
+           f"_{ref_year}" \
+           f"_{country_iso3alpha}" \
+           f".{extension}"
