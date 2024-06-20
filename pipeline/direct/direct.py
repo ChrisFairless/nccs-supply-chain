@@ -205,6 +205,10 @@ def get_sector_exposure(sector, country):
     if sector == 'wood':
         file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country, file_short)
+    
+    if sector == 'economic_assets':
+        client = Client()
+        exp = client.get_litpop(country)
 
     return exp
 
@@ -212,7 +216,7 @@ def get_sector_exposure(sector, country):
 def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
-    if not APPLY_BUSINESS_INTERRUPTION or sector == 'agriculture':
+    if not APPLY_BUSINESS_INTERRUPTION or sector in ['agriculture', 'economic_assets']:
         sector_bi = None
     else:
         sector_bi = sector
