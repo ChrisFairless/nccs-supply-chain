@@ -3,7 +3,7 @@ import pandas as pd
 
 from utils.folder_naming import get_indirect_output_dir, get_run_dir
 
-RUN_TITLE = "best_guesstimate"
+RUN_TITLE = "interim_report_18_06_24_TC_calibrated"
 
 if __name__ == '__main__':
     data_files = glob.glob(f"{get_indirect_output_dir(RUN_TITLE)}/indirect_impacts_*.csv")
