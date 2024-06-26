@@ -51,7 +51,7 @@ scenario_subset = None
 
 # country_subset = ['Cuba', 'Ireland']
 rp_subset = [100]
-year_subset = ['hist']
+year_subset = ['hist', '2050']
 scenario_subset = ['historical', 'rcp4p5', 'rcp8p5']
 
 assert(os.path.exists(output_dir))
@@ -134,8 +134,14 @@ def process_flood_df(df, exp, country, sector, crow):
             continue
         filepath = row['local_path']
         slr = rxr.open_rasterio(filepath)
-        subset_lons = slr.x[np.multiply(slr.x >= crow['lon_min'], slr.x <= crow['lon_max'])]
-        subset_lats = slr.y[np.multiply(slr.y >= crow['lat_min'], slr.y <= crow['lat_max'])]
+        if crow['lon_max'] <= 180:
+            subset_lons = slr.x[np.logical_and(slr.x >= crow['lon_min'], slr.x <= crow['lon_max'])]
+        else:
+            # Country crosses the antimeridian
+            if verbose:
+                print('Crossing the antimeridian')
+            subset_lons = slr.x[np.logical_or(slr.x >= crow['lon_min'], slr.x <= crow['lon_max'] - 360)]
+        subset_lats = slr.y[np.logical_and(slr.y >= crow['lat_min'], slr.y <= crow['lat_max'])]
         subset = slr.loc[1, subset_lats, subset_lons]
 
         haz_df = subset.to_pandas()
