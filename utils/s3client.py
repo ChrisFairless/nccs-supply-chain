@@ -1,8 +1,11 @@
+import logging
 import os
 import typing
 
 import boto3
 import dotenv
+
+from utils.folder_naming import get_output_dir
 
 BUCKET_NAME = "nccs-modeling"
 
@@ -40,6 +43,8 @@ def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, Non
     if output_path is None:
         output_path = s3_filename
 
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+
     s3 = get_client()
     return s3.download_file(
         BUCKET_NAME,
@@ -69,7 +74,31 @@ def upload_to_s3_bucket(input_filepath: str, s3_filename: typing.Union[str, None
     )
 
 
+def download_complete_csvs_to_results():
+    """
+    Downloads all indirect/complete.csv files from the S3 bucket.
+    :return:
+    """
+    logging.info("Downloading all indirect/complete.csv files from the S3 bucket.")
+    client = get_client()
+    paginator = client.get_paginator('list_objects_v2')
+    for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix="results/"):
+        for obj in page.get("Contents", []):
+            filename = obj["Key"]
+            logging.info(f"Scanning: {filename}")
+            if filename.endswith("indirect/complete.csv"):
+                if os.path.exists(filename):
+                    logging.info(f"Skipping {filename} as it already exists.")
+                    continue
+                os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+                outfile = os.path.join(get_output_dir(), filename.replace("results/", ""))
+                logging.info(f"Downloading {filename} to {outfile}")
+                download_from_s3_bucket(filename, outfile)
+
+
 if __name__ == '__main__':
+    print("Hello")
     with open("test.txt", "w") as f:
         f.write("test")
 

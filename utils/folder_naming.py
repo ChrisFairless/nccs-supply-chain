@@ -1,9 +1,16 @@
 import os
 
-OUTPUT_DIR = "./results"
+OUTPUT_DIR = os.path.abspath(f"{os.path.dirname(__file__)}/../results")
 
 
 def get_resource_dir():
+    """
+    Returns the absolute path to the exposures directory
+    :return:
+    """
+    return os.path.abspath(f"{os.path.dirname(os.path.abspath(__file__))}/../exposures")
+
+def get_resources_dir():
     """
     Returns the absolute path to the resources directory
     :return:
