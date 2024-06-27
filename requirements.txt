@@ -1,6 +1,0 @@
-bokeh
-boto3
-pandas
-python-dotenv
-climada
-git+https://github.com/CLIMADA-project/climada_petals.git@develop

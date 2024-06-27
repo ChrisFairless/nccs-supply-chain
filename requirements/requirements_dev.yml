@@ -1,0 +1,8 @@
+name: nccs_dev
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - bokeh
+  - boto3
+  - python-dotenv

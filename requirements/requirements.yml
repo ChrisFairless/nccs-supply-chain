@@ -1,0 +1,10 @@
+channels:
+  - conda-forge
+dependencies:
+  - pip
+  - bokeh
+  - boto3
+  - python-dotenv
+  - climada=4.1.0
+  - pip:
+    - git+https://github.com/CLIMADA-project/climada_petals.git@develop
