@@ -6,6 +6,7 @@ from functools import cache
 
 import pandas as pd
 import pycountry
+import traceback
 from climada.engine.impact_calc import ImpactCalc
 from climada.entity import Exposures
 from climada.entity import ImpactFuncSet, ImpfTropCyclone
@@ -57,8 +58,9 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                     )
                 except Exception as e:
                     print(f"Error calculating direct impacts for {country} {sector} {haz_type}")
-                    raise e
-
+                    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    print(e)
+                    
     return pd.DataFrame(result)
 
 

@@ -118,7 +118,9 @@ def run_pipeline(country_list,
             )
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list}:")
-            raise e
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            print(e)
+
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
 
 
