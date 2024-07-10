@@ -28,10 +28,6 @@ from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
 project_root = root_dir()
 # /wildfire.py
 
-# newly added
-
-APPLY_BUSINESS_INTERRUPTION = True    # Turn this off to assume that % asset loss = % production loss. Mostly for debugging.
-
 HAZ_TYPE_LOOKUP = {
     'tropical_cyclone': 'TC',
     'river_flood': 'RF',
@@ -43,7 +39,7 @@ HAZ_TYPE_LOOKUP = {
 # Method to loop through configuration lists of and run an impact calculation for 
 # each combination on the list
 # Simple, but can be sped up and memory usage reduced
-def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year):
+def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year, business_interruption=True, calibrated=True):
     result = []
     for haz_type in hazard_list:
         for sector in sector_list:
@@ -57,7 +53,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                             country=country,
                             scenario=scenario,
                             ref_year=ref_year,
-                            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year)
+                            impact_eventset=nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption, calibrated)
                         )
                     )
                 except Exception as e:
@@ -67,7 +63,7 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
     return pd.DataFrame(result)
 
 
-def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
+def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
     print(f"Calculating direct impacts for {country} {sector} {haz_type} {scenario} {ref_year}")
@@ -75,7 +71,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year):
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
-    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha)
+    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
     return ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
 
 
@@ -211,10 +207,10 @@ def get_sector_exposure(sector, country):
     return exp
 
 
-def apply_sector_impf_set(hazard, sector, country_iso3alpha):
+def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interruption=True, calibrated=True):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
-    if not APPLY_BUSINESS_INTERRUPTION or sector == 'agriculture':
+    if not business_interruption or sector == 'agriculture':
         sector_bi = None
     else:
         sector_bi = sector
@@ -222,7 +218,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
     if haz_type == 'TC':
-        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi)])
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated)])
     if haz_type == 'RF':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi)])
     if haz_type == 'WF':
@@ -234,25 +230,30 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha):
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
-def get_sector_impf_tc(country_iso3alpha, sector_bi):
-    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'calibrated_emanuel_v1.csv')
-    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file).set_index(['region'])
+def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
         raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
     region = region[0]
-    fun_id = impf_ids[region]
-    impf = ImpfTropCyclone.from_emanuel_usa(
-        scale=calibrated_impf_parameters.loc[region, 'scale'],
-        v_thresh=calibrated_impf_parameters.loc[region, 'v_thresh'],
-        v_half=calibrated_impf_parameters.loc[region, 'v_half']
-    )
-    # impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
+
+    if calibrated:
+        calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'calibrated_emanuel_v1.csv')
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file).set_index(['region'])
+        impf = ImpfTropCyclone.from_emanuel_usa(
+            scale=calibrated_impf_parameters.loc[region, 'scale'],
+            v_thresh=calibrated_impf_parameters.loc[region, 'v_thresh'],
+            v_half=calibrated_impf_parameters.loc[region, 'v_half']
+        )
+    else:
+        fun_id = impf_ids[region]
+        impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
+    
     impf.id = 1
     if not sector_bi:
         return impf
     return convert_impf_to_sectoral_bi(impf, sector_bi)
+
 
 #####
 ## Option 2, apply BI scaling but keep global emanuel function

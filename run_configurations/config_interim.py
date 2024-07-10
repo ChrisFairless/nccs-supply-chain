@@ -6,6 +6,8 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 CONFIG = {
     "run_title": "interim_report_31_05_24",
     "n_sim_years": 300,
+    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "tropical_cyclone",
