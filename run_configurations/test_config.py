@@ -83,11 +83,12 @@ CONFIG5 = {
     "runs": [
         {
             "hazard": "relative_crop_yield",
-            "io_approach": ["ghosh"],
+            "io_approach": ["ghosh", "leontief"],
             "sectors": ["agriculture"],
-            "countries": ['Germany','Denmark'],
+            "countries": ['Canada','Egypt', 'Portugal','Pakistan','Armenia','Belarus','Peru'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp60", "ref_year": "future"},
             ]
         }
     ]

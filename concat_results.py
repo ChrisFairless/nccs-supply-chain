@@ -10,7 +10,7 @@ To run concat_results.py please update the RUN_TITLE
 
 # ### INDIRECT
 #
-# RUN_TITLE = "refin_exposures_uncal_12_04_2024"
+# RUN_TITLE = "interim_report_31_05_24"
 #
 # io_approaches = ["ghosh", "leontief"]
 #
@@ -37,7 +37,7 @@ To run concat_results.py please update the RUN_TITLE
 #         'mrio_sector_number': 'sector number according to the MRIO table',
 #         'sector': 'sector name according to the MRIO table',
 #         'total_sectorial_production_mriot_CHE': 'total production of this sector in Switzerland (CHE) from MRIO table [in M USD]',
-#         'imaxPL': 'indirect maximum production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in M USD]',
+#         'imaxPL': 'indirect maximum production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact which depends on the number of simulation years given (at the moment 300 simulated years) [in M USD]',
 #         'irmaxPL': 'indirect relative maximum production loss. Percentage of the imaxPL of this sector in relation to the total production in CHE of this sector [in %]',
 #         'iAAPL': 'indirect average annual production loss (impact) to CHE sector by shocking cuntry_of_impact in sector_of_impact an average over the simulated year range reflecting the mean conditions [in M USD] ',
 #         'irAAPL': 'indirect relative average annual production loss. Percentage of the iAAPL of this sectors in relation to the total production in CHE of this sector [in %]',
@@ -65,7 +65,7 @@ To run concat_results.py please update the RUN_TITLE
 
 # ### DIRECT
 
-RUN_TITLE = "refin_exposures_uncal_12_04_2024"
+RUN_TITLE = "interim_report_31_05_24"
 
 
 data_files = glob.glob(f"{get_direct_output_dir(RUN_TITLE)}/direct_impacts_*.csv")
@@ -90,7 +90,7 @@ term_definitions = {
     'mrio_sector_number': 'sector number according to the MRIO table',
     'sector': 'sector name according to the MRIO table',
     'total_sectorial_production_mriot': 'total production of this sector in country_of_impact from MRIO table [in M USD]',
-    'maxPL': 'direct maximum production loss (impact) to sector by shocking sector_of_impact which depends on the number of simulation years given (at the moment 100 years, which is why it is equal to the iPL100) [in M USD]',
+    'maxPL': 'direct maximum production loss (impact) to sector by shocking sector_of_impact which depends on the number of simulation years given (at the moment 300 years [in M USD]',
     'rmaxPL': 'direct relative maximum production loss. Percentage of the maxPL of this sector in relation to the total production of this sector [in %]',
     'AAPL': 'direct average annual production loss (impact) to sector by shocking sector_of_impact an average over the simulated year range reflecting the mean conditions [in M USD] ',
     'rAAPL': 'direct relative average annual production loss. Percentage of the AAPL of this sectors in relation to the total production of this sector [in %]',

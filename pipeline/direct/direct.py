@@ -203,6 +203,10 @@ def get_sector_exposure(sector, country):
     if sector == 'wood':
         file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country, file_short)
+    
+    if sector == 'economic_assets':
+        client = Client()
+        exp = client.get_litpop(country)
 
     return exp
 
@@ -210,7 +214,7 @@ def get_sector_exposure(sector, country):
 def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interruption=True, calibrated=True):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
-    if not business_interruption or sector == 'agriculture':
+    if not business_interruption or sector in ['agriculture', 'economic_assets']:
         sector_bi = None
     else:
         sector_bi = sector
@@ -274,6 +278,25 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi):
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
     # Grab just that impact function from the flood set, and set its ID to 1
     impf_set = flood_imp_func_set()
+    impf_set.plot()
+    impf_AFR = impf_set.get_func(fun_id=1)
+    impf_AFR[0].plot()
+
+    impf_ASIA = impf_set.get_func(fun_id=2)
+    impf_ASIA[0].plot()
+
+    impf_EU = impf_set.get_func(fun_id=3)
+    impf_EU[0].plot()
+
+    impf_NA = impf_set.get_func(fun_id=4)
+    impf_NA[0].plot()
+
+    impf_OCE = impf_set.get_func(fun_id=5)
+    impf_OCE[0].plot()
+
+    impf_SAM = impf_set.get_func(fun_id=6)
+    impf_SAM[0].plot()
+
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
     if not sector_bi:
