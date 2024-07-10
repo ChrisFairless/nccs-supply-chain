@@ -4,8 +4,8 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 """
 #TODO add also other subsector to the configuration list
 CONFIG = {
-    "run_title": "refin_exposures_uncal_12_04_2024",
-    "n_sim_years": 100,
+    "run_title": "interim_report_31_05_24",
+    "n_sim_years": 300,
     "runs": [
         {
             "hazard": "tropical_cyclone",
@@ -27,16 +27,13 @@ CONFIG = {
                           'Timor-Leste', 'Ecuador', 'Egypt', 'El Salvador', 'Equatorial Guinea', 'Eritrea',
                           'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon', 'Gambia', 'Georgia',
                           'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana',
-                          'Haiti',
-                          'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq',
+                          'Haiti', 'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran, Islamic Republic of', 'Iraq',
                           'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan', 'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati',
                           "Korea, Democratic People's Republic of",
                           'Korea, Republic of', 'Kuwait', 'Kyrgyzstan', "Lao People's Democratic Republic", 'Latvia',
-                          'Lebanon',
-                          'Lesotho', 'Liberia',
+                          'Lebanon', 'Lesotho', 'Liberia',
                           'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi', 'Malaysia',
-                          'Maldives',
-                          'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
+                          'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius',
                           'Mexico', 'Micronesia, Federated States of', 'Moldova, Republic of', 'Monaco', 'Mongolia',
                           'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
                           'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman',
@@ -70,6 +67,13 @@ CONFIG = {
                 {"scenario": "rcp85", "ref_year": "2060"},
             ]
         },
+    ]
+}
+
+CONFIG2 = {
+    "run_title": "interim_report_31_05_24",
+    "n_sim_years": 300,
+    "runs": [
         {
             "hazard": "river_flood",
             "io_approach": ["leontief", "ghosh"],
@@ -133,7 +137,14 @@ CONFIG = {
                 {"scenario": "rcp85", "ref_year": 2060},
                 # {"scenario": "rcp85", "ref_year": 2080},
             ]
-        },
+        }
+    ]
+}
+
+CONFIG3 = {
+    "run_title": "interim_report_31_05_24",
+    "n_sim_years": 300,
+    "runs": [
         {
             "hazard": "wildfire",
             "io_approach": ["leontief", "ghosh"],
@@ -186,6 +197,13 @@ CONFIG = {
                 {"scenario": "None", "ref_year": "historical"},
             ]
         },
+    ]
+}
+
+CONFIG4 = {
+    "run_title": "interim_report_31_05_24",
+    "n_sim_years": 300,
+    "runs": [
         {
             "hazard": "storm_europe",
             "io_approach": ["leontief", "ghosh"],
@@ -194,22 +212,27 @@ CONFIG = {
                         "non_metallic_mineral", "refin_and_transform"],
             "countries": ['Albania', 'Algeria', 'Andorra',
                           'Austria', 'Belarus', 'Belgium', 'Bosnia and Herzegovina', 'Bulgaria', 'Croatia',
-                          'Cyprus', 'Czechia', 'Denmark','Egypt', 'Estonia', 'Finland', 'France',
+                          'Cyprus', 'Czechia', 'Denmark', 'Egypt', 'Estonia', 'Finland', 'France',
                           'Germany', 'Greece', 'Hungary', 'Iceland',
                           'Ireland', 'Italy', 'Latvia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg',
-                          'Moldova, Republic of', 'Monaco','Morocco', 'Netherlands', 'North Macedonia', 'Norway',
-                          'Poland', 'Portugal','Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Tunisia', 'Turkey',
-                          'Ukraine', 'United Kingdom'],
+                          'Moldova, Republic of', 'Monaco', 'Morocco', 'Netherlands', 'North Macedonia', 'Norway',
+                          'Poland', 'Portugal', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Sweden', 'Tunisia',
+                          'Turkey', 'Ukraine', 'United Kingdom'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                # These combinations are possible, but since the windstorm is not yet developed fully, we exclude them.
                 {"scenario": "rcp26", "ref_year": "future"},
                 # {"scenario": "ssp245", "ref_year": "present"},
                 # {"scenario": "ssp370", "ref_year": "present"},
                 {"scenario": "rcp85", "ref_year": "future"},
             ]
-        },
+        }
+    ]
+}
 
+CONFIG5 = {
+    "run_title": "interim_report_31_05_24",
+    "n_sim_years": 300,
+    "runs": [
         {
             "hazard": "relative_crop_yield",
             "io_approach": ["leontief", "ghosh"],

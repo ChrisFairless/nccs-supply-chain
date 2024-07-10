@@ -11,6 +11,7 @@ from climada.hazard import Hazard
 from climada.entity import ImpactFuncSet
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from utils.s3client import download_from_s3_bucket
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
 
 WS_SCENARIO_LOOKUP = {
     'rcp26': 'ssp126',
@@ -26,13 +27,9 @@ WS_SCENARIO_LOOKUP = {
 DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
 
 
-def get_impf_set():
-    return ImpactFuncSet([ImpfStormEurope.from_schwierz()])
-
-
-def download_hazard_from_s3(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
+def download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir=DEFAULT_DATA_DIR):
     country_iso3num = str(int(pycountry.countries.get(alpha_3=country_iso3alpha).numeric))
-    s3_filepath = f'stormeurope_hazard/stormeurope_{scenario}_{country_iso3num}.hdf5' #replaced old statement
+    s3_filepath = f'stormeurope_hazard/stormeurope_{cmip_scenario}_{country_iso3num}.hdf5' #replaced old statement
     outputfile=f'{save_dir}/stormeurope_{scenario}_{country_iso3num}.hdf5'
 
     download_from_s3_bucket(s3_filepath, outputfile)
@@ -45,7 +42,7 @@ def get_hazard(scenario, country_iso3alpha, save_dir=DEFAULT_DATA_DIR):
     cmip_scenario = WS_SCENARIO_LOOKUP[scenario]
     filename = f'stormeurope_{cmip_scenario}_{country_iso3num}.hdf5'
     if not os.path.isfile(filename):
-        download_hazard_from_s3(cmip_scenario, country_iso3alpha, save_dir)
+        download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir)
         filename = f'{save_dir}/stormeurope_{scenario}_{country_iso3num}.hdf5' #inserted because otherwise file could not be opened
     return Hazard.from_hdf5(filename)
 
