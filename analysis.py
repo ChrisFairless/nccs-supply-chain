@@ -21,7 +21,9 @@ def calc_supply_chain_impacts(
         save_by_sector=False,
         seed=1312,
         indirect_output_dir="results/indirect",
-        direct_output_dir="results/direct"
+        direct_output_dir="results/direct",
+        business_interruption=True,
+        calibrated=True
 ):
     ### --------------------------------- ###
     ### CALCULATE DIRECT ECONOMIC IMPACTS ###
@@ -29,7 +31,7 @@ def calc_supply_chain_impacts(
 
     # Generate a data frame with metadata, exposure objects and impact objects 
     # for each combination of input factors.
-    analysis_df = nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year)
+    analysis_df = nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scenario, ref_year, business_interruption, calibrated)
 
     ### ------------------- ###
     ### SAMPLE IMPACT YEARS ###
@@ -103,7 +105,9 @@ def run_pipeline(country_list,
                  n_sim_years,
                  io_approach,
                  direct_output_dir,
-                 indirect_output_dir):
+                 indirect_output_dir,
+                 business_interruption=True,
+                 calibrated=True):
     for country in country_list:
         try:
             calc_supply_chain_impacts(
@@ -115,7 +119,9 @@ def run_pipeline(country_list,
                 n_sim_years,
                 io_approach,
                 direct_output_dir=direct_output_dir,
-                indirect_output_dir=indirect_output_dir
+                indirect_output_dir=indirect_output_dir,
+                business_interruption=business_interruption,
+                calibrated=calibrated
             )
         except Exception as e:
             print(f"Could not calculate country {country} {sector_list}:")
@@ -145,7 +151,9 @@ def run_pipeline_from_config(config):
                 config["n_sim_years"],
                 run["io_approach"],
                 direct_output_dir=direct_output_dir,
-                indirect_output_dir=indirect_output_dir
+                indirect_output_dir=indirect_output_dir,
+                business_interruption=config["apply_business_interruption"],
+                calibrated=config['use_calibrated_impfs']
             )
 
 

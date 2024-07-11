@@ -6,6 +6,8 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 CONFIG = {
     "run_title": "test_run",
     "n_sim_years": 300,
+    "apply_business_interruption": False,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": False,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "tropical_cyclone",
@@ -22,6 +24,8 @@ CONFIG = {
 CONFIG2 = {
     "run_title": "test_run",
     "n_sim_years": 300,
+    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "river_flood",
@@ -38,6 +42,8 @@ CONFIG2 = {
 CONFIG3 = {
     "run_title": "test_run",
     "n_sim_years": 300,
+    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "wildfire",
@@ -54,6 +60,8 @@ CONFIG3 = {
 CONFIG4 = {
     "run_title": "test_run",
     "n_sim_years": 300,
+    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "storm_europe",
@@ -70,6 +78,8 @@ CONFIG4 = {
 CONFIG5 = {
     "run_title": "test_run",
     "n_sim_years": 300,
+    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "runs": [
         {
             "hazard": "relative_crop_yield",
