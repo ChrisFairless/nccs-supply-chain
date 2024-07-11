@@ -5,6 +5,7 @@ from utils.folder_naming import get_resource_dir
 from functools import cache
 import pandas as pd
 import pycountry
+import traceback
 
 from climada.engine.impact_calc import ImpactCalc
 from climada.entity import Exposures
@@ -59,9 +60,10 @@ def nccs_direct_impacts_list_simple(hazard_list, sector_list, country_list, scen
                         )
                     )
                 except Exception as e:
-                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}: {e}")
-                    #raise e
-
+                    print(f"Error calculating direct impacts for {country} {sector} {haz_type}")
+                    print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                    print(e)
+            
     return pd.DataFrame(result)
 
 
