@@ -7,8 +7,8 @@ CONFIG = {
     "run_title": "test_run",
     "n_sim_years": 300,
     "io_approach": ["ghosh"],
-    "apply_business_interruption": False,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": False,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {
@@ -26,8 +26,8 @@ CONFIG2 = {
     "run_title": "test_run",
     "n_sim_years": 300,
     "io_approach": ["ghosh"],
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {
@@ -45,8 +45,8 @@ CONFIG3 = {
     "run_title": "test_run",
     "n_sim_years": 300,
     "io_approach": ["ghosh"],
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {
@@ -64,8 +64,8 @@ CONFIG4 = {
     "run_title": "test_run",
     "n_sim_years": 300,
     "io_approach": ["ghosh"],
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {
@@ -84,8 +84,8 @@ CONFIG5 = {
     "run_title": "test_run",
     "n_sim_years": 300,
     "io_approach": ["leontief", "ghosh"],
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {

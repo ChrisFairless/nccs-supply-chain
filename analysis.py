@@ -22,8 +22,8 @@ from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, downlo
 
 DO_PARALLEL = True
 
-DO_DIRECT = False       # Calculate any direct impacts that are missing based on the config
-DO_YEARSETS = False     # Calculate any direct impact yearsets that are missing based on the config
+DO_DIRECT = True       # Calculate any direct impacts that are missing based on the config
+DO_YEARSETS = True     # Calculate any direct impact yearsets that are missing based on the config
 DO_MULTIHAZARD = False  # Also combine hazards in each calculation year to shock the supply chain
 DO_INDIRECT = True      # Calculate any indirect impacts that are missing based on the config
 
