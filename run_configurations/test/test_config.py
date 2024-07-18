@@ -4,12 +4,15 @@ It doesn't look at the whole pipeline functionality!
 """
 
 CONFIG = {
-    "run_title": "testing",
+    "run_title": "unittest",
     "n_sim_years": 10,
+    "io_approach": ["ghosh"],
+    "business_interruption": True,
+    "calibrated": True,
+    "seed": 42,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "io_approach": ["ghosh"],
             "sectors": ["service", "agriculture"],
             "countries": ["Dominica"],
             "scenario_years": [
@@ -18,7 +21,6 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "io_approach": ["leontief"],
             "sectors": ["mining", "forestry"],
             "countries": ["Andorra"],
             "scenario_years": [
