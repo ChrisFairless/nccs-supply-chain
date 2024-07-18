@@ -233,9 +233,14 @@ def run_pipeline_from_config(
 
             try:
                 print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+                imp = Impact.from_hdf5(row['yearset_path'])
+                if not imp.at_event.any():
+                    # TODO return an object with zero losses so that there's data
+                    print("No non-zero impacts. Skipping")
+                    continue
                 supchain = supply_chain_climada(
                     get_sector_exposure(sector=row['sector'], country=row['country']),
-                    Impact.from_hdf5(row['yearset_path']),
+                    imp,
                     impacted_sector=row['sector'],
                     io_approach=io_a
                 )
