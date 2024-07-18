@@ -7,8 +7,8 @@ CONFIG = {
     "run_title": "refin_exposures_uncal_12_04_2024",
     "io_approach": ["leontief", "ghosh"],
     "n_sim_years": 100,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
     "seed": 161,
     "runs": [
         {
