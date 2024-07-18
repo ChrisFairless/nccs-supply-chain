@@ -125,6 +125,8 @@ def run_pipeline_from_config(
                 pool.map(calc_partial, df_chunked)    
         else:
             calculate_direct_impacts_from_df(analysis_df, use_s3)
+    else:
+        print("Skipping direct impact calculations. Change DO_DIRECT in analysis.py to change this")
 
     analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
@@ -166,6 +168,8 @@ def run_pipeline_from_config(
                 pool.map(calc_partial, df_chunked)    
         else:
             calculate_yearsets_from_df(analysis_df, config, use_s3)
+    else:
+        print("Skipping yearset calculations. Change DO_YEARSETS in analysis.py to change this")
 
     analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
@@ -185,6 +189,8 @@ def run_pipeline_from_config(
             .reset_index()
 
         analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
+    else:
+        print("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -279,6 +285,8 @@ def run_pipeline_from_config(
                     pool.map(calc_partial, df_chunked)  
             else:
                 calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
+    else:
+        print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
 
     analysis_df.to_csv(Path(indirect_output_dir, 'calculations_report.csv'))
 
