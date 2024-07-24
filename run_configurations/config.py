@@ -5,13 +5,14 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 #TODO add also other subsector to the configuration list
 CONFIG = {
     "run_title": "refin_exposures_uncal_12_04_2024",
+    "io_approach": ["leontief", "ghosh"],
     "n_sim_years": 100,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
                         "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
                         "non_metallic_mineral", "refin_and_transform"],
@@ -74,7 +75,6 @@ CONFIG = {
         },
         {
             "hazard": "river_flood",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
                         "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
                         "non_metallic_mineral", "refin_and_transform"],
@@ -138,7 +138,6 @@ CONFIG = {
         },
         {
             "hazard": "wildfire",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
                         "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
                         "non_metallic_mineral", "refin_and_transform"],
@@ -190,7 +189,6 @@ CONFIG = {
         },
         {
             "hazard": "storm_europe",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste",
                         "basic_metals", "pharmaceutical", "food", "wood", "chemical", "rubber_and_plastic",
                         "non_metallic_mineral", "refin_and_transform"],
@@ -214,7 +212,6 @@ CONFIG = {
 
         {
             "hazard": "relative_crop_yield",
-            "io_approach": ["leontief", "ghosh"],
             "sectors": ["agriculture"],
             "countries": ['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina',
                           'Armenia', 'Australia', 'Austria', 'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh',
