@@ -189,12 +189,7 @@ def run_pipeline_from_config(
 
     if DO_MULTIHAZARD:
         print("Combining hazards to multihazard yearsets")
-        df_aggregated_yearsets = analysis_df \
-            .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
-            .apply(df_create_combined_hazard_yearsets) \
-            .reset_index()
-
-        analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
+        analysis_df = df_extend_with_multihazard(df)
     else:
         print("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
 
@@ -429,6 +424,14 @@ def create_single_yearset(
         del imp_yearset.imp_mat
 
     return imp_yearset
+
+
+def df_extend_with_multihazard(df):
+    df_aggregated_yearsets = df \
+                .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
+                .apply(df_create_combined_hazard_yearsets) \
+                .reset_index()
+    return pd.concat([df, df_aggregated_yearsets]).reset_index()
 
 
 def df_create_combined_hazard_yearsets(
