@@ -171,12 +171,7 @@ def run_pipeline_from_config(
 
     if config['do_multihazard']:
         LOGGER.info("\n\nCOMBINING HAZARDS TO MULTIHAZARD YEARSETS")
-        df_aggregated_yearsets = analysis_df \
-            .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
-            .apply(df_create_combined_hazard_yearsets) \
-            .reset_index()
-
-        analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
+        analysis_df = df_extend_with_multihazard(df)
     else:
         LOGGER.info("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
 
@@ -309,6 +304,14 @@ def calculate_yearsets_from_df(df, config):
             write_impact_to_file(imp_yearset, calc['yearset_path'], config['use_s3'])
         except Exception as e:
             LOGGER.error(f"Error calculating an indirect yearset for {logging_dict}", exc_info=True) 
+
+
+def df_extend_with_multihazard(df):
+    df_aggregated_yearsets = df \
+                .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
+                .apply(df_create_combined_hazard_yearsets) \
+                .reset_index()
+    return pd.concat([df, df_aggregated_yearsets]).reset_index()
 
 
 def df_create_combined_hazard_yearsets(
