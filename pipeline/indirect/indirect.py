@@ -3,7 +3,9 @@ import pandas as pd
 import pycountry
 from climada_petals.engine import SupplyChain
 from exposures.utils import root_dir
+from pathlib import Path
 
+from utils.folder_naming import get_namestring_supchain_direct, get_namestring_supchain_indirect
 
 # original
 # SERVICE_SEC = {"service": range(26, 56)}
@@ -170,7 +172,7 @@ def dump_direct_to_csv(supchain,
                        country,
                        n_sim=100,
                        return_period=100,
-                       output_dir="results/direct"):
+                       output_dir="results/direct/supchain_direct"):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     direct_impacts = []
 
@@ -224,15 +226,7 @@ def dump_direct_to_csv(supchain,
     df_direct = pd.DataFrame(direct_impacts)
     # newly added to get ISO3 code
 
-    path = f"{output_dir}/" \
-           f"direct_impacts" \
-           f"_{haz_type}" \
-           f"_{sector.replace(' ', '_')[:15]}" \
-           f"_{scenario}" \
-           f"_{ref_year}" \
-           f"_{country_iso3alpha}" \
-           f".csv"
-
+    path = Path(output_dir, get_namestring_supchain_direct(haz_type, sector, scenario, ref_year, country_iso3alpha))
     df_direct.to_csv(path)
     return path
 
@@ -292,14 +286,7 @@ def dump_supchain_to_csv(supchain,
     df_indirect = pd.DataFrame(indirect_impacts)
 
     # newly added to get ISO3 code
-    path = f"{output_dir}/" \
-           f"indirect_impacts" \
-           f"_{haz_type}" \
-           f"_{sector.replace(' ', '_')[:15]}" \
-           f"_{scenario}" \
-           f"_{ref_year}" \
-           f"_{io_approach}" \
-           f"_{country_iso3alpha}" \
-           f".csv"
+    path = Path(output_dir, get_namestring_supchain_indirect(haz_type, sector, scenario, ref_year, io_approach, country_iso3alpha))
+
     df_indirect.to_csv(path)
     return path

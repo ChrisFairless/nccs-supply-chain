@@ -90,8 +90,10 @@ def run_pipeline_from_config(
     # definte in the input config.
     direct_output_dir_impact = Path(direct_output_dir, "impact_raw")
     direct_output_dir_yearsets = Path(direct_output_dir, "yearsets")
+    direct_output_dir_supchain_direct = Path(direct_output_dir, "supchain_direct")
     os.makedirs(direct_output_dir_impact, exist_ok=True)
     os.makedirs(direct_output_dir_yearsets, exist_ok=True)
+    os.makedirs(direct_output_dir_supchain_direct, exist_ok=True)
 
     analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
     analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
@@ -221,18 +223,11 @@ def run_pipeline_from_config(
 
             # TODO put this in a function: it's used in the supply_chain_climada method too
             country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
-            direct_path = f"{direct_output_dir}/" \
-                f"direct_impacts" \
-                f"_{row['hazard']}" \
-                f"_{row['sector'].replace(' ', '_')[:15]}" \
-                f"_{row['scenario']}" \
-                f"_{row['ref_year']}" \
-                f"_{country_iso3alpha}" \
-                f".csv"
 
             if os.path.exists(direct_path):
                 print(f'Output already exists, skipping calculation: {direct_path}')
                 continue
+            indirect_path = row[f'supchain_indirect_{io_a}_path']
 
             try:
                 print(f"Calculating indirect {io_a} impacts for {row['country']} {row['sector']}...")
@@ -341,9 +336,7 @@ def config_to_dataframe(
         for sector in run['sectors']
     ])
     for i, row in df.iterrows():
-        direct_impact_filename = folder_naming.get_direct_namestring(
-            prefix="impact_raw",
-            extension="hdf5",
+        direct_impact_filename = folder_naming.get_namestring_direct(
             haz_type=row['hazard'],
             sector=row['sector'],
             country_iso3alpha=row['country'],
@@ -353,9 +346,7 @@ def config_to_dataframe(
         direct_impact_path = Path(direct_output_dir, "impact_raw", direct_impact_filename)
         df.loc[i, 'direct_impact_path'] = direct_impact_path
 
-        yearset_filename = folder_naming.get_direct_namestring(
-            prefix='yearset',
-            extension='hdf5',
+        yearset_filename = folder_naming.get_namestring_yearset(
             haz_type=row['hazard'],
             sector=row['sector'],
             scenario=row['scenario'],
@@ -364,6 +355,38 @@ def config_to_dataframe(
         )
         yearset_path = Path(direct_output_dir, "yearsets", yearset_filename)
         df.loc[i, 'yearset_path'] = yearset_path
+
+        supchain_direct_filename = folder_naming.get_namestring_supchain_direct(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            country_iso3alpha=row['country']
+        )
+        supchain_direct_path = Path(direct_output_dir, "supchain_direct", supchain_direct_filename)
+        df.loc[i, 'supchain_direct_path'] = supchain_direct_path
+
+        supchain_indirect_leontief_filename = folder_naming.get_namestring_supchain_indirect(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            io_approach='leontief',
+            country_iso3alpha=row['country']
+        )
+        supchain_indirect_leontief_path = Path(indirect_output_dir, supchain_indirect_leontief_filename)
+        df.loc[i, f'supchain_indirect_leontief_path'] = supchain_indirect_leontief_path
+
+        supchain_indirect_ghosh_filename = folder_naming.get_namestring_supchain_indirect(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            io_approach='ghosh',
+            country_iso3alpha=row['country']
+        )
+        supchain_indirect_ghosh_path = Path(indirect_output_dir, supchain_indirect_ghosh_filename)
+        df.loc[i, f'supchain_indirect_ghosh_path'] = supchain_indirect_ghosh_path
 
     return df
 
@@ -433,9 +456,7 @@ def df_create_combined_hazard_yearsets(
     r = df.iloc[0].to_dict()
     yearset_output_dir = os.path.dirname(r['yearset_path'])
     print(r)
-    combined_filename = folder_naming.get_direct_namestring(
-            prefix='yearset',
-            extension='hdf5',
+    combined_filename = folder_naming.get_namestring_direct(
             haz_type='COMBINED', sector=r['sector'], scenario=r['scenario'], ref_year=r['ref_year'], country_iso3alpha=r['country'])
     combined_path = Path(yearset_output_dir, combined_filename)
 
