@@ -90,11 +90,9 @@ def run_pipeline_from_config(
     ### CALCULATE DIRECT ECONOMIC IMPACTS ###
     ### --------------------------------- ###
 
-    ### Read the config to create a list of simulations
+    ### Read the config to create a dataframe of simulations with metadata, and filepaths for each analysis
     analysis_df = config_to_dataframe(config, direct_output_dir, indirect_output_dir)
 
-    # Generate a dataframe with metadata, and filepaths for each analysis
-    # definte in the input config.
     direct_output_dir_impact = Path(direct_output_dir, "impact_raw")
     direct_output_dir_yearsets = Path(direct_output_dir, "yearsets")
     direct_output_dir_supchain_direct = Path(direct_output_dir, "supchain_direct")
@@ -185,19 +183,38 @@ def run_pipeline_from_config(
     LOGGER.info("\n\nMODELLING SUPPLY CHAINS")
     os.makedirs(indirect_output_dir, exist_ok=True)
     
-    analysis_df['_indirect_exists'] = False  # TODO: update this to check for existing output
-    analysis_df['_indirect_calculate'] = analysis_df['_yearset_exists']
+    analysis_df['_indirect_leontief_already_exists'] = [os.path.exists(p) for p in analysis_df['supchain_indirect_leontief_path']]
+    analysis_df['_indirect_ghosh_already_exists'] = [os.path.exists(p) for p in analysis_df['supchain_indirect_ghosh_path']]
 
-    n_supchain_calculations = np.sum(analysis_df['_indirect_calculate'])
-    LOGGER.info(f'There are {n_supchain_calculations} out of {analysis_df.shape[0]} supply chains to calculate')
+    if 'leontief' in config['io_approach']:
+        analysis_df['_indirect_leontief_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_leontief_already_exists']
+    else:
+        analysis_df['_indirect_leontief_calculate'] = False
+
+    if 'ghosh' in config['io_approach']:
+        analysis_df['_indirect_ghosh_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_ghosh_already_exists']
+    else:
+        analysis_df['_indirect_ghosh_calculate'] = False
+
+    analysis_df['_indirect_leontief_exists'] = analysis_df['_indirect_leontief_already_exists']
+    analysis_df['_indirect_ghosh_exists'] = analysis_df['_indirect_ghosh_already_exists']
+
+    n_supchain_calculations_leontief = np.sum(analysis_df['_indirect_leontief_calculate'])
+    n_supchain_calculations_ghosh = np.sum(analysis_df['_indirect_ghosh_calculate'])
+
+    LOGGER.info(f'There are {n_supchain_calculations_leontief} out of {analysis_df.shape[0]} leontief supply chains to calculate')
+    LOGGER.info(f'There are {n_supchain_calculations_ghosh} out of {analysis_df.shape[0]} leontief supply chains to calculate')
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     if config['do_indirect']:
         for io_a in config['io_approach']:
             # For now we're not parallelising this: looks like there's not much time gained. But should time it properly.
-            calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir, indirect_output_dir)
+            calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir=direct_output_dir_supchain_direct, indirect_output_dir=indirect_output_dir)
     else:
         LOGGER.info("Skipping supply chain calculations. Set do_indirect: True in your config to change this")
+
+    analysis_df['indirect_leontief_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_leontief_path']]
+    analysis_df['indirect_ghosh_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_ghosh_path']]
 
     analysis_df.to_csv(analysis_df_path)
 
@@ -369,7 +386,7 @@ def df_create_combined_hazard_yearsets(
 
 
 def create_single_yearset(
-        analysis_spec: pd.DataFrame,
+        analysis_spec: pd.Series,
         n_sim_years: int,
         seed: int,
         ):
@@ -405,11 +422,12 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
     # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
     # No need to parallelise this: it already seems to max out the CPUs
     for i, row in df.iterrows():
-        logging_dict = {k: row[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
-
-        if not row['_indirect_calculate']:
-            LOGGER.info('No yearset data available. Skipping supply chain calculation')
+        if io_a == "leontief" and not row['_indirect_leontief_calculate']:
             continue
+        if io_a == "ghosh" and not row['_indirect_ghosh_calculate']:
+            continue
+        
+        logging_dict = {k: row[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
 
         # TODO put this in a function: it's used in the supply_chain_climada method too
         country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
@@ -464,6 +482,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
 
         except Exception as e:
             LOGGER.error(f"Error calculating indirect impacts for {logging_dict}:", exc_info=True)
+
 
 def exists_impact_file(filepath: str, use_s3: bool = False):
     """Check if an impact object exists at a filepath, checking the corresponding 
