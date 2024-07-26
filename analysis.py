@@ -114,7 +114,9 @@ def run_pipeline_from_config(
                 )
                 write_impact_to_file(imp, calc['direct_impact_path'], use_s3)
             except Exception as e:
-                print(f"This didn't work: {e}")
+                print(f"Error calculating direct impacts for {calc['hazard']} {calc['scenario'], calc['country']} {calc['sector']} {calc['ref_year']}:")
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                print(e)
     
     if DO_DIRECT:
         if DO_PARALLEL:
@@ -144,7 +146,7 @@ def run_pipeline_from_config(
 
     analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
     analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
-
+    
     def calculate_yearsets_from_df(df, config, use_s3):
         for _, calc in df.iterrows():
             if not calc['_yearset_calculate']: 
@@ -157,7 +159,9 @@ def run_pipeline_from_config(
                 )
                 write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
             except Exception as e:
-                print(f"This didn't work: {e}") 
+                print(f"Error calculating yearset for {calc['hazard']} {calc['scenario'], calc['country']} {calc['sector']} {calc['ref_year']}:")
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                print(e)
     
     if DO_YEARSETS:
         if DO_PARALLEL:
@@ -209,12 +213,11 @@ def run_pipeline_from_config(
         # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
         # No need to parallelise this: it already seems to max out the CPUs
         for i, row in df.iterrows():
-            print("SUPPLY CHAIN ROW")
-            print(row.to_dict())
 
             if not row['_indirect_calculate']:
                 print('No yearset data available. Skipping supply chain calculation')
                 continue
+            print(f"SUPPLY CHAIN ROW: {row['hazard']} {row['scenario'], row['country']} {row['sector']} {row['ref_year']}")
 
             # TODO put this in a function: it's used in the supply_chain_climada method too
             country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
@@ -232,7 +235,7 @@ def run_pipeline_from_config(
                 continue
 
             try:
-                print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+                print(f"Calculating indirect {io_a} impacts for {row['country']} {row['sector']}...")
                 imp = Impact.from_hdf5(row['yearset_path'])
                 if not imp.at_event.any():
                     # TODO return an object with zero losses so that there's data
@@ -274,7 +277,7 @@ def run_pipeline_from_config(
                 df.loc[i, '_indirect_exists'] = True
 
             except Exception as e:
-                print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
+                print(f"Error calculating indirect impacts for {row['hazard']} {row['scenario'], row['country']} {row['sector']} {row['ref_year']}:")
                 print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                 print(e)
 
