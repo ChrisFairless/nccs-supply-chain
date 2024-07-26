@@ -104,7 +104,7 @@ def run_pipeline_from_config(
     analysis_df['_direct_impact_calculate'] = True if config['force_recalculation'] else ~analysis_df['_direct_impact_already_exists']
     n_direct_calculations = np.sum(analysis_df['_direct_impact_calculate'])
     n_direct_exists = np.sum(analysis_df['_direct_impact_already_exists'])
-    
+
     if config['do_direct']:
         LOGGER.info('\n\nRUNNING DIRECT IMPACT CALCULATIONS')
         LOGGER.info(f'There are {n_direct_calculations} direct impacts to calculate. ({n_direct_exists} exist already. Full analysis has {analysis_df.shape[0]} impacts.)')
