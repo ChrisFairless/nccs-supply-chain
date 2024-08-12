@@ -6,12 +6,13 @@ either not yet fully developed (windstorms) or has not yet been decided which co
 CONFIG = {
     "run_title": "test_run",
     "n_sim_years": 300,
-    "apply_business_interruption": False,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": False,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "io_approach": ["ghosh"],
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "io_approach": ["ghosh"],
             "sectors": ["manufacturing"],
             "countries": ['United States', 'Ireland', 'Japan', 'Taiwan, Province of China', 'China', 'Korea, Republic of'],
             "scenario_years": [
@@ -24,12 +25,13 @@ CONFIG = {
 CONFIG2 = {
     "run_title": "test_run",
     "n_sim_years": 300,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "io_approach": ["ghosh"],
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "river_flood",
-            "io_approach": ["ghosh"],
             "sectors": ["manufacturing"],
             "countries": ['China','Germany','Burundi','Italy'],
             "scenario_years": [
@@ -42,12 +44,13 @@ CONFIG2 = {
 CONFIG3 = {
     "run_title": "test_run",
     "n_sim_years": 300,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "io_approach": ["ghosh"],
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "wildfire",
-            "io_approach": ["ghosh"],
             "sectors": ["manufacturing"],
             "countries": ['Italy','China','Russian Federation'],
             "scenario_years": [
@@ -60,8 +63,10 @@ CONFIG3 = {
 CONFIG4 = {
     "run_title": "test_run",
     "n_sim_years": 300,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "io_approach": ["ghosh"],
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "storm_europe",
@@ -78,12 +83,13 @@ CONFIG4 = {
 CONFIG5 = {
     "run_title": "test_run",
     "n_sim_years": 300,
-    "apply_business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "use_calibrated_impfs": True,           # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "io_approach": ["leontief", "ghosh"],
+    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
+    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "seed": 161,
     "runs": [
         {
             "hazard": "relative_crop_yield",
-            "io_approach": ["ghosh", "leontief"],
             "sectors": ["agriculture"],
             "countries": ['Canada','Egypt', 'Portugal','Pakistan','Armenia','Belarus','Peru'],
             "scenario_years": [
