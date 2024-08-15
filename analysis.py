@@ -20,7 +20,7 @@ from utils import folder_naming
 from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, download_from_s3_bucket
 
 
-DO_PARALLEL = True
+DO_PARALLEL = False
 
 DO_DIRECT = True       # Calculate any direct impacts that are missing based on the config
 DO_YEARSETS = True     # Calculate any direct impact yearsets that are missing based on the config
