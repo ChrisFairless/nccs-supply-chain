@@ -4,6 +4,7 @@ import pycountry
 import datetime
 import copy
 import os
+import logging
 from pathlib import Path
 from scipy import sparse
 import climada.util.coordinates as u_coord
@@ -13,6 +14,8 @@ from climada.entity import ImpactFuncSet
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from utils.s3client import download_from_s3_bucket
 from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
+
+LOGGER = logging.getLogger(__name__)
 
 WS_SCENARIO_LOOKUP = {
     'rcp26': 'ssp126',
@@ -184,7 +187,7 @@ def regrid(haz, regrid_centroids, threshold=50):
             haz.reproject_raster(transform = meta['transform'], width=meta['width'], height=meta['height'])
             haz.centroids.set_meta_to_lat_lon()
         except ValueError as e:
-            print("Error in reprojection. Skipping: " + str(e))
+            LOGGER.error("Error in reprojection. Skipping:", exc_info=True)
             # For now we are accepting errors in the meta...
             pass
     if regrid_centroids.region_id is not None:

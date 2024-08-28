@@ -9,6 +9,7 @@ CONFIG = {
     "n_sim_years": 100,
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {

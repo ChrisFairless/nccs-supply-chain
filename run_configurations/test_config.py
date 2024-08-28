@@ -9,6 +9,7 @@ CONFIG = {
     "io_approach": ["ghosh"],
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {
@@ -28,6 +29,7 @@ CONFIG2 = {
     "io_approach": ["ghosh"],
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {
@@ -47,6 +49,7 @@ CONFIG3 = {
     "io_approach": ["ghosh"],
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {
@@ -66,6 +69,7 @@ CONFIG4 = {
     "io_approach": ["ghosh"],
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {
@@ -86,6 +90,7 @@ CONFIG5 = {
     "io_approach": ["leontief", "ghosh"],
     "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
     "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "log_level": "INFO",
     "seed": 161,
     "runs": [
         {

@@ -10,6 +10,7 @@ CONFIG = {
     "business_interruption": True,
     "calibrated": True,
     "seed": 42,
+    "log_level": "INFO",                   
     "runs": [
         {
             "hazard": "tropical_cyclone",
