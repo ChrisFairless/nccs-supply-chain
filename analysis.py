@@ -73,7 +73,8 @@ def run_pipeline_from_config(
     os.makedirs(direct_output_dir, exist_ok=True)
     os.makedirs(indirect_output_dir, exist_ok=True)
 
-    config['time_run'] = str(datetime.now())
+    time_now = datetime.now()
+    config['time_run'] = str(time_now)
     with open(Path(indirect_output_dir, 'config.json'), 'w') as f:
         json.dump(config, f)
     
@@ -129,7 +130,10 @@ def run_pipeline_from_config(
         print("Skipping direct impact calculations. Change DO_DIRECT in analysis.py to change this")
 
     analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
-    analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
+
+    analysis_df_filename = f'calculations_report_{time_now.strftime("%Y-%m-%d_%H%M")}.csv'
+    analysis_df_path = Path(indirect_output_dir, analysis_df_filename) 
+    analysis_df.to_csv(analysis_df_path)
 
 
     ### ------------------- ###
@@ -172,7 +176,7 @@ def run_pipeline_from_config(
         print("Skipping yearset calculations. Change DO_YEARSETS in analysis.py to change this")
 
     analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
-    analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
+    analysis_df.to_csv(analysis_df_path)
 
 
     # Next: combine yearsets by hazard to create multihazard yearsets
@@ -293,7 +297,7 @@ def run_pipeline_from_config(
     else:
         print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
 
-    analysis_df.to_csv(Path(indirect_output_dir, 'calculations_report.csv'))
+    analysis_df.to_csv(analysis_df_path)
 
     print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
