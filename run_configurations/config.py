@@ -2,14 +2,33 @@
 This file contains the full run of the pipeline. Some combinations are currently commented out, because they are not
 either not yet fully developed (windstorms) or has not yet been decided which combinations are relevant
 """
+
+import pathos as pa
+ncpus = 3
+ncpus = pa.helpers.cpu_count() - 1
+
 #TODO add also other subsector to the configuration list
 CONFIG = {
     "run_title": "refin_exposures_uncal_12_04_2024",
-    "io_approach": ["leontief", "ghosh"],
-    "n_sim_years": 100,
-    "business_interruption": True,    # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducing old results
-    "calibrated": True,               # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducing old results
+    "n_sim_years": 100,                     # Number of stochastic years of supply chain impacts to simulate
+    "io_approach": ["leontief", "ghosh"],   # Supply chain IO to use. One or more of "leontief", "ghosh".
     "seed": 161,
+
+    # Which parts of the model chain to run:
+    "do_direct": True,                  # Calculate direct impacts (that aren't already calculated)
+    "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
+    "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
+    "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+
+    # Impact functions:
+    "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
+    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
+
+    # Parallisation:
+    "do_parallel": True,                # Parallelise some operations
+    "ncpus": ncpus,
+
+    # Run specifications:
     "runs": [
         {
             "hazard": "tropical_cyclone",

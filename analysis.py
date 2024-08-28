@@ -19,17 +19,6 @@ from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv,
 from utils import folder_naming
 from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, download_from_s3_bucket
 
-
-DO_PARALLEL = True
-
-DO_DIRECT = True       # Calculate any direct impacts that are missing based on the config
-DO_YEARSETS = True     # Calculate any direct impact yearsets that are missing based on the config
-DO_MULTIHAZARD = False  # Also combine hazards in each calculation year to shock the supply chain
-DO_INDIRECT = True      # Calculate any indirect impacts that are missing based on the config
-
-ncpus = pa.helpers.cpu_count() - 1
-ncpus = 3
-
 def run_pipeline_from_config(
         config: dict,
         direct_output_dir: typing.Union[str, os.PathLike] = None,
@@ -116,17 +105,17 @@ def run_pipeline_from_config(
             except Exception as e:
                 print(f"This didn't work: {e}")
     
-    if DO_DIRECT:
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+    if config['do_direct']:
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
             calc_partial = partial(calculate_direct_impacts_from_df, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
             calculate_direct_impacts_from_df(analysis_df, use_s3)
     else:
-        print("Skipping direct impact calculations. Change DO_DIRECT in analysis.py to change this")
+        print("Skipping direct impact calculations. Set do_direct: True in your config to change this")
 
     analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
@@ -159,17 +148,17 @@ def run_pipeline_from_config(
             except Exception as e:
                 print(f"This didn't work: {e}") 
     
-    if DO_YEARSETS:
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+    if config['do_yearsets']:
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
             calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
             calculate_yearsets_from_df(analysis_df, config, use_s3)
     else:
-        print("Skipping yearset calculations. Change DO_YEARSETS in analysis.py to change this")
+        print("Skipping yearset calculations. Set do_yearsets: True in your config to change this")
 
     analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
@@ -181,7 +170,7 @@ def run_pipeline_from_config(
     _ = _check_config_valid_for_indirect_aggregations(config)
     grouping_cols = ['i_scenario', 'sector', 'country']
 
-    if DO_MULTIHAZARD:
+    if config['do_multihazard']:
         print("Combining hazards to multihazard yearsets")
         df_aggregated_yearsets = analysis_df \
             .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
@@ -190,7 +179,7 @@ def run_pipeline_from_config(
 
         analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
     else:
-        print("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
+        print("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -279,19 +268,19 @@ def run_pipeline_from_config(
                 print(e)
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
-    if DO_INDIRECT:
+    if config['do_indirect']:
         # for io_a in config['io_approach']:
         for io_a in config['io_approach']:
-            if False or DO_PARALLEL:  # Actually it looks llike a serial calculation is just as efficient
-                chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+            if False or config['do_parallel']:  # Actually it looks llike a serial calculation is just as efficient
+                chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
                 df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
                 calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir)
-                with pa.multiprocessing.ProcessPool(ncpus) as pool:
+                with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                     pool.map(calc_partial, df_chunked)  
             else:
                 calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
     else:
-        print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
+        print("Skipping supply chain calculations. Set do_indirect: True in your config to change this")
 
     analysis_df.to_csv(Path(indirect_output_dir, 'calculations_report.csv'))
 
