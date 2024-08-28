@@ -95,32 +95,12 @@ def run_pipeline_from_config(
 
     analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
     analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
-
-    def calculate_direct_impacts_from_df(df, use_s3):
-        # TODO subset the df before this check is made. Risk of some parallel processes having no work to do
-        for _, calc in df.iterrows():            
-            if not calc['_direct_impact_calculate']: 
-                continue
-
-            try:
-                imp = nccs_direct_impacts_simple(
-                    haz_type=calc['hazard'],
-                    sector=calc['sector'],
-                    country=calc['country'],
-                    scenario=calc['scenario'],
-                    ref_year=calc['ref_year'],
-                    business_interruption=config['business_interruption'],
-                    calibrated=config['calibrated']
-                )
-                write_impact_to_file(imp, calc['direct_impact_path'], use_s3)
-            except Exception as e:
-                print(f"This didn't work: {e}")
     
     if DO_DIRECT:
         if DO_PARALLEL:
             chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-            calc_partial = partial(calculate_direct_impacts_from_df, use_s3=use_s3)
+            calc_partial = partial(calculate_direct_impacts_from_df, config=config, use_s3=use_s3)
             with pa.multiprocessing.ProcessPool(ncpus) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
@@ -144,20 +124,6 @@ def run_pipeline_from_config(
 
     analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
     analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
-
-    def calculate_yearsets_from_df(df, config, use_s3):
-        for _, calc in df.iterrows():
-            if not calc['_yearset_calculate']: 
-                continue
-            try:
-                imp_yearset = create_single_yearset(
-                    calc,
-                    n_sim_years=config['n_sim_years'],
-                    seed=config['seed'],
-                )
-                write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
-            except Exception as e:
-                print(f"This didn't work: {e}") 
     
     if DO_YEARSETS:
         if DO_PARALLEL:
@@ -205,79 +171,6 @@ def run_pipeline_from_config(
     analysis_df['_indirect_exists'] = False  # TODO: update this to check for existing output
     analysis_df['_indirect_calculate'] = analysis_df['_yearset_exists']
 
-    def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir):
-        # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
-        # No need to parallelise this: it already seems to max out the CPUs
-        for i, row in df.iterrows():
-            print("SUPPLY CHAIN ROW")
-            print(row.to_dict())
-
-            if not row['_indirect_calculate']:
-                print('No yearset data available. Skipping supply chain calculation')
-                continue
-
-            # TODO put this in a function: it's used in the supply_chain_climada method too
-            country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
-            direct_path = f"{direct_output_dir}/" \
-                f"direct_impacts" \
-                f"_{row['hazard']}" \
-                f"_{row['sector'].replace(' ', '_')[:15]}" \
-                f"_{row['scenario']}" \
-                f"_{row['ref_year']}" \
-                f"_{country_iso3alpha}" \
-                f".csv"
-
-            if os.path.exists(direct_path):
-                print(f'Output already exists, skipping calculation: {direct_path}')
-                continue
-
-            try:
-                print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
-                imp = Impact.from_hdf5(row['yearset_path'])
-                if not imp.at_event.any():
-                    # TODO return an object with zero losses so that there's data
-                    print("No non-zero impacts. Skipping")
-                    continue
-                supchain = supply_chain_climada(
-                    get_sector_exposure(sector=row['sector'], country=row['country']),
-                    imp,
-                    impacted_sector=row['sector'],
-                    io_approach=io_a
-                )
-                # save direct impacts to a csv
-                # TODO: also save to S3
-                dump_direct_to_csv(
-                    supchain=supchain,
-                    haz_type=row['hazard'],
-                    sector=row['sector'],
-                    scenario=row['scenario'],
-                    ref_year=row['ref_year'],
-                    country=row['country'],
-                    n_sim=config['n_sim_years'],
-                    return_period=100,
-                    output_dir=direct_output_dir
-                )
-                # save indirect impacts to a csv
-                # TODO: also save to S3
-                dump_supchain_to_csv(
-                    supchain=supchain,
-                    haz_type=row['hazard'],
-                    sector=row['sector'],
-                    scenario=row['scenario'],
-                    ref_year=row['ref_year'],
-                    country=row['country'],
-                    n_sim=config['n_sim_years'],
-                    return_period=100,
-                    io_approach=io_a,
-                    output_dir=indirect_output_dir
-                )
-                df.loc[i, '_indirect_exists'] = True
-
-            except Exception as e:
-                print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
-                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                print(e)
-
     # Run the Supply Chain for each country and sector and output the data needed to csv
     if DO_INDIRECT:
         # for io_a in config['io_approach']:
@@ -285,7 +178,13 @@ def run_pipeline_from_config(
             if False or DO_PARALLEL:  # Actually it looks llike a serial calculation is just as efficient
                 chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
                 df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-                calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir)
+                calc_partial = partial(
+                    calculate_indirect_impacts_from_df,
+                    io_a=io_a,
+                    config=config,
+                    direct_output_dir=direct_output_dir,
+                    indirect_output_dir=indirect_output_dir
+                    )
                 with pa.multiprocessing.ProcessPool(ncpus) as pool:
                     pool.map(calc_partial, df_chunked)  
             else:
@@ -365,44 +264,40 @@ def config_to_dataframe(
     return df
 
 
-def create_single_yearset(
-        analysis_spec: pd.DataFrame,
-        n_sim_years: int,
-        seed: int,
-        ):
-    """Take the metadata for an analysis and create an impact yearset if it 
-    doesn't already exist. These are created as files and a `yearset_path` added
-    to the input dataframe. 
+def calculate_direct_impacts_from_df(df, config, use_s3):
+    # TODO subset the df before this check is made. Risk of some parallel processes having no work to do
+    for _, calc in df.iterrows():            
+        if not calc['_direct_impact_calculate']: 
+            continue
 
-    Parameters
-    ----------
-    analysis_spec : pd.Series
-        A row of a dataframe created by config_to_dataframe
-    n_sim_years : int
-        Number of years to create for each output yearset
-    seed : int
-        The random number seed to use in each yearset's sampling
-    """
+        try:
+            imp = nccs_direct_impacts_simple(
+                haz_type=calc['hazard'],
+                sector=calc['sector'],
+                country=calc['country'],
+                scenario=calc['scenario'],
+                ref_year=calc['ref_year'],
+                business_interruption=config['business_interruption'],
+                calibrated=config['calibrated']
+            )
+            write_impact_to_file(imp, calc['direct_impact_path'], use_s3)
+        except Exception as e:
+            print(f"This didn't work: {e}")
 
-    row = analysis_spec.copy().to_dict()
 
-    print(f'Generating yearsets for {row["yearset_path"]}')
-    imp = get_impact_from_file(row['direct_impact_path'])
-
-    # TODO we don't actually want to generate a yearset if we're looking at observed events
-    imp_yearset = yearset_from_imp(
-        imp,
-        n_sim_years,
-        cap_exposure=get_sector_exposure(row['sector'], row['country']),
-        seed=seed
-    )
-
-    # TODO drop the impact matrix to save file space once petals is updated
-    # future work will make the impact matrix unnecessary!
-    if False:
-        del imp_yearset.imp_mat
-
-    return imp_yearset
+def calculate_yearsets_from_df(df, config, use_s3):
+    for _, calc in df.iterrows():
+        if not calc['_yearset_calculate']: 
+            continue
+        try:
+            imp_yearset = create_single_yearset(
+                calc,
+                n_sim_years=config['n_sim_years'],
+                seed=config['seed'],
+            )
+            write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
+        except Exception as e:
+            print(f"This didn't work: {e}") 
 
 
 def df_create_combined_hazard_yearsets(
@@ -465,6 +360,119 @@ def df_create_combined_hazard_yearsets(
 
     return pd.Series(out)
 
+
+def create_single_yearset(
+        analysis_spec: pd.DataFrame,
+        n_sim_years: int,
+        seed: int,
+        ):
+    """Take the metadata for an analysis and create an impact yearset if it 
+    doesn't already exist. These are created as files and a `yearset_path` added
+    to the input dataframe. 
+
+    Parameters
+    ----------
+    analysis_spec : pd.Series
+        A row of a dataframe created by config_to_dataframe
+    n_sim_years : int
+        Number of years to create for each output yearset
+    seed : int
+        The random number seed to use in each yearset's sampling
+    """
+
+    row = analysis_spec.copy().to_dict()
+
+    print(f'Generating yearsets for {row["yearset_path"]}')
+    imp = get_impact_from_file(row['direct_impact_path'])
+
+    # TODO we don't actually want to generate a yearset if we're looking at observed events
+    imp_yearset = yearset_from_imp(
+        imp,
+        n_sim_years,
+        cap_exposure=get_sector_exposure(row['sector'], row['country']),
+        seed=seed
+    )
+
+    # TODO drop the impact matrix to save file space once petals is updated
+    # future work will make the impact matrix unnecessary!
+    if False:
+        del imp_yearset.imp_mat
+
+    return imp_yearset
+
+
+def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indirect_output_dir):
+    # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
+    # No need to parallelise this: it already seems to max out the CPUs
+    for i, row in df.iterrows():
+        print("SUPPLY CHAIN ROW")
+        print(row.to_dict())
+
+        if not row['_indirect_calculate']:
+            print('No yearset data available. Skipping supply chain calculation')
+            continue
+
+        # TODO put this in a function: it's used in the supply_chain_climada method too
+        country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
+        direct_path = f"{direct_output_dir}/" \
+            f"direct_impacts" \
+            f"_{row['hazard']}" \
+            f"_{row['sector'].replace(' ', '_')[:15]}" \
+            f"_{row['scenario']}" \
+            f"_{row['ref_year']}" \
+            f"_{country_iso3alpha}" \
+            f".csv"
+
+        if os.path.exists(direct_path):
+            print(f'Output already exists, skipping calculation: {direct_path}')
+            continue
+
+        try:
+            print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+            imp = Impact.from_hdf5(row['yearset_path'])
+            if not imp.at_event.any():
+                # TODO return an object with zero losses so that there's data
+                print("No non-zero impacts. Skipping")
+                continue
+            supchain = supply_chain_climada(
+                get_sector_exposure(sector=row['sector'], country=row['country']),
+                imp,
+                impacted_sector=row['sector'],
+                io_approach=io_a
+            )
+            # save direct impacts to a csv
+            # TODO: also save to S3
+            dump_direct_to_csv(
+                supchain=supchain,
+                haz_type=row['hazard'],
+                sector=row['sector'],
+                scenario=row['scenario'],
+                ref_year=row['ref_year'],
+                country=row['country'],
+                n_sim=config['n_sim_years'],
+                return_period=100,
+                output_dir=direct_output_dir
+            )
+            # save indirect impacts to a csv
+            # TODO: also save to S3
+            dump_supchain_to_csv(
+                supchain=supchain,
+                haz_type=row['hazard'],
+                sector=row['sector'],
+                scenario=row['scenario'],
+                ref_year=row['ref_year'],
+                country=row['country'],
+                n_sim=config['n_sim_years'],
+                return_period=100,
+                io_approach=io_a,
+                output_dir=indirect_output_dir
+            )
+            df.loc[i, '_indirect_exists'] = True
+
+        except Exception as e:
+            print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
+            print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+            print(e)
 
 
 def exists_impact_file(filepath: str, use_s3: bool = False):
