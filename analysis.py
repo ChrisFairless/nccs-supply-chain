@@ -23,8 +23,6 @@ def run_pipeline_from_config(
         config: dict,
         direct_output_dir: typing.Union[str, os.PathLike] = None,
         indirect_output_dir: typing.Union[str, os.PathLike] = None,
-        use_s3: bool = False,
-        force_recalculation: bool = False
         ):
     """Run the full model NCCS supply chain from a config dictionary.
     
@@ -46,11 +44,6 @@ def run_pipeline_from_config(
     indirect_output_dir : str or os.PathLike
         location to store indirect impact calculation results. 
         Generated automatically from the config run name if not provided
-    use_s3 : bool
-        Look in the S3 bucket for existing results, and save files to the 
-        bucket
-    force_recalculation: bool
-        If outputs exist for this run name, recalculate them and overwrite.
     """
 
     if not direct_output_dir:
@@ -82,8 +75,8 @@ def run_pipeline_from_config(
     os.makedirs(direct_output_dir_impact, exist_ok=True)
     os.makedirs(direct_output_dir_yearsets, exist_ok=True)
 
-    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
-    analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
+    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_calculate'] = True if config['force_recalculation'] else ~analysis_df['_direct_impact_already_exists']
 
     def calculate_direct_impacts_from_df(df, use_s3):
         # TODO subset the df before this check is made. Risk of some parallel processes having no work to do
@@ -113,11 +106,11 @@ def run_pipeline_from_config(
             with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_direct_impacts_from_df(analysis_df, use_s3)
+            calculate_direct_impacts_from_df(analysis_df, config['use_s3'])
     else:
         print("Skipping direct impact calculations. Set do_direct: True in your config to change this")
 
-    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
 
 
@@ -131,10 +124,10 @@ def run_pipeline_from_config(
     yearset_output_dir = Path(direct_output_dir, "yearsets")
     os.makedirs(yearset_output_dir, exist_ok=True)
 
-    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
-    analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
+    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_calculate'] = (True if config['force_recalculation'] else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
 
-    def calculate_yearsets_from_df(df, config, use_s3):
+    def calculate_yearsets_from_df(df, config):
         for _, calc in df.iterrows():
             if not calc['_yearset_calculate']: 
                 continue
@@ -144,7 +137,7 @@ def run_pipeline_from_config(
                     n_sim_years=config['n_sim_years'],
                     seed=config['seed'],
                 )
-                write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
+                write_impact_to_file(imp_yearset, calc['yearset_path'], config['use_s3'])
             except Exception as e:
                 print(f"This didn't work: {e}") 
     
@@ -152,15 +145,15 @@ def run_pipeline_from_config(
         if config['do_parallel']:
             chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=use_s3)
+            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=config['use_s3'])
             with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_yearsets_from_df(analysis_df, config, use_s3)
+            calculate_yearsets_from_df(analysis_df, config)
     else:
         print("Skipping yearset calculations. Set do_yearsets: True in your config to change this")
 
-    analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
 
 

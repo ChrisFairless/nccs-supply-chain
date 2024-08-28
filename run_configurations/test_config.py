@@ -11,7 +11,9 @@ ncpus = pa.helpers.cpu_count() - 1
 CONFIG = {
     "run_title": "test_run",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -43,7 +45,9 @@ CONFIG = {
 CONFIG2 = {
     "run_title": "test_run",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -75,7 +79,9 @@ CONFIG2 = {
 CONFIG3 = {
     "run_title": "test_run",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -107,7 +113,9 @@ CONFIG3 = {
 CONFIG4 = {
     "run_title": "test_run",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -140,7 +148,9 @@ CONFIG4 = {
 CONFIG5 = {
     "run_title": "test_run",
     "n_sim_years": 300,                         # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["leontief", "ghosh"],       # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["leontief", "ghosh"],       # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 161,
 
     # Which parts of the model chain to run:

@@ -10,7 +10,9 @@ ncpus = pa.helpers.cpu_count() - 1
 CONFIG = {
     "run_title": "unittest",
     "n_sim_years": 10,                  # Number of stochastic years of supply chain impacts to simulate
-    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh".
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
     "seed": 42,
 
     # Which parts of the model chain to run:
