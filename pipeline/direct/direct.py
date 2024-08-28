@@ -49,6 +49,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, bu
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
+    imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
     # imp = imp.select(event_ids = [id for id, event_impact in zip(imp.event_id, imp.at_event) if event_impact > 0])
     return imp
