@@ -63,7 +63,7 @@ def get_sector_BI_WET(sector):
     )
 
 
-def convert_impf_to_sectoral_bi(impf, sector, id=1):
+def convert_impf_to_sectoral_bi_dry(impf, sector, id=1):
     impf_bi = get_sector_BI_DRY(sector)
     return ImpactFuncComposable.from_impact_funcs(
         impf_list = [impf, impf_bi],
