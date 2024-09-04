@@ -83,15 +83,15 @@ def run_pipeline_from_config(
     ### CALCULATE DIRECT ECONOMIC IMPACTS ###
     ### --------------------------------- ###
 
-    ### Read the config to create a list of simulations
+    ### Read the config to create a dataframe of simulations with metadata, and filepaths for each analysis
     analysis_df = config_to_dataframe(config, direct_output_dir, indirect_output_dir)
 
-    # Generate a dataframe with metadata, and filepaths for each analysis
-    # definte in the input config.
     direct_output_dir_impact = Path(direct_output_dir, "impact_raw")
     direct_output_dir_yearsets = Path(direct_output_dir, "yearsets")
+    direct_output_dir_supchain_direct = Path(direct_output_dir, "supchain_direct")
     os.makedirs(direct_output_dir_impact, exist_ok=True)
     os.makedirs(direct_output_dir_yearsets, exist_ok=True)
+    os.makedirs(direct_output_dir_supchain_direct, exist_ok=True)
 
     analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
     analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
@@ -114,7 +114,9 @@ def run_pipeline_from_config(
                 )
                 write_impact_to_file(imp, calc['direct_impact_path'], use_s3)
             except Exception as e:
-                print(f"This didn't work: {e}")
+                print(f"Error calculating direct impacts for {calc['hazard']} {calc['scenario'], calc['country']} {calc['sector']} {calc['ref_year']}:")
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                print(e)
     
     if DO_DIRECT:
         if DO_PARALLEL:
@@ -144,7 +146,7 @@ def run_pipeline_from_config(
 
     analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
     analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
-
+    
     def calculate_yearsets_from_df(df, config, use_s3):
         for _, calc in df.iterrows():
             if not calc['_yearset_calculate']: 
@@ -157,7 +159,9 @@ def run_pipeline_from_config(
                 )
                 write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
             except Exception as e:
-                print(f"This didn't work: {e}") 
+                print(f"Error calculating yearset for {calc['hazard']} {calc['scenario'], calc['country']} {calc['sector']} {calc['ref_year']}:")
+                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
+                print(e)
     
     if DO_YEARSETS:
         if DO_PARALLEL:
@@ -183,12 +187,7 @@ def run_pipeline_from_config(
 
     if DO_MULTIHAZARD:
         print("Combining hazards to multihazard yearsets")
-        df_aggregated_yearsets = analysis_df \
-            .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
-            .apply(df_create_combined_hazard_yearsets) \
-            .reset_index()
-
-        analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
+        analysis_df = df_extend_with_multihazard(df)
     else:
         print("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
 
@@ -202,37 +201,32 @@ def run_pipeline_from_config(
     print("Running supply chain calculations")
     os.makedirs(indirect_output_dir, exist_ok=True)
     
-    analysis_df['_indirect_exists'] = False  # TODO: update this to check for existing output
-    analysis_df['_indirect_calculate'] = analysis_df['_yearset_exists']
+    analysis_df['_indirect_leontief_already_exists'] = [os.path.exists(p) for p in analysis_df['supchain_indirect_leontief_path']]
+    analysis_df['_indirect_ghosh_already_exists'] = [os.path.exists(p) for p in analysis_df['supchain_indirect_ghosh_path']]
 
-    def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir):
+    analysis_df['_indirect_leontief_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_leontief_already_exists']
+    analysis_df['_indirect_ghosh_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_ghosh_already_exists']
+
+    analysis_df['_indirect_leontief_exists'] = analysis_df['_indirect_leontief_already_exists']
+    analysis_df['_indirect_ghosh_exists'] = analysis_df['_indirect_ghosh_already_exists']
+
+    def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indirect_output_dir):
         # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
         # No need to parallelise this: it already seems to max out the CPUs
         for i, row in df.iterrows():
-            print("SUPPLY CHAIN ROW")
-            print(row.to_dict())
-
-            if not row['_indirect_calculate']:
-                print('No yearset data available. Skipping supply chain calculation')
+            if io_a == "leontief" and not row['_indirect_leontief_calculate']:
                 continue
+            if io_a == "ghosh" and not row['_indirect_ghosh_calculate']:
+                continue
+
+            print(f"SUPPLY CHAIN ROW: {row['hazard']} {row['scenario'], row['country']} {row['sector']} {row['ref_year']}")
 
             # TODO put this in a function: it's used in the supply_chain_climada method too
             country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
-            direct_path = f"{direct_output_dir}/" \
-                f"direct_impacts" \
-                f"_{row['hazard']}" \
-                f"_{row['sector'].replace(' ', '_')[:15]}" \
-                f"_{row['scenario']}" \
-                f"_{row['ref_year']}" \
-                f"_{country_iso3alpha}" \
-                f".csv"
-
-            if os.path.exists(direct_path):
-                print(f'Output already exists, skipping calculation: {direct_path}')
-                continue
+            indirect_path = row[f'supchain_indirect_{io_a}_path']
 
             try:
-                print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+                print(f"Calculating indirect {io_a} impacts for {row['country']} {row['sector']}...")
                 imp = Impact.from_hdf5(row['yearset_path'])
                 if not imp.at_event.any():
                     # TODO return an object with zero losses so that there's data
@@ -271,12 +265,14 @@ def run_pipeline_from_config(
                     io_approach=io_a,
                     output_dir=indirect_output_dir
                 )
-                df.loc[i, '_indirect_exists'] = True
 
             except Exception as e:
-                print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
+                print(f"Error calculating indirect impacts for {row['hazard']} {row['scenario'], row['country']} {row['sector']} {row['ref_year']}:")
                 print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
                 print(e)
+    
+    analysis_df['indirect_leontief_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_leontief_path']]
+    analysis_df['indirect_ghosh_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_ghosh_path']]
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     if DO_INDIRECT:
@@ -285,11 +281,11 @@ def run_pipeline_from_config(
             if False or DO_PARALLEL:  # Actually it looks llike a serial calculation is just as efficient
                 chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
                 df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-                calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir)
+                calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir_supchain_direct, indirect_output_dir=indirect_output_dir)
                 with pa.multiprocessing.ProcessPool(ncpus) as pool:
                     pool.map(calc_partial, df_chunked)  
             else:
-                calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
+                calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir=direct_output_dir_supchain_direct, indirect_output_dir=indirect_output_dir)
     else:
         print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
 
@@ -338,9 +334,7 @@ def config_to_dataframe(
         for sector in run['sectors']
     ])
     for i, row in df.iterrows():
-        direct_impact_filename = folder_naming.get_direct_namestring(
-            prefix="impact_raw",
-            extension="hdf5",
+        direct_impact_filename = folder_naming.get_namestring_direct(
             haz_type=row['hazard'],
             sector=row['sector'],
             country_iso3alpha=row['country'],
@@ -350,9 +344,7 @@ def config_to_dataframe(
         direct_impact_path = Path(direct_output_dir, "impact_raw", direct_impact_filename)
         df.loc[i, 'direct_impact_path'] = direct_impact_path
 
-        yearset_filename = folder_naming.get_direct_namestring(
-            prefix='yearset',
-            extension='hdf5',
+        yearset_filename = folder_naming.get_namestring_yearset(
             haz_type=row['hazard'],
             sector=row['sector'],
             scenario=row['scenario'],
@@ -362,11 +354,43 @@ def config_to_dataframe(
         yearset_path = Path(direct_output_dir, "yearsets", yearset_filename)
         df.loc[i, 'yearset_path'] = yearset_path
 
+        supchain_direct_filename = folder_naming.get_namestring_supchain_direct(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            country_iso3alpha=row['country']
+        )
+        supchain_direct_path = Path(direct_output_dir, "supchain_direct", supchain_direct_filename)
+        df.loc[i, 'supchain_direct_path'] = supchain_direct_path
+
+        supchain_indirect_leontief_filename = folder_naming.get_namestring_supchain_indirect(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            io_approach='leontief',
+            country_iso3alpha=row['country']
+        )
+        supchain_indirect_leontief_path = Path(indirect_output_dir, supchain_indirect_leontief_filename)
+        df.loc[i, f'supchain_indirect_leontief_path'] = supchain_indirect_leontief_path
+
+        supchain_indirect_ghosh_filename = folder_naming.get_namestring_supchain_indirect(
+            haz_type=row['hazard'],
+            sector=row['sector'],
+            scenario=row['scenario'],
+            ref_year=row['ref_year'],
+            io_approach='ghosh',
+            country_iso3alpha=row['country']
+        )
+        supchain_indirect_ghosh_path = Path(indirect_output_dir, supchain_indirect_ghosh_filename)
+        df.loc[i, f'supchain_indirect_ghosh_path'] = supchain_indirect_ghosh_path
+
     return df
 
 
 def create_single_yearset(
-        analysis_spec: pd.DataFrame,
+        analysis_spec: pd.Series,
         n_sim_years: int,
         seed: int,
         ):
@@ -405,6 +429,14 @@ def create_single_yearset(
     return imp_yearset
 
 
+def df_extend_with_multihazard(df):
+    df_aggregated_yearsets = df \
+                .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
+                .apply(df_create_combined_hazard_yearsets) \
+                .reset_index()
+    return pd.concat([df, df_aggregated_yearsets]).reset_index()
+
+
 def df_create_combined_hazard_yearsets(
         df: pd.DataFrame
     ):
@@ -430,9 +462,7 @@ def df_create_combined_hazard_yearsets(
     r = df.iloc[0].to_dict()
     yearset_output_dir = os.path.dirname(r['yearset_path'])
     print(r)
-    combined_filename = folder_naming.get_direct_namestring(
-            prefix='yearset',
-            extension='hdf5',
+    combined_filename = folder_naming.get_namestring_direct(
             haz_type='COMBINED', sector=r['sector'], scenario=r['scenario'], ref_year=r['ref_year'], country_iso3alpha=r['country'])
     combined_path = Path(yearset_output_dir, combined_filename)
 
