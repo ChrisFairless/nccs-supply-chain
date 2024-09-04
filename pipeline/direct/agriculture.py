@@ -58,7 +58,6 @@ def get_hazard(country,
                irr: IrrigationType = "firr"):
     # TODO how to map the year to the years in this model
     # TODO What about the firr and noirr?
-    print(country, year_range, scenario, crop_type, irr)
     client = Client()
     hazard = client.get_hazard(
         "relative_cropyield",

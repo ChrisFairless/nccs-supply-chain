@@ -8,7 +8,6 @@ import pandas as pd
 import os
 import numpy as np
 import pycountry
-import traceback
 
 from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
@@ -27,7 +26,6 @@ from pipeline.direct import agriculture, stormeurope
 from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
 
-
 project_root = root_dir()
 # /wildfire.py
 
@@ -43,7 +41,6 @@ HAZ_TYPE_LOOKUP = {
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
-    print(f"Calculating direct impacts for {country} {sector} {haz_type} {scenario} {ref_year}")
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
