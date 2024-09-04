@@ -27,7 +27,7 @@ CONFIG = {
     "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
 
     # Parallisation:
-    "do_parallel": True,                # Parallelise some operations
+    "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
 
     # Run specifications:
