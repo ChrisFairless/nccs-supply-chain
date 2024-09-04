@@ -280,16 +280,9 @@ def run_pipeline_from_config(
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     if DO_INDIRECT:
-        # for io_a in config['io_approach']:
         for io_a in config['io_approach']:
-            if False or DO_PARALLEL:  # Actually it looks llike a serial calculation is just as efficient
-                chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
-                df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-                calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir)
-                with pa.multiprocessing.ProcessPool(ncpus) as pool:
-                    pool.map(calc_partial, df_chunked)  
-            else:
-                calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
+            # For now we're not parallelising this: looks like there's not much time gained. But should time it properly.
+            calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
     else:
         print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
 
@@ -396,11 +389,7 @@ def create_single_yearset(
         cap_exposure=get_sector_exposure(row['sector'], row['country']),
         seed=seed
     )
-
-    # TODO drop the impact matrix to save file space once petals is updated
-    # future work will make the impact matrix unnecessary!
-    if False:
-        del imp_yearset.imp_mat
+    # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
 
     return imp_yearset
 
@@ -449,14 +438,9 @@ def df_create_combined_hazard_yearsets(
             impact_list = impact_list,
             cap_exposure = get_sector_exposure(r['sector'], r['country'])
         )
-        
-        # TODO drop the impact matrix to save file space once petals is updated
-        # future work will make the impact matrix unnecessary!
-        if False:
-            del combined.imp_mat  # drop this to save file space!
+        # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
 
         combined.write_hdf5(combined_path)
-
         out['yearset_path'] = combined_path
         out['_yearset_exists'] = True
         # out['annual_impacts'] = combined.at_event
