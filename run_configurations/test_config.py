@@ -14,6 +14,7 @@ CONFIG = {
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -48,6 +49,7 @@ CONFIG2 = {
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -82,6 +84,7 @@ CONFIG3 = {
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -116,6 +119,7 @@ CONFIG4 = {
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 161,
 
     # Which parts of the model chain to run:
@@ -151,6 +155,7 @@ CONFIG5 = {
     "io_approach": ["leontief", "ghosh"],       # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 161,
 
     # Which parts of the model chain to run:

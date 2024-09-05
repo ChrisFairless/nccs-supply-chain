@@ -13,6 +13,7 @@ CONFIG = {
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
     "seed": 42,
 
     # Which parts of the model chain to run:
