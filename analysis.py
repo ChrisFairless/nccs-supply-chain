@@ -25,22 +25,10 @@ from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, downlo
 LOGGER = logging.getLogger(__name__)
 
 
-DO_PARALLEL = False
-
-DO_DIRECT = True       # Calculate any direct impacts that are missing based on the config
-DO_YEARSETS = True     # Calculate any direct impact yearsets that are missing based on the config
-DO_MULTIHAZARD = False  # Also combine hazards in each calculation year to shock the supply chain
-DO_INDIRECT = True      # Calculate any indirect impacts that are missing based on the config
-
-ncpus = pa.helpers.cpu_count() - 1
-ncpus = 3
-
 def run_pipeline_from_config(
         config: dict,
         direct_output_dir: typing.Union[str, os.PathLike] = None,
         indirect_output_dir: typing.Union[str, os.PathLike] = None,
-        use_s3: bool = False,
-        force_recalculation: bool = False
         ):
     """Run the full model NCCS supply chain from a config dictionary.
     
@@ -62,11 +50,6 @@ def run_pipeline_from_config(
     indirect_output_dir : str or os.PathLike
         location to store indirect impact calculation results. 
         Generated automatically from the config run name if not provided
-    use_s3 : bool
-        Look in the S3 bucket for existing results, and save files to the 
-        bucket
-    force_recalculation: bool
-        If outputs exist for this run name, recalculate them and overwrite.
     """
 
     LOGGER.setLevel(config['log_level'])
@@ -115,8 +98,8 @@ def run_pipeline_from_config(
     os.makedirs(direct_output_dir_impact, exist_ok=True)
     os.makedirs(direct_output_dir_yearsets, exist_ok=True)
 
-    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
-    analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
+    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_calculate'] = True if config['force_recalculation'] else ~analysis_df['_direct_impact_already_exists']
     n_direct_calculations = np.sum(analysis_df['_direct_impact_calculate'])
     n_direct_exists = np.sum(analysis_df['_direct_impact_already_exists'])
 
@@ -142,22 +125,22 @@ def run_pipeline_from_config(
             except Exception as e:
                 LOGGER.error(f"Error calculating direct impacts for {logging_dict}:", exc_info=True)
     
-    if DO_DIRECT:
+    if config['do_direct']:
         LOGGER.info('\n\nRUNNING DIRECT IMPACT CALCULATIONS')
         LOGGER.info(f'There are {n_direct_calculations} direct impacts to calculate. ({n_direct_exists} exist already. Full analysis has {analysis_df.shape[0]} impacts.)')
 
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
             calc_partial = partial(calculate_direct_impacts_from_df, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_direct_impacts_from_df(analysis_df, use_s3)
+            calculate_direct_impacts_from_df(analysis_df, config['use_s3'])
     else:
-        LOGGER.info("Skipping direct impact calculations. Change DO_DIRECT in analysis.py to change this")
+        LOGGER.info("Skipping direct impact calculations. Set do_direct: True in your config to change this")
 
-    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
 
 
@@ -170,13 +153,13 @@ def run_pipeline_from_config(
     yearset_output_dir = Path(direct_output_dir, "yearsets")
     os.makedirs(yearset_output_dir, exist_ok=True)
 
-    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
-    analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
+    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_calculate'] = (True if config['force_recalculation'] else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
     n_yearset_calculations = np.sum(analysis_df['_yearset_calculate'])
     n_yearset_exists = np.sum(analysis_df['_yearset_already_exists'])
     n_missing_direct = np.sum(~analysis_df['_yearset_already_exists'] * ~analysis_df['_direct_impact_exists'])
 
-    def calculate_yearsets_from_df(df, config, use_s3):
+    def calculate_yearsets_from_df(df, config):
         for _, calc in df.iterrows():
             if not calc['_yearset_calculate']: 
                 continue
@@ -187,26 +170,26 @@ def run_pipeline_from_config(
                     n_sim_years=config['n_sim_years'],
                     seed=config['seed'],
                 )
-                write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
+                write_impact_to_file(imp_yearset, calc['yearset_path'], config['use_s3'])
             except Exception as e:
                 LOGGER.error(f"Error calculating an indirect yearset for {logging_dict}", exc_info=True) 
     
-    if DO_YEARSETS:
+    if config['do_yearsets']:
         LOGGER.info('\n\nCREATING IMPACT YEARSETS')
         LOGGER.info(f'There are {n_yearset_calculations} yearsets to create. ({n_yearset_exists} already exist, {n_missing_direct} of the remaining are missing direct impact data, full analysis has {analysis_df.shape[0]} yearsets.)')
 
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=config['use_s3'])
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_yearsets_from_df(analysis_df, config, use_s3)
+            calculate_yearsets_from_df(analysis_df, config)
     else:
-        LOGGER.info("Skipping yearset calculations. Change DO_YEARSETS in analysis.py to change this")
+        LOGGER.info("Skipping yearset calculations. Set do_yearsets: True in your config to change this")
 
-    analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(Path(direct_output_dir, 'calculations_report.csv'))
 
 
@@ -216,7 +199,7 @@ def run_pipeline_from_config(
     _ = _check_config_valid_for_indirect_aggregations(config)
     grouping_cols = ['i_scenario', 'sector', 'country']
 
-    if DO_MULTIHAZARD:
+    if config['do_multihazard']:
         LOGGER.info("\n\nCOMBINING HAZARDS TO MULTIHAZARD YEARSETS")
         df_aggregated_yearsets = analysis_df \
             .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
@@ -225,7 +208,7 @@ def run_pipeline_from_config(
 
         analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
     else:
-        LOGGER.info("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
+        LOGGER.info("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -315,12 +298,12 @@ def run_pipeline_from_config(
                 LOGGER.error(f"Error calculating indirect impacts for {logging_dict}:", exc_info=True)
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
-    if DO_INDIRECT:
+    if config['do_indirect']:
         for io_a in config['io_approach']:
             # For now we're not parallelising this: looks like there's not much time gained. But should time it properly.
             calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
     else:
-        LOGGER.info("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
+        LOGGER.info("Skipping supply chain calculations. Set do_indirect: True in your config to change this")
 
     analysis_df.to_csv(Path(indirect_output_dir, 'calculations_report.csv'))
 

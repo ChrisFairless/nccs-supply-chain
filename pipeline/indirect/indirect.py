@@ -234,6 +234,7 @@ def dump_direct_to_csv(supchain,
            f".csv"
 
     df_direct.to_csv(path)
+    # TODO write to s3 as well
     return path
 
 
@@ -302,4 +303,5 @@ def dump_supchain_to_csv(supchain,
            f"_{country_iso3alpha}" \
            f".csv"
     df_indirect.to_csv(path)
+    # TODO write to s3 as well
     return path
