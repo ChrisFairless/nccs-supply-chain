@@ -8,7 +8,6 @@ import pandas as pd
 import os
 import numpy as np
 import pycountry
-import traceback
 
 from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
@@ -24,8 +23,8 @@ from exposures.utils import root_dir
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 from pipeline.direct import agriculture, stormeurope
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi
-
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
 
 project_root = root_dir()
 # /wildfire.py
@@ -42,13 +41,13 @@ HAZ_TYPE_LOOKUP = {
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
-    print(f"Calculating direct impacts for {country} {sector} {haz_type} {scenario} {ref_year}")
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
+    imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
     # imp = imp.select(event_ids = [id for id, event_impact in zip(imp.event_id, imp.at_event) if event_impact > 0])
     return imp
@@ -237,7 +236,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
 #####
@@ -250,7 +249,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
 #     impf.haz_type = haz_type
 #     if not sector_bi:
 #         return impf
-#     return convert_impf_to_sectoral_bi(impf, sector_bi)
+#     return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
 def get_sector_impf_rf(country_iso3alpha, sector_bi):
@@ -282,14 +281,14 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi):
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_wet(impf, sector_bi)
 
 
 def get_sector_impf_stormeurope(sector_bi):
     impf = ImpfStormEurope.from_schwierz()
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
 # for wildfire, not sure if it is working
@@ -298,7 +297,7 @@ def get_sector_impf_wf(sector_bi):
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
 

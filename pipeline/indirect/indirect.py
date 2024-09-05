@@ -11,7 +11,7 @@ SUPER_SEC = {
     "agriculture": [0],
     "forestry": [1],
     "mining": [3],
-    "manufacturing": list(range(4, 23)) +[26], #after interim, Construction (26) included, and also repair and installation of machinry and equipment was missing
+    "manufacturing": list(range(4, 23)) +[26], #after interim, Construction (26) included, as well as repair and installation of machinery and equipment was missing
     "food":[4],
     "wood": [6],
     "refin_and_transform":[9],
@@ -234,6 +234,7 @@ def dump_direct_to_csv(supchain,
            f".csv"
 
     df_direct.to_csv(path)
+    # TODO write to s3 as well
     return path
 
 
@@ -302,4 +303,5 @@ def dump_supchain_to_csv(supchain,
            f"_{country_iso3alpha}" \
            f".csv"
     df_indirect.to_csv(path)
+    # TODO write to s3 as well
     return path

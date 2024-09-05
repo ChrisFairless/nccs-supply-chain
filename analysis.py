@@ -1,5 +1,4 @@
 import os
-import traceback
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -10,7 +9,11 @@ import typing
 import pathos as pa
 from functools import partial
 import pycountry
+import warnings
+import logging
+import sys
 
+from climada.util.config import CONFIG as CLIMADA_CONFIG
 from climada.engine import Impact
 
 from pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_simple
@@ -19,23 +22,13 @@ from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv,
 from utils import folder_naming
 from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, download_from_s3_bucket
 
+LOGGER = logging.getLogger(__name__)
 
-DO_PARALLEL = True
-
-DO_DIRECT = True       # Calculate any direct impacts that are missing based on the config
-DO_YEARSETS = True     # Calculate any direct impact yearsets that are missing based on the config
-DO_MULTIHAZARD = False  # Also combine hazards in each calculation year to shock the supply chain
-DO_INDIRECT = True      # Calculate any indirect impacts that are missing based on the config
-
-ncpus = pa.helpers.cpu_count() - 1
-ncpus = 3
 
 def run_pipeline_from_config(
         config: dict,
         direct_output_dir: typing.Union[str, os.PathLike] = None,
         indirect_output_dir: typing.Union[str, os.PathLike] = None,
-        use_s3: bool = False,
-        force_recalculation: bool = False
         ):
     """Run the full model NCCS supply chain from a config dictionary.
     
@@ -57,12 +50,24 @@ def run_pipeline_from_config(
     indirect_output_dir : str or os.PathLike
         location to store indirect impact calculation results. 
         Generated automatically from the config run name if not provided
-    use_s3 : bool
-        Look in the S3 bucket for existing results, and save files to the 
-        bucket
-    force_recalculation: bool
-        If outputs exist for this run name, recalculate them and overwrite.
     """
+
+    LOGGER.setLevel(config['log_level'])
+    FORMATTER = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    CONSOLE = logging.StreamHandler(stream=sys.stdout)
+    CONSOLE.setFormatter(FORMATTER)
+    LOGGER.addHandler(CONSOLE)
+
+    if config['log_level'] != CLIMADA_CONFIG.log_level:
+        LOGGER.info(
+            f'To change the logging level of CLIMADA, edit climada.conf in the root directory and set log_level to INFO or DEBUG.'\
+            'Current level is {CLIMADA_CONFIG.log_level}'
+            )
+    
+    if config['log_level'] != "DEBUG":
+        # CLIMADA is full of deprecation warnings that make it hard to follow the output 
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
 
     if not direct_output_dir:
         direct_output_dir = folder_naming.get_direct_output_dir(config['run_title'])
@@ -78,7 +83,7 @@ def run_pipeline_from_config(
     with open(Path(indirect_output_dir, 'config.json'), 'w') as f:
         json.dump(config, f)
     
-    print(f"Direct output will be saved to {direct_output_dir}")
+    LOGGER.info(f"Direct output will be saved to {direct_output_dir}")
     
     ### --------------------------------- ###
     ### CALCULATE DIRECT ECONOMIC IMPACTS ###
@@ -94,8 +99,10 @@ def run_pipeline_from_config(
     os.makedirs(direct_output_dir_impact, exist_ok=True)
     os.makedirs(direct_output_dir_yearsets, exist_ok=True)
 
-    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
-    analysis_df['_direct_impact_calculate'] = True if force_recalculation else ~analysis_df['_direct_impact_already_exists']
+    analysis_df['_direct_impact_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_calculate'] = True if config['force_recalculation'] else ~analysis_df['_direct_impact_already_exists']
+    n_direct_calculations = np.sum(analysis_df['_direct_impact_calculate'])
+    n_direct_exists = np.sum(analysis_df['_direct_impact_already_exists'])
 
     def calculate_direct_impacts_from_df(df, use_s3):
         # TODO subset the df before this check is made. Risk of some parallel processes having no work to do
@@ -103,7 +110,9 @@ def run_pipeline_from_config(
             if not calc['_direct_impact_calculate']: 
                 continue
 
+            logging_dict = {k: calc[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
             try:
+                LOGGER.info(f'Calculating direct impacts for {logging_dict}')
                 imp = nccs_direct_impacts_simple(
                     haz_type=calc['hazard'],
                     sector=calc['sector'],
@@ -115,21 +124,24 @@ def run_pipeline_from_config(
                 )
                 write_impact_to_file(imp, calc['direct_impact_path'], use_s3)
             except Exception as e:
-                print(f"This didn't work: {e}")
+                LOGGER.error(f"Error calculating direct impacts for {logging_dict}:", exc_info=True)
     
-    if DO_DIRECT:
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+    if config['do_direct']:
+        LOGGER.info('\n\nRUNNING DIRECT IMPACT CALCULATIONS')
+        LOGGER.info(f'There are {n_direct_calculations} direct impacts to calculate. ({n_direct_exists} exist already. Full analysis has {analysis_df.shape[0]} impacts.)')
+
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
             calc_partial = partial(calculate_direct_impacts_from_df, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_direct_impacts_from_df(analysis_df, use_s3)
+            calculate_direct_impacts_from_df(analysis_df, config['use_s3'])
     else:
-        print("Skipping direct impact calculations. Change DO_DIRECT in analysis.py to change this")
+        LOGGER.info("Skipping direct impact calculations. Set do_direct: True in your config to change this")
 
-    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['direct_impact_path']]
+    analysis_df['_direct_impact_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['direct_impact_path']]
 
     analysis_df_filename = f'calculations_report_{time_now.strftime("%Y-%m-%d_%H%M")}.csv'
     analysis_df_path = Path(indirect_output_dir, analysis_df_filename) 
@@ -142,40 +154,46 @@ def run_pipeline_from_config(
 
     # Create a yearset for each row of the analysis dataframe
     # This gives us an impact object where each event is a fictional year of events   
-    print("Generating yearsets")
     yearset_output_dir = Path(direct_output_dir, "yearsets")
     os.makedirs(yearset_output_dir, exist_ok=True)
 
-    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
-    analysis_df['_yearset_calculate'] = (True if force_recalculation else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
+    analysis_df['_yearset_already_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_calculate'] = (True if config['force_recalculation'] else ~analysis_df['_yearset_already_exists']) * analysis_df['_direct_impact_exists']
+    n_yearset_calculations = np.sum(analysis_df['_yearset_calculate'])
+    n_yearset_exists = np.sum(analysis_df['_yearset_already_exists'])
+    n_missing_direct = np.sum(~analysis_df['_yearset_already_exists'] * ~analysis_df['_direct_impact_exists'])
 
-    def calculate_yearsets_from_df(df, config, use_s3):
+    def calculate_yearsets_from_df(df, config):
         for _, calc in df.iterrows():
             if not calc['_yearset_calculate']: 
                 continue
+            logging_dict = {k: calc[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
             try:
                 imp_yearset = create_single_yearset(
                     calc,
                     n_sim_years=config['n_sim_years'],
                     seed=config['seed'],
                 )
-                write_impact_to_file(imp_yearset, calc['yearset_path'], use_s3)
+                write_impact_to_file(imp_yearset, calc['yearset_path'], config['use_s3'])
             except Exception as e:
-                print(f"This didn't work: {e}") 
+                LOGGER.error(f"Error calculating an indirect yearset for {logging_dict}", exc_info=True) 
     
-    if DO_YEARSETS:
-        if DO_PARALLEL:
-            chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
+    if config['do_yearsets']:
+        LOGGER.info('\n\nCREATING IMPACT YEARSETS')
+        LOGGER.info(f'There are {n_yearset_calculations} yearsets to create. ({n_yearset_exists} already exist, {n_missing_direct} of the remaining are missing direct impact data, full analysis has {analysis_df.shape[0]} yearsets.)')
+
+        if config['do_parallel']:
+            chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
             df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=use_s3)
-            with pa.multiprocessing.ProcessPool(ncpus) as pool:
+            calc_partial = partial(calculate_yearsets_from_df, config=config, use_s3=config['use_s3'])
+            with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
                 pool.map(calc_partial, df_chunked)    
         else:
-            calculate_yearsets_from_df(analysis_df, config, use_s3)
+            calculate_yearsets_from_df(analysis_df, config)
     else:
-        print("Skipping yearset calculations. Change DO_YEARSETS in analysis.py to change this")
+        LOGGER.info("Skipping yearset calculations. Set do_yearsets: True in your config to change this")
 
-    analysis_df['_yearset_exists'] = [exists_impact_file(p, use_s3) for p in analysis_df['yearset_path']]
+    analysis_df['_yearset_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(analysis_df_path)
 
 
@@ -185,8 +203,8 @@ def run_pipeline_from_config(
     _ = _check_config_valid_for_indirect_aggregations(config)
     grouping_cols = ['i_scenario', 'sector', 'country']
 
-    if DO_MULTIHAZARD:
-        print("Combining hazards to multihazard yearsets")
+    if config['do_multihazard']:
+        LOGGER.info("\n\nCOMBINING HAZARDS TO MULTIHAZARD YEARSETS")
         df_aggregated_yearsets = analysis_df \
             .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
             .apply(df_create_combined_hazard_yearsets) \
@@ -194,7 +212,7 @@ def run_pipeline_from_config(
 
         analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
     else:
-        print("Skipping multihazard impact calculations. Change DO_MULTIHAZARD in analysis.py to change this")
+        LOGGER.info("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -203,21 +221,24 @@ def run_pipeline_from_config(
     # Generate supply chain impacts from the yearsets
     # Create a folder to output the data
     # indirect_output_dir = Path(indirect_output_dir, "results")
-    print("Running supply chain calculations")
+    LOGGER.info("\n\nMODELLING SUPPLY CHAINS")
     os.makedirs(indirect_output_dir, exist_ok=True)
     
     analysis_df['_indirect_exists'] = False  # TODO: update this to check for existing output
     analysis_df['_indirect_calculate'] = analysis_df['_yearset_exists']
 
+    n_supchain_calculations = np.sum(analysis_df['_indirect_calculate'])
+    LOGGER.info(f'There are {n_supchain_calculations} out of {analysis_df.shape[0]} supply chains to calculate')
+
     def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir):
         # TODO consider some sort of grouping so that we don't need to load sector exposures each time...
         # No need to parallelise this: it already seems to max out the CPUs
         for i, row in df.iterrows():
-            print("SUPPLY CHAIN ROW")
-            print(row.to_dict())
+            logging_dict = {k: row[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
+            LOGGER.info(f'Modelling supply chain for {logging_dict}')
 
             if not row['_indirect_calculate']:
-                print('No yearset data available. Skipping supply chain calculation')
+                LOGGER.info('No yearset data available. Skipping supply chain calculation')
                 continue
 
             # TODO put this in a function: it's used in the supply_chain_climada method too
@@ -232,15 +253,15 @@ def run_pipeline_from_config(
                 f".csv"
 
             if os.path.exists(direct_path):
-                print(f'Output already exists, skipping calculation: {direct_path}')
+                LOGGER.info(f'Output already exists, skipping calculation: {direct_path}')
                 continue
 
             try:
-                print(f"Calculating indirect impacts for {row['country']} {row['sector']}...")
+                LOGGER.info(f"Calculating indirect {io_a} impacts for {row['country']} {row['sector']}...")
                 imp = Impact.from_hdf5(row['yearset_path'])
                 if not imp.at_event.any():
                     # TODO return an object with zero losses so that there's data
-                    print("No non-zero impacts. Skipping")
+                    LOGGER.info("No non-zero impacts. Skipping")
                     continue
                 supchain = supply_chain_climada(
                     get_sector_exposure(sector=row['sector'], country=row['country']),
@@ -278,29 +299,20 @@ def run_pipeline_from_config(
                 df.loc[i, '_indirect_exists'] = True
 
             except Exception as e:
-                print(f"Error calculating indirect impacts for {row['country']} {row['sector']}:")
-                print("".join(traceback.format_exception(type(e), e, e.__traceback__)))
-                print(e)
+                LOGGER.error(f"Error calculating indirect impacts for {logging_dict}:", exc_info=True)
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
-    if DO_INDIRECT:
-        # for io_a in config['io_approach']:
+    if config['do_indirect']:
         for io_a in config['io_approach']:
-            if False or DO_PARALLEL:  # Actually it looks llike a serial calculation is just as efficient
-                chunk_size = int(np.ceil(analysis_df.shape[0] / ncpus))
-                df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
-                calc_partial = partial(calculate_indirect_impacts_from_df, io_a=io_a, config=config, direct_output_dir=direct_output_dir)
-                with pa.multiprocessing.ProcessPool(ncpus) as pool:
-                    pool.map(calc_partial, df_chunked)  
-            else:
-                calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
+            # For now we're not parallelising this: looks like there's not much time gained. But should time it properly.
+            calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir)
     else:
-        print("Skipping supply chain calculations. Change DO_INDIRECT in analysis.py to change this")
+        LOGGER.info("Skipping supply chain calculations. Set do_indirect: True in your config to change this")
 
     analysis_df.to_csv(analysis_df_path)
 
-    print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
-    print("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
+    LOGGER.info("\n\nDone!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+    LOGGER.info("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
 
 
 def config_to_dataframe(
@@ -390,7 +402,7 @@ def create_single_yearset(
 
     row = analysis_spec.copy().to_dict()
 
-    print(f'Generating yearsets for {row["yearset_path"]}')
+    LOGGER.info(f'Generating yearsets for {row["yearset_path"]}')
     imp = get_impact_from_file(row['direct_impact_path'])
 
     # TODO we don't actually want to generate a yearset if we're looking at observed events
@@ -400,11 +412,7 @@ def create_single_yearset(
         cap_exposure=get_sector_exposure(row['sector'], row['country']),
         seed=seed
     )
-
-    # TODO drop the impact matrix to save file space once petals is updated
-    # future work will make the impact matrix unnecessary!
-    if False:
-        del imp_yearset.imp_mat
+    # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
 
     return imp_yearset
 
@@ -433,7 +441,7 @@ def df_create_combined_hazard_yearsets(
     
     r = df.iloc[0].to_dict()
     yearset_output_dir = os.path.dirname(r['yearset_path'])
-    print(r)
+    LOGGER.info(r)
     combined_filename = folder_naming.get_direct_namestring(
             prefix='yearset',
             extension='hdf5',
@@ -453,14 +461,9 @@ def df_create_combined_hazard_yearsets(
             impact_list = impact_list,
             cap_exposure = get_sector_exposure(r['sector'], r['country'])
         )
-        
-        # TODO drop the impact matrix to save file space once petals is updated
-        # future work will make the impact matrix unnecessary!
-        if False:
-            del combined.imp_mat  # drop this to save file space!
+        # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
 
         combined.write_hdf5(combined_path)
-
         out['yearset_path'] = combined_path
         out['_yearset_exists'] = True
         # out['annual_impacts'] = combined.at_event
