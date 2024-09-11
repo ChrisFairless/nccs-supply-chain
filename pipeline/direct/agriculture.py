@@ -3,7 +3,7 @@ import typing
 import numpy as np
 from climada.entity import ImpactFunc
 from climada.entity import ImpactFuncSet
-from climada.util.api_client import Client
+from utils.climada_api import NCCSClimadaClient as Client
 from climada_petals.entity.impact_funcs.relative_cropyield import ImpfRelativeCropyield
 from pycountry import countries
 

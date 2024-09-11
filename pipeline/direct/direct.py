@@ -13,7 +13,7 @@ from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
 from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
-from climada.util.api_client import Client
+from utils.climada_api import NCCSClimadaClient as Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
 from utils.s3client import download_from_s3_bucket
 from exposures.utils import root_dir
