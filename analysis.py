@@ -58,11 +58,12 @@ def run_pipeline_from_config(
     CONSOLE = logging.StreamHandler(stream=sys.stdout)
     CONSOLE.setFormatter(FORMATTER)
     LOGGER.addHandler(CONSOLE)
+    # Note: the logging level for CLIMADA is set separately in the climada.conf file
 
     if config['log_level'] != CLIMADA_CONFIG.log_level:
         LOGGER.info(
             f'To change the logging level of CLIMADA, edit climada.conf in the root directory and set log_level to INFO or DEBUG.'\
-            'Current level is {CLIMADA_CONFIG.log_level}'
+            f'Current level is {CLIMADA_CONFIG.log_level}'
             )
     
     if config['log_level'] != "DEBUG":
