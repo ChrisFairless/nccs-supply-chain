@@ -72,6 +72,7 @@ git clone https://github.com/ChrisFairless/nccs-supply-chain
 git clone https://github.com/CLIMADA-project/climada_python
 git clone https://github.com/CLIMADA-project/climada_petals
 ```
+
 Note the paths to the directories where they are stored. If you want to work on a different branch to `main`, check out the relevant branches.
 
 
@@ -136,3 +137,4 @@ The above commands work at any time, before or after installation, since CLIMADA
 
 Notes:
 - We can't guarantee that changes between CLIMADA versions work 100% of the time, since different versions of CLIMADA have different package dependencies. If this happens, follow these installation instructions again, but check out the correct version of CLIMADA with the above command immediately after Step 1. This way the correct dependencies for that version of CLIMADA will be installed in Step 3.
+- We require CLIMADA Petals <= 5.0.0 at the moment while we work to accomodate a change on the develop branch. As of 16 September v5.0.0 is the latest release, so it is also the main branch.

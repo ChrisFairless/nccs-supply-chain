@@ -7,4 +7,4 @@ dependencies:
   - python-dotenv
   - climada>=5.0.0
   - pip:
-    - git+https://github.com/CLIMADA-project/climada_petals.git@develop
+    - git+https://github.com/CLIMADA-project/climada_petals.git@v5.0.0
