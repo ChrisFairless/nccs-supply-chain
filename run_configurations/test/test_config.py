@@ -41,11 +41,11 @@ CONFIG = {
             ]
         },
         {
-            "hazard": "storm_europe",
+            "hazard": "river_flood",
             "sectors": ["mining", "forestry"],
-            "countries": ["Andorra"],
+            "countries": ["Luxembourg"],
             "scenario_years": [
-                {"scenario": "rcp85", "ref_year": "future"},
+                {"scenario": "rcp85", "ref_year": 2060},
             ]
         }
     ]

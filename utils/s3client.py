@@ -34,7 +34,7 @@ def get_client():
     )
 
 
-def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, None] = None):
+def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, None] = None, overwrite=False):
     """
     Downloads a file from the S3 bucket.
     if no output_path is provided, the file is downloaded to the current working directory.
@@ -46,7 +46,12 @@ def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, Non
     if output_path is None:
         output_path = s3_filename
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    if not overwrite and os.path.exists(output_path):
+        return
+
+    dirname = os.path.dirname(output_path)
+    if dirname != '':
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     s3 = get_client()
     return s3.download_file(
