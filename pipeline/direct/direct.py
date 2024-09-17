@@ -25,6 +25,9 @@ from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 from pipeline.direct import agriculture, stormeurope
 from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
+from pipeline.direct.test.create_test_hazard import test_hazard
+from pipeline.direct.test.create_test_exposures import test_exposures
+from pipeline.direct.test.create_test_impf import test_impf
 
 project_root = root_dir()
 # /wildfire.py
@@ -34,7 +37,17 @@ HAZ_TYPE_LOOKUP = {
     'river_flood': 'RF',
     'wildfire': 'WF',
     'storm_europe': 'WS',
-    "relative_crop_yield": "RC",
+    'relative_crop_yield': 'RC',
+    'test': 'test'
+}
+
+IS_HAZ_WET = {
+    'tropical_cyclone': 'dry',
+    'river_flood': 'wet',
+    'wildfire': 'dry',
+    'storm_europe': 'dry',
+    'relative_crop_yield': 'dry',
+    'test': 'dry'  # for dry runs
 }
 
 
@@ -44,6 +57,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, bu
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
+    exp.gdf['impf_'] = 1
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
@@ -184,6 +198,9 @@ def get_sector_exposure(sector, country):
     if sector == 'economic_assets':
         client = Client()
         exp = client.get_litpop(country)
+    
+    if sector == 'test':
+        exp = test_exposures()
 
     exp.gdf.reset_index(inplace=True)
 
@@ -211,6 +228,8 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     if haz_type == 'RC':
         return agriculture.get_impf_set()
     raise ValueError(f'No impact functions defined for hazard {hazard}')
+    elif haz_type == 'test':
+        impf = test_impf()
 
 
 

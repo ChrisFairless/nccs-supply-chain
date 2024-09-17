@@ -4,7 +4,7 @@ from copy import deepcopy
 from scipy import sparse
 
 from pipeline.direct.calc_yearset import yearset_from_imp
-from pipeline.direct.test.create_test_impact import dummy_impact, dummy_impact_yearly
+from pipeline.direct.test.create_test_impact import test_impact, test_impact_yearly
 
 seed = 1312
 np.random.seed(seed)
@@ -13,8 +13,8 @@ class TestYearsets(unittest.TestCase):
 
     def setUp(self):
         self.n_sim_years = 10
-        self.dummy_imp = dummy_impact()
-        self.dummy_imp_yearly = dummy_impact_yearly()
+        self.dummy_imp = test_impact()
+        self.dummy_imp_yearly = test_impact_yearly()
         self.dummy_imp_yearly.frequency = np.ones_like(self.dummy_imp_yearly.frequency)
 
     def test_yearset_with_poisson_process(self):
