@@ -11,20 +11,16 @@ import pycountry
 
 from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
-from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
+from climada.entity import ImpactFunc, ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
-from utils.s3client import download_from_s3_bucket
-from exposures.utils import root_dir
-
-# for the wilfire impact function:
-# https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
+from utils.s3client import download_from_s3_bucket
+from exposures.utils import root_dir
 from pipeline.direct import agriculture, stormeurope
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
+from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry, convert_impf_to_sectoral_bi_wet
 
 project_root = root_dir()
 # /wildfire.py
@@ -35,6 +31,13 @@ HAZ_TYPE_LOOKUP = {
     'wildfire': 'WF',
     'storm_europe': 'WS',
     "relative_crop_yield": "RC",
+}
+
+IS_HAZ_WET = {
+    'tropical_cyclone': 'dry',
+    'river_flood': 'wet',
+    'wildfire': 'dry',
+    'storm_europe': 'dry',
 }
 
 
@@ -65,7 +68,7 @@ def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, bu
 #     return exp
 
 
-def download_exposure_from_s3(country,file_short):
+def download_exposure_from_s3(country, file_short):
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     s3_filepath = f'exposures/{file_short}_{country_iso3alpha}.h5'
     outputfile=f'{project_root}/exposures/{file_short}_{country_iso3alpha}.h5'
@@ -198,45 +201,67 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     else:
         sector_bi = sector
 
-    if haz_type == 'TC' and sector == 'agriculture':
-        return agriculture.get_impf_set_tc()
-    if haz_type == 'TC':
-        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated)])
-    if haz_type == 'RF':
-        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi)])
-    if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_wf(sector_bi)])
-    if haz_type == 'WS':
-        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
+
     if haz_type == 'RC':
         return agriculture.get_impf_set()
-    raise ValueError(f'No impact functions defined for hazard {hazard}')
+    elif haz_type == 'TC' and sector == 'agriculture':
+        return agriculture.get_impf_set_tc()
+    elif haz_type == 'TC':
+        impf = get_impf_tc(country_iso3alpha, calibrated)
+    elif haz_type == 'RF':
+        impf = get_impf_rf(country_iso3alpha, calibrated)
+    elif haz_type == 'WF':
+        impf = get_impf_wf()
+    elif haz_type == 'WS':
+        impf = get_impf_stormeurope(country_iso3alpha, calibrated)
+    else:
+        ValueError(f'No impact functions defined for hazard {hazard}')
+    
+    if sector_bi:
+        wet_or_dry = IS_HAZ_WET[hazard]
+        if wet_or_dry == "wet":
+            impf = convert_impf_to_sectoral_bi_wet(impf, sector_bi)
+        elif wet_or_dry == "dry":
+            impf = convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+
+    return  ImpactFuncSet([impf])
 
 
-
-def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
+def get_impf_tc(country_iso3alpha, calibrated=True):
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
         raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
-    region = region[0]
+    region_id = region[0]
 
-    if calibrated:
+    if calibrated == 1:
         calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'calibrated_emanuel_v1.csv')
         calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file).set_index(['region'])
         impf = ImpfTropCyclone.from_emanuel_usa(
-            scale=calibrated_impf_parameters.loc[region, 'scale'],
-            v_thresh=calibrated_impf_parameters.loc[region, 'v_thresh'],
-            v_half=calibrated_impf_parameters.loc[region, 'v_half']
+            scale=calibrated_impf_parameters.loc[region_id, 'scale'],
+            v_thresh=calibrated_impf_parameters.loc[region_id, 'v_thresh'],
+            v_half=calibrated_impf_parameters.loc[region_id, 'v_half']
         )
-    else:
+    elif calibrated == 0:
         fun_id = impf_ids[region]
         impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
-    
+    else:
+        calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'custom.csv')
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+        if set(calibrated_impf_parameters.columns) == {'scale', 'v_half', 'v_thresh'}:
+            assert(calibrated_impf_parameters.shape[0] == 1)
+            impf = ImpfTropCyclone.from_emanuel_usa(
+                scale=calibrated_impf_parameters.loc[0, 'scale'],
+                v_thresh=calibrated_impf_parameters.loc[0, 'v_thresh'],
+                v_half=calibrated_impf_parameters.loc[0, 'v_half']
+            )
+        else:
+            # TODO extend with other ways of specifying calibrations
+            raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
+
     impf.id = 1
-    if not sector_bi:
-        return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+    return impf
+
 
 
 #####
@@ -252,53 +277,82 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
 #     return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
-def get_sector_impf_rf(country_iso3alpha, sector_bi):
+def get_impf_rf(country_iso3alpha, calibrated=True):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
     # Grab just that impact function from the flood set, and set its ID to 1
     impf_set = flood_imp_func_set()
-    impf_set.plot()
-    impf_AFR = impf_set.get_func(fun_id=1)
-    impf_AFR[0].plot()
-
-    impf_ASIA = impf_set.get_func(fun_id=2)
-    impf_ASIA[0].plot()
-
-    impf_EU = impf_set.get_func(fun_id=3)
-    impf_EU[0].plot()
-
-    impf_NA = impf_set.get_func(fun_id=4)
-    impf_NA[0].plot()
-
-    impf_OCE = impf_set.get_func(fun_id=5)
-    impf_OCE[0].plot()
-
-    impf_SAM = impf_set.get_func(fun_id=6)
-    impf_SAM[0].plot()
+    # impf_AFR = impf_set.get_func(fun_id=1)
+    # impf_ASIA = impf_set.get_func(fun_id=2)
+    # impf_EU = impf_set.get_func(fun_id=3)
+    # impf_NA = impf_set.get_func(fun_id=4)
+    # impf_OCE = impf_set.get_func(fun_id=5)
+    # impf_SAM = impf_set.get_func(fun_id=6)
 
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
-    if not sector_bi:
+
+    if not calibrated:
         return impf
-    return convert_impf_to_sectoral_bi_wet(impf, sector_bi)
+    if calibrated == 1:
+        # TODO: add final calibration
+        return impf
+
+    # Custom impact function
+    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
+    if not os.path.exists(calibrated_impf_parameters_file):
+        return impf
+
+    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+    if set(calibrated_impf_parameters.columns) == {'x_scale', 'y_scale', 'x_translate'}:
+        x_scale, y_scale, x_translate = calibrated_impf_parameters.loc[0, 'x_scale'], calibrated_impf_parameters.loc[0, 'y_scale'], calibrated_impf_parameters.loc[0, 'x_translate']
+        return impf_linear_transform(impf, x_scale, y_scale, x_translate)
+    # TODO extend with other ways of specifying calibrations
+    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
 
 
-def get_sector_impf_stormeurope(sector_bi):
+def get_sector_impf_stormeurope(sector_bi, calibrated=True):
     impf = ImpfStormEurope.from_schwierz()
-    if not sector_bi:
+    if not calibrated:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+
+    if calibrated == 1:
+        # TODO: add final calibration
+        return impf
+
+    # Custom impact function
+    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
+    if not os.path.exists(calibrated_impf_parameters_file):
+        return impf
+
+    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+    if set(calibrated_impf_parameters.columns) == {'x_scale', 'y_scale', 'x_translate'}:
+        x_scale, y_scale, x_translate = calibrated_impf_parameters.loc[0, 'x_scale'], calibrated_impf_parameters.loc[0, 'y_scale'], calibrated_impf_parameters.loc[0, 'x_translate']
+        return impf_linear_transform(impf, x_scale, y_scale, x_translate)
+
+    # TODO extend with other ways of specifying calibrations
+    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
+
 
 
 # for wildfire, not sure if it is working
 def get_sector_impf_wf(sector_bi):
     impf = ImpfWildfire.from_default_FIRMS(i_half=409.4) # adpated i_half according to hazard resolution of 4km: i_half=409.4
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
-    if not sector_bi:
-        return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+    return impf
 
+
+def impf_linear_transform(impf, x_scale, y_scale, x_translate):
+    return ImpactFunc(
+            haz_type = impf.haz_type,
+            id = impf.id,
+            intensity = x_scale * impf.intensity + x_translate,
+            mdd = y_scale * impf.mdd,
+            paa = impf.paa,
+            intensity_unit = impf.intensity_unit,
+            name = impf.name
+        )
 
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):

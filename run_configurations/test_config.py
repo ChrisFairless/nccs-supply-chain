@@ -25,8 +25,8 @@ CONFIG = {
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
-    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
-
+    "calibrated": True,                 # True: best calibration. False: best guesstimate impact functions.
+                                        # Any other value: looks for custom.csv in the relevant resources/impact_functions/ directory, and falls back on True
     # Parallisation:
     "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
@@ -34,8 +34,8 @@ CONFIG = {
     "runs": [
         {
             "hazard": "tropical_cyclone",
-            "sectors": ["manufacturing"],
-            "countries": ['United States', 'Ireland', 'Japan', 'Taiwan, Province of China', 'China', 'Korea, Republic of'],
+            "sectors": ["economic_assets"],
+            "countries": ['Antigua and Barbuda', 'Turks and Caicos Islands', 'Jamaica', 'Montserrat'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]
@@ -60,8 +60,8 @@ CONFIG2 = {
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
-    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
-
+    "calibrated": True,                 # True: best calibration. False: best guesstimate impact functions.
+                                        # Any other value: looks for custom.csv in the relevant resources/impact_functions/ directory, and falls back on True
     # Parallisation:
     "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
@@ -95,8 +95,8 @@ CONFIG3 = {
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
-    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
-
+    "calibrated": True,                 # True: best calibration. False: best guesstimate impact functions.
+                                        # Any other value: looks for custom.csv in the relevant resources/impact_functions/ directory, and falls back on True
     # Parallisation:
     "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
@@ -130,8 +130,8 @@ CONFIG4 = {
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
-    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
-
+    "calibrated": True,                 # True: best calibration. False: best guesstimate impact functions.
+                                        # Any other value: looks for custom.csv in the relevant resources/impact_functions/ directory, and falls back on True
     # Parallisation:
     "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
@@ -166,8 +166,8 @@ CONFIG5 = {
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
-    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
-
+    "calibrated": True,                 # True: best calibration. False: best guesstimate impact functions.
+                                        # Any other value: looks for custom.csv in the relevant resources/impact_functions/ directory, and falls back on True
     # Parallisation:
     "do_parallel": False,                # Parallelise some operations
     "ncpus": ncpus,
