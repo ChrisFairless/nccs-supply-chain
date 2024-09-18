@@ -86,7 +86,7 @@ def run_pipeline_from_config(
     config['time_run'] = str(time_now)
     with open(Path(indirect_output_dir, 'config.json'), 'w') as f:
         json.dump(config, f)
-    
+        
     LOGGER.info(f"Direct output will be saved to {direct_output_dir}")
     
     ### --------------------------------- ###
@@ -209,6 +209,8 @@ def run_pipeline_from_config(
 
     LOGGER.info("\n\nDone!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
     LOGGER.info("Don't forget to update the current run title within the dashboard.py script: RUN_TITLE")
+
+    return analysis_df
 
 
 def config_to_dataframe(
@@ -549,4 +551,4 @@ if __name__ == "__main__":
     # This is for testing
     from run_configurations.test_config import CONFIG  # change here to test_config if needed
 
-    run_pipeline_from_config(CONFIG)
+    _ = run_pipeline_from_config(CONFIG)
