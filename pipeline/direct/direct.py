@@ -356,8 +356,8 @@ def impf_linear_transform(impf, x_scale, y_scale, x_translate):
 
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
-    client = Client()
     if haz_type == 'tropical_cyclone':
+        client = Client()
         if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
                 'tropical_cyclone',
@@ -378,23 +378,29 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 }
             )
     elif haz_type == 'river_flood':
+        client = Client()
         if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
-                haz_type, properties={
+                'river_flood',
+                properties={
                     'country_iso3alpha': country_iso3alpha,
-                    'climate_scenario': 'historical', 'year_range': '1980_2000'
+                    'climate_scenario': 'historical',
+                    'year_range': '1980_2000'
                 }
             )
         else:
             year_range_midpoint = round(ref_year / 20) * 20
             year_range = str(year_range_midpoint - 10) + '_' + str(year_range_midpoint + 10)
             return client.get_hazard(
-                haz_type, properties={
+                'river_flood',
+                properties={
                     'country_iso3alpha': country_iso3alpha,
-                    'climate_scenario': scenario, 'year_range': year_range
+                    'climate_scenario': scenario,
+                    'year_range': year_range
                 }
             )
     elif haz_type == 'wildfire':
+        client = Client()
         year_range = '2001_2020'
         if scenario == 'None' and ref_year == 'historical':
             return client.get_hazard(
