@@ -52,13 +52,14 @@ def run_pipeline_from_config(
         Generated automatically from the config run name if not provided
     """
 
-    LOGGER.setLevel(config['log_level'])
-    FORMATTER = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-    CONSOLE = logging.StreamHandler(stream=sys.stdout)
-    CONSOLE.setFormatter(FORMATTER)
-    LOGGER.addHandler(CONSOLE)
     # Note: the logging level for CLIMADA is set separately in the climada.conf file
+    LOGGER.setLevel(config['log_level'])
+    if not LOGGER.hasHandlers():
+        FORMATTER = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        CONSOLE = logging.StreamHandler(stream=sys.stdout)
+        CONSOLE.setFormatter(FORMATTER)
+        LOGGER.addHandler(CONSOLE)
 
     if config['log_level'] != CLIMADA_CONFIG.log_level:
         LOGGER.info(
@@ -69,6 +70,8 @@ def run_pipeline_from_config(
     if config['log_level'] != "DEBUG":
         # CLIMADA is full of deprecation warnings that make it hard to follow the output 
         warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    LOGGER.info(f'NCCS PIPELINE: {config["run_title"]}')
 
     if not direct_output_dir:
         direct_output_dir = folder_naming.get_direct_output_dir(config['run_title'])
