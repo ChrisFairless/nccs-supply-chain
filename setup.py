@@ -1,6 +1,6 @@
 from setuptools import setup, find_namespace_packages
 
-setup(name='nccs-supply-chain',
+setup(name='nccs',
     version='0.1',
     description='NCCS Supply Chain module',
     url='http://github.com/ChrisFairless/nccs-supply-chain',
