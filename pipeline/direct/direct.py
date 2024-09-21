@@ -31,11 +31,11 @@ project_root = root_dir()
 # /wildfire.py
 
 HAZ_TYPE_LOOKUP = {
-    'tropical_cyclone': 'TC',
-    'river_flood': 'RF',
-    'wildfire': 'WF',
-    'storm_europe': 'WS',
-    "relative_crop_yield": "RC",
+    'tropical_cyclone',
+    'river_flood',
+    'wildfire',
+    'storm_europe',
+    "relative_crop_yield",
 }
 
 
@@ -135,8 +135,9 @@ def get_sector_exposure(sector, country):
     #     exp.gdf['value'] = exp.gdf.value
     #     exp.check()
 
-    if sector == 'agriculture':
-        exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
+    if sector.startswith('agriculture'):
+        _, crop_type = agriculture.split_agriculture_sector(sector)
+        exp = agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
 
     if sector == 'forestry':
         # exp = load_forestry_exposure() #only used for best guesstimate
@@ -188,7 +189,7 @@ def get_sector_exposure(sector, country):
     if sector == 'wood':
         file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country, file_short)
-    
+
     if sector == 'economic_assets':
         client = Client()
         exp = client.get_litpop(country)
@@ -199,25 +200,26 @@ def get_sector_exposure(sector, country):
 
 
 def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interruption=True, calibrated=True):
-    haz_type = HAZ_TYPE_LOOKUP[hazard]
+    # haz_type = HAZ_TYPE_LOOKUP[hazard]
 
     if not business_interruption or sector in ['agriculture', 'economic_assets']:
         sector_bi = None
     else:
         sector_bi = sector
 
-    if haz_type == 'TC' and sector == 'agriculture':
+    if hazard == 'tropical_cyclone' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
-    if haz_type == 'TC':
+    if hazard == 'tropical_cyclone':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated)])
-    if haz_type == 'RF':
+    if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi)])
-    if haz_type == 'WF':
+    if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi)])
-    if haz_type == 'WS':
+    if hazard == 'storm_europe':
         return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
-    if haz_type == 'RC':
-        return agriculture.get_impf_set()
+    if hazard.startswith('relative_crop_yield'):
+        _, crop_type = agriculture.split_agriculture_hazard(hazard)
+        return agriculture.get_impf_set(crop_type)
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
@@ -240,7 +242,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
     else:
         fun_id = impf_ids[region]
         impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
-    
+
     impf.id = 1
     if not sector_bi:
         return impf
@@ -352,22 +354,25 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         )
         return haz
 
-    elif haz_type == "relative_crop_yield":
+    elif haz_type.startswith("relative_crop_yield"):
+        _, crop_type = agriculture.split_agriculture_hazard(haz_type)
         # TODO currently always returns the same hazard
         if scenario == 'None' and ref_year == "historical":
             return agriculture.get_hazard(
                 country=country_iso3alpha,
                 year_range="1971_2001",
-                scenario="historical"
+                scenario="historical",
+                crop_type=crop_type
             )
         else:
             return agriculture.get_hazard(
                 country=country_iso3alpha,
                 year_range="2006_2099",
-                scenario=scenario
+                scenario=scenario,
+                crop_type=crop_type
             )
     else:
         raise ValueError(
-            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
+            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP)}'
         )
 

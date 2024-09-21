@@ -176,9 +176,36 @@ CONFIG5 = {
 
     "runs": [
         {
-            "hazard": "relative_crop_yield",
-            "sectors": ["agriculture"],
+            "hazard": "relative_crop_yield_whe",
+            "sectors": ["agriculture_whe"],
             "countries": ['Canada','Egypt', 'Portugal','Pakistan','Armenia','Belarus','Peru'],
+            "scenario_years": [
+                {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp60", "ref_year": "future"},
+            ]
+        },
+        {
+            "hazard": "relative_crop_yield_ric",
+            "sectors": ["agriculture_ric"],
+            "countries": ['Canada', 'Egypt', 'Portugal', 'Pakistan', 'Armenia', 'Belarus', 'Peru'],
+            "scenario_years": [
+                {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp60", "ref_year": "future"},
+            ]
+        },
+        {
+            "hazard": "relative_crop_yield_soy",
+            "sectors": ["agriculture_soy"],
+            "countries": ['Canada', 'Egypt', 'Portugal', 'Pakistan', 'Armenia', 'Belarus', 'Peru'],
+            "scenario_years": [
+                {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp60", "ref_year": "future"},
+            ]
+        },
+        {
+            "hazard": "relative_crop_yield_ric",
+            "sectors": ["agriculture_ric"],
+            "countries": ['Canada', 'Egypt', 'Portugal', 'Pakistan', 'Armenia', 'Belarus', 'Peru'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 {"scenario": "rcp60", "ref_year": "future"},

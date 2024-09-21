@@ -431,6 +431,11 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
         try:
             LOGGER.info(f"Calculating indirect {io_a} impacts for {logging_dict}...")
             imp = Impact.from_hdf5(row['yearset_path'])
+
+            # Strip the crop type from the sector name, as they are not in the sector list of the MRIO table
+            impacted_sector = "agriculture" if "agriculture" in row['sector'] else row['sector']
+
+
             if not imp.at_event.any():
                 # TODO return an object with zero losses so that there's data
                 LOGGER.info("No non-zero impacts. Skipping")
@@ -438,7 +443,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
             supchain = supply_chain_climada(
                 get_sector_exposure(sector=row['sector'], country=row['country']),
                 imp,
-                impacted_sector=row['sector'],
+                impacted_sector=impacted_sector,
                 io_approach=io_a
             )
             # save direct impacts to a csv
@@ -446,7 +451,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
             dump_direct_to_csv(
                 supchain=supchain,
                 haz_type=row['hazard'],
-                sector=row['sector'],
+                sector=impacted_sector,
                 scenario=row['scenario'],
                 ref_year=row['ref_year'],
                 country=row['country'],
@@ -459,7 +464,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
             dump_supchain_to_csv(
                 supchain=supchain,
                 haz_type=row['hazard'],
-                sector=row['sector'],
+                sector=impacted_sector,
                 scenario=row['scenario'],
                 ref_year=row['ref_year'],
                 country=row['country'],
@@ -544,6 +549,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from run_configurations.test_config import CONFIG  # change here to test_config if needed
+    from run_configurations.test_config import CONFIG5  # change here to test_config if needed
 
-    run_pipeline_from_config(CONFIG)
+    run_pipeline_from_config(CONFIG5)
