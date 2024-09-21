@@ -16,6 +16,6 @@ setup(
         'climada',
         'climada_petals @ git+https://github.com/CLIMADA-project/climada_petals.git@v5.0.0'
     ],
-    packages=['nccs'],
+    packages=find_packages(),
     include_package_data=True
 )
