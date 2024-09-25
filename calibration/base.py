@@ -4,6 +4,16 @@
 # The module has the same name as the ones it is replacing, and the classes have the same names with 'NCCS' prepended.
 
 import pandas as pd
+import numpy as np
+import functools
+import copy
+import json
+import os
+import logging
+import hashlib
+import time
+from datetime import timedelta
+from collections import namedtuple
 from pathlib import Path
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -13,6 +23,12 @@ from numbers import Number
 from climada.util.calibrate.base import Output, ConstraintType, OutputEvaluator
 
 from analysis import run_pipeline_from_config
+from utils.folder_naming import get_direct_output_dir
+
+ROUND_DECIMALS = 6   # Number of decimal places to round parameters to when storing them as keys
+
+LOGGER = logging.getLogger(__name__)
+
 
 @dataclass
 class NCCSInput:
@@ -55,6 +71,11 @@ class NCCSInput:
     cost_func: Callable[[pd.DataFrame, pd.DataFrame], Number]
     bounds: Optional[Mapping[str, Union[Bounds, Tuple[Number, Number]]]] = None
     constraints: Optional[Union[ConstraintType, list[ConstraintType]]] = None
+    linear_param: Optional[str] = None
+
+    def __post_init__(self):
+        LOGGER.debug(f'Creating the NCCSInput object')
+        self.nonlinear_params = list(set(self.bounds.keys()).difference({self.linear_param}))
 
 
 
@@ -83,6 +104,22 @@ class NCCSOptimizer(ABC):
     """
 
     input: NCCSInput
+
+    def __post_init__(self):
+        # If our objective function is linear in one parameter, we want to cache things
+        # TODO make this an a proper in-memory database
+        # TODO or should the cache be inside the NCCSBayesianOptimizer where param combinations are registered? It would be a bigger rewrite
+        if self.input.linear_param:
+            LOGGER.debug('Initialising an NCCSOptimizer with a cache')
+            self.cache_enabled = True
+            self.cache_keys = sorted(self.input.nonlinear_params)
+            self.cache = dict()
+        else:
+            LOGGER.debug('Initialising an NCCSOptimizer without a cache')
+            self.cache_enabled = None
+            self.cache_keys = None
+            self.cache = None
+        
 
     def _target_func(self, data: pd.DataFrame, predicted: pd.DataFrame) -> Number:
         """Target function for the optimizer
@@ -144,16 +181,100 @@ class NCCSOptimizer(ABC):
         -------
         Target function value for the given arguments
         """
+
         # Create the impact functions from a new parameter estimate and write to file
         params = self._kwargs_to_parameter_dict(*args, **kwargs)
-        self.input.config['parameters'] = params
-        self.input.write_impact_functions(**params)
+        config = copy.deepcopy(self.input.config)
+        config['parameters'] = params
+
+        # 8-digit string to identify the run. (There's a chance we'll get repeated identifiers like this but it's not the end of the world if that happens)
+        rounded_params = self._round_param_values(config['parameters'])
+        rounded_params_str = json.dumps(rounded_params, sort_keys=True)
+        run_hash = hashlib.sha256(rounded_params_str.encode('utf-8')).hexdigest()[-8:]
+        config['run_title'] = config['run_title'] + run_hash
+        results_path = Path(get_direct_output_dir(config['run_title']), 'reproduced_obs.csv') 
+
+
+        # If it's already in the cache but with a different linear variable:
+        if self.cache_enabled:
+            results = self.read_from_cache(params)
+        else:
+            results = None
+
+        # If we've run this before
+        if results is None and os.path.exists(results_path):
+            LOGGER.debug(f'Reading previous model output for this parameter combination')
+            # TODO add a check that the parameters in the output file match, just in case we get a hash clash
+            results = pd.read_csv(results_path)
+            if self.cache:
+                self.add_to_cache(params, results)
 
         # Run the modelling chain
-        results = self.input.return_period_impacts_from_config(self.input.config)
+        if results is None:
+            LOGGER.debug(f'This run has no previous data saved to disk or cache: we will run the modelling chain. Run title {config["run_title"]}')
+            start_time = time.monotonic()
+            LOGGER.debug('Writing new impact functions')
+            self.input.write_impact_functions(**params)
+            LOGGER.debug('Running the pipeline and getting results')
+            results = self.input.return_period_impacts_from_config(config)
+            LOGGER.debug(f'Saving results to disk: {results_path}')
+            results.to_csv(results_path, index=False)
+            if self.cache_enabled:
+                LOGGER.debug(f'Saving results to cache')
+                self.add_to_cache(params, results)
+            end_time = time.monotonic()
+            run_time = timedelta(seconds=end_time - start_time)
+            LOGGER.info(f'Model pipeline execution took {str(run_time)}')
 
         # Compute cost function
         return self._target_func(results, self.input.data)
+
+
+    def add_to_cache(self, params: Mapping[str, Number], results: pd.DataFrame) -> None:
+        params_rounded = self._round_param_values(params)
+        linear_param_rounded = params_rounded[self.input.linear_param]
+        key = self._cache_keys_from_params(params_rounded)
+        if key in self.cache:
+            raise ValueError(f'This already exists in the cache. Why are we writing? Downgrade this to a warning if inevitable sometimes. Params: {params_rounded}')
+        self.cache[key] = {linear_param_rounded: results}
+
+
+    def read_from_cache(self, params: Mapping[str, Number], result_colname: str = 'impact') -> pd.DataFrame:
+        params_rounded = self._round_param_values(params)
+        linear_param_rounded = params_rounded[self.input.linear_param]
+
+        key = self._cache_keys_from_params(params_rounded)
+
+        if not key in self.cache:
+            return None
+        results = copy.deepcopy(self.cache[key])
+        if len(results) != 1:
+            raise ValueError(f'Somehow there are two cached results for params {key}: keys {results.keys()}')
+
+        saved_linear_param = list(results.keys())[0]
+        results = results[saved_linear_param]
+        if saved_linear_param == 0:
+            raise ValueError('We accidentally saved a run where the linear parameter has value 0')
+
+        scaling_factor = params[self.input.linear_param] / saved_linear_param
+        if scaling_factor > 10000:
+            LOGGER.warning(f'We see a large scaling factor of {scaling_factor} compared to the results. Be careful. Consider setting the bounds for the linear variable > 0')
+        results[result_colname] = scaling_factor * results[result_colname]
+        LOGGER.debug(f'...results found in cache. Scaling factor: {scaling_factor}')
+        return results
+
+
+    def _cache_keys_from_params(self, params: Mapping[str, Number]):
+        if len(self.input.nonlinear_params) == 1:
+            return params[self.input.nonlinear_params[0]]
+        sorted_keys = sorted(self.input.nonlinear_params)
+        return tuple([params[k] for k in sorted_keys])
+
+
+    @staticmethod
+    def _round_param_values(params) -> Dict[str, float]:
+        return {key: np.round(value, decimals=ROUND_DECIMALS) for key, value in params.items()}
+    
 
     @abstractmethod
     def run(self, **opt_kwargs) -> NCCSOutput:
