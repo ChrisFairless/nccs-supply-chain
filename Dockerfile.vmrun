@@ -10,8 +10,6 @@ RUN apt-get install -y software-properties-common && apt-get update
 RUN add-apt-repository ppa:deadsnakes/ppa
 RUN apt-get update && apt-get install -y python3.9 python3.9-dev python3-pip git wget
 
-#COPY requirements /app/requirements
-#COPY mamba_setup.sh mamba_setup.sh
 COPY . .
 
 SHELL ["/bin/bash", "-c"]
