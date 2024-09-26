@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from copy import deepcopy
 from sklearn.metrics import root_mean_squared_error
 
 from .interpolate_return_periods import interpolate_return_periods
@@ -25,6 +26,7 @@ def rp_rmse(rp_model, rp_obs):
 
 
 def merge_outputs_and_obs(rp_model, rp_obs):
+    rp_model, rp_obs = deepcopy(rp_model), deepcopy(rp_obs)
     rp_model = interpolate_return_periods(rp_model, rp_obs)
     rp_model = rp_model[['country', 'rp', 'impact']].rename(columns={'impact': 'model'})
     rp_obs = rp_obs[['country', 'rp', 'impact']].rename(columns={'impact': 'obs'})
@@ -38,10 +40,11 @@ def merge_outputs_and_obs(rp_model, rp_obs):
     # This is because the criteria for inclusion in EM-DAT is kind of vague, and many event sets include events much 
     # too small for EM-DAT to find interesting, and often they will occur in the same year as an EM-DAT event, and 
     # therefore in the same footprint
-    rp = pd.merge(rp_obs, rp_model, how="left", on=['country', 'rank'])
+    rp = pd.merge(rp_obs, rp_model, how="left", on=['country', 'rank']).rename(columns={'rp_x': 'rp'}).drop(columns=['rp_y', 'rank'])
     return rp
 
 
+# unused
 def rp_rmse_choose_scale(rp_model, rp_obs, scale_bounds=[0, 1]):
     rp = merge_outputs_and_obs(rp_model, rp_obs)    
     assert not np.any(pd.isna(rp['model']))  # There should at least be modelled zero values for every country
