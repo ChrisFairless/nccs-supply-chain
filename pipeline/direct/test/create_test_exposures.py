@@ -14,7 +14,7 @@ def test_exposures():
     # data['deductible'] = np.array([1, 2, 3])
     data['impf_TC'] = np.array([1, 1, 1])
     # data['category_id'] = np.array([1, 2, 3])
-    data['region_id'] = np.array([1, 2, 3])
+    data['region_id'] = np.array([192, 192, 192])
     # data['centr_TC'] = np.array([1, 2, 3])
 
     exp = Exposures(gpd.GeoDataFrame(data=data))

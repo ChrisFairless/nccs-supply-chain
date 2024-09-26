@@ -235,9 +235,9 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
         return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
     if haz_type == 'RC':
         return agriculture.get_impf_set()
+    if haz_type == 'test':
+        return ImpactFuncSet([test_impf()])
     raise ValueError(f'No impact functions defined for hazard {hazard}')
-    elif haz_type == 'test':
-        impf = test_impf()
 
 
 
@@ -385,6 +385,10 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 year_range="2006_2099",
                 scenario=scenario
             )
+
+    elif haz_type == "test":
+        return test_hazard()
+        
     else:
         raise ValueError(
             f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
