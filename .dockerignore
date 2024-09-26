@@ -1,9 +1,10 @@
 venv
 .git
-exosures
-pipeline
+#exosures
+#pipeline
 results_row_adjusted
 docs
 climada_petals
 .idea
 .vscode
+.env

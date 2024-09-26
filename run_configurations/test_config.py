@@ -38,6 +38,8 @@ CONFIG = {
             "countries": ['United States', 'Ireland', 'Japan', 'Taiwan, Province of China', 'China', 'Korea, Republic of'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp26", "ref_year": "2060"},
+                {"scenario": "rcp85", "ref_year": "2060"},
             ]
         }
     ]
