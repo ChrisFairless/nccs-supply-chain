@@ -143,7 +143,7 @@ class NCCSOptimizer(ABC):
         -------
         The value of the target function for the optimizer.
         """
-        return self.input.cost_func(data, predicted)
+        return -self.input.cost_func(data, predicted)
 
     def _kwargs_to_parameter_dict(self, *_, **kwargs) -> Dict[str, Any]:
         """Define how the parameters to :py:meth:`_opt_func` must be transformed
