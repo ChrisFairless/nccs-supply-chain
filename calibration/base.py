@@ -192,14 +192,12 @@ class NCCSOptimizer(ABC):
 
 
         # 8-digit string to identify the run. (There's a chance we'll get repeated identifiers like this but it's not the end of the world if that happens)
-        rounded_params = self._round_param_values(config['parameters'])
-        rounded_params_str = json.dumps(rounded_params, sort_keys=True)
-        run_hash = hashlib.sha256(rounded_params_str.encode('utf-8')).hexdigest()[-8:]
+        run_hash = self.hash_params(params)
         config['run_title'] = config['run_title'] + run_hash
 
         direct_output_dir = folder_naming.get_direct_output_dir(config['run_title'])
         indirect_output_dir = folder_naming.get_indirect_output_dir(config['run_title'])
-        results_path = Path(direct_output_dir, 'reproduced_obs.csv') 
+        results_path = Path(direct_output_dir, 'reproduced_obs.csv')
 
         # If it's already in the cache but with a different linear variable:
         if self.cache_enabled:
@@ -295,9 +293,14 @@ class NCCSOptimizer(ABC):
 
 
     @staticmethod
-    def _round_param_values(params) -> Dict[str, float]:
+    def _round_param_values(params: Mapping[str, Number]) -> Dict[str, float]:
         return {key: np.round(value, decimals=ROUND_DECIMALS) for key, value in params.items()}
     
+    @staticmethod
+    def hash_params(params: Mapping[str, Number]) -> str:
+        rounded_params = NCCSOptimizer._round_param_values(params)
+        rounded_params_str = json.dumps(rounded_params, sort_keys=True)
+        return hashlib.sha256(rounded_params_str.encode('utf-8')).hexdigest()[-8:]
 
     @abstractmethod
     def run(self, **opt_kwargs) -> NCCSOutput:
