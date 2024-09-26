@@ -157,7 +157,7 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
     def run(self, controller: NCCSBayesianOptimizerController) -> NCCSBayesianOptimizerOutput:
         LOGGER.debug('Starting the execution of the NCCSBayesianOptimizer')
         start_time = time.monotonic()
-        self.collect_existing_run_data(self.input.config['run_title'])
+        _ = self.collect_existing_run_data(self.input.config['run_title'])
         output = BayesianOptimizer.run(self, controller)
         end_time = time.monotonic()
         run_time = timedelta(seconds=end_time - start_time)
@@ -174,7 +174,7 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
         if os.path.exists(output_dir):
             output_dirs = os.listdir(output_dir)
             LOGGER.info(f'Gathering any data saved from previous runs in {output_dir}')
-            added_to_queue = []
+            existing_run_data = {}
             for di in output_dirs:
                 d = Path(output_dir, di)
                 job_config_path = Path(d, 'indirect', 'config.json')
@@ -186,15 +186,16 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
                     if len(params) != len(self.optimizer._space._keys):
                         LOGGER.info(f'{di}: Uh oh, the model output has a different number of parameters to this config. Have you a different calibration in this folder?. Ignoring this data:')
                         continue
-                    if params in added_to_queue:
+                    if di in existing_run_data.keys():
                         LOGGER.info(f'{di}: We already saw these parameters in a previous folder. Ignoring them: {params}')
                         continue
                     LOGGER.info(f'{di}: Found a folder set up for parameters {params}. Adding to the queue.')
                     self.optimizer.probe(params, lazy=True)
-                    added_to_queue.append(params)
+                    existing_run_data[di] = params
         n_previous_runs = len(self.optimizer._queue)
         LOGGER.debug(f'Found a total of {n_previous_runs} existing outputs (full or partial)')
         self.optimizer.init_points = 0 if n_previous_runs >= 5 else 5 - n_previous_runs
+        return existing_run_data
 
 
 
