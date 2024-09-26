@@ -1,7 +1,7 @@
 import logging
 import os
 import typing
-
+from pathlib import Path
 import boto3
 import dotenv
 import botocore
@@ -54,7 +54,7 @@ def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, Non
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     s3 = get_client()
-    return s3.download_file(
+    s3.download_file(
         BUCKET_NAME,
         s3_filename,
         output_path
@@ -73,27 +73,27 @@ def upload_to_s3_bucket(input_filepath: str, s3_filename: typing.Union[str, None
     if s3_filename is None:
         s3_filename = os.path.basename(input_filepath)
 
-    with get_client() as s3:
-        return s3.upload_file(
-            input_filepath,
-            BUCKET_NAME,
-            s3_filename
-        )
+    s3 = get_client()
+    s3.upload_file(
+        input_filepath,
+        BUCKET_NAME,
+        s3_filename
+    )
 
 def file_exists_on_s3_bucket(s3_filename: str):
-    with get_client() as s3:
-        try:
-            s3.head_object(BUCKET_NAME, s3_filename)
-            return True
-        except botocore.exceptions.ClientError as e:
-            if e.response['Error']['Code'] == "404":
-                # The key does not exist.
-                return False
-            elif e.response['Error']['Code'] == 403:
-                # Unauthorized, including invalid bucket
-                raise ClientError(e)
-            else:
-                raise ClientError(f"Unexpected error in the S3 client: {e}")
+    s3 = get_client()
+    try:
+        s3.head_object(BUCKET_NAME, s3_filename)
+        return True
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            # The key does not exist.
+            return False
+        elif e.response['Error']['Code'] == 403:
+            # Unauthorized, including invalid bucket
+            raise ClientError(e)
+        else:
+            raise ClientError(f"Unexpected error in the S3 client: {e}")
 
 
 def download_complete_csvs_to_results():
@@ -117,6 +117,36 @@ def download_complete_csvs_to_results():
                 outfile = os.path.join(get_output_dir(), filename.replace("results/", ""))
                 logging.info(f"Downloading {filename} to {outfile}")
                 download_from_s3_bucket(filename, outfile)
+
+
+# Upload results all the contents of a folder to S3
+def upload_project_folder_to_s3(path_within_project: typing.Union[str, Path], s3_path: typing.Union[str, Path] = None) -> None:
+    """
+    Uploads a folder and its contents to the S3 bucket.
+    if no s3_path is provided, the relative path of the input file in the project is used.
+
+    :param path_within_project: filepath of the file to upload
+    :param s3_filename: key of the file in the S3 bucket
+    :return:
+    """
+    if not s3_path:
+        s3_path = path_within_project
+    repo_dir = Path(get_output_dir()).parent
+    folder_path = Path(repo_dir, path_within_project)
+    upload_folder_to_s3(path=folder_path, s3_path=s3_path)
+
+
+def upload_folder_to_s3(path: typing.Union[str, Path], s3_path: typing.Union[str, Path]) -> None:
+    for root, dirs, files in os.walk(path):
+        files = [f for f in files if not f[0] == '.']
+        dirs[:] = [d for d in dirs if not d[0] == '.']
+        for f in files:
+            local = Path(root, f)
+            remote = Path(s3_path, local.relative_to(path))
+            print(local)
+            upload_to_s3_bucket(str(local), str(remote))
+
+
 
 
 if __name__ == '__main__':
