@@ -18,7 +18,7 @@ from numbers import Number
 
 from utils.folder_naming import get_output_dir
 from dataclasses import dataclass
-from calibration.base import NCCSOptimizer
+from calibration.base import NCCSOptimizer, NCCSInput
 
 LOGGER = logging.getLogger(__name__)
 
@@ -27,8 +27,34 @@ class NCCSBayesianOptimizerOutput(BayesianOptimizerOutput):
 
 
 class NCCSBayesianOptimizerController(BayesianOptimizerController):
-    pass
+    # Override the from_input method to deal with an input with linear parameters
+    # @classmethod
+    # def from_input(cls, inp: NCCSInput, sampling_base: float = 4, **kwargs):
+    #     """Create a controller from a calibration input
 
+    #     This uses the number of parameters to determine the appropriate values for
+    #     :py:attr:`init_points` and :py:attr:`n_iter`. Both values are set to
+    #     :math:`b^N`, where :math:`b` is the ``sampling_base`` parameter and :math:`N`
+    #     is the number of estimated parameters.
+
+    #     Parameters
+    #     ----------
+    #     inp : Input
+    #         Input to the calibration
+    #     sampling_base : float, optional
+    #         Base for determining the sample size. Increase this for denser sampling.
+    #         Defaults to 4.
+    #     kwargs
+    #         Keyword argument for the default constructor.
+    #     """
+    #     num_params = len(inp.bounds)
+    #     # If one parameter is linear this reduces the complexity
+    #     if inp.linear_param:
+    #         num_params -= 1
+    #     init_points = round(sampling_base**num_params)
+    #     n_iter = round(sampling_base**num_params)
+    #     return cls(init_points=init_points, n_iter=n_iter, **kwargs)
+    pass
 
 # Here we edit the BayesianOptimization in the BayesianOptimization package itself
 # Why? We want to allow the 'probe' method to sample many points at once when 
@@ -145,24 +171,27 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
         job_path_components = run_title_root.split('/')
         job_root = job_path_components[-1]
         output_dir = Path(get_output_dir(), *job_path_components[:-1])
-        output_dirs = os.listdir(output_dir)
-        LOGGER.info(f'Gathering any data saved from previous runs in {output_dir}')
-        added_to_queue = []
-        for di in output_dirs:
-            d = Path(output_dir, di)
-            job_config_path = Path(d, 'indirect', 'config.json')
-            with open(job_config_path) as f:
-                job_config = json.load(f)
-                params = job_config['parameters']
-                if len(params) != len(self.optimizer._space._keys):
-                    LOGGER.info(f'{di}: Uh oh, the model output has a different number of parameters to this config. Have you a different calibration in this folder?. Ignoring this data:')
-                else:
+        if os.path.exists(output_dir):
+            output_dirs = os.listdir(output_dir)
+            LOGGER.info(f'Gathering any data saved from previous runs in {output_dir}')
+            added_to_queue = []
+            for di in output_dirs:
+                d = Path(output_dir, di)
+                job_config_path = Path(d, 'indirect', 'config.json')
+                if not os.path.exists(job_config_path):
+                    continue
+                with open(job_config_path) as f:
+                    job_config = json.load(f)
+                    params = job_config['parameters']
+                    if len(params) != len(self.optimizer._space._keys):
+                        LOGGER.info(f'{di}: Uh oh, the model output has a different number of parameters to this config. Have you a different calibration in this folder?. Ignoring this data:')
+                        continue
                     if params in added_to_queue:
                         LOGGER.info(f'{di}: We already saw these parameters in a previous folder. Ignoring them: {params}')
-                    else:
-                        LOGGER.info(f'{di}: Found a folder set up for parameters {params}. Adding to the queue.')
-                        self.optimizer.probe(params, lazy=True)
-                        added_to_queue.append(params)
+                        continue
+                    LOGGER.info(f'{di}: Found a folder set up for parameters {params}. Adding to the queue.')
+                    self.optimizer.probe(params, lazy=True)
+                    added_to_queue.append(params)
         n_previous_runs = len(self.optimizer._queue)
         LOGGER.debug(f'Found a total of {n_previous_runs} existing outputs (full or partial)')
         self.optimizer.init_points = 0 if n_previous_runs >= 5 else 5 - n_previous_runs

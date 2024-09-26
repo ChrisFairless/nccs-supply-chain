@@ -23,7 +23,8 @@ from numbers import Number
 from climada.util.calibrate.base import Output, ConstraintType, OutputEvaluator
 
 from analysis import run_pipeline_from_config
-from utils.folder_naming import get_direct_output_dir
+from utils import folder_naming
+
 
 ROUND_DECIMALS = 6   # Number of decimal places to round parameters to when storing them as keys
 
@@ -72,6 +73,8 @@ class NCCSInput:
     bounds: Optional[Mapping[str, Union[Bounds, Tuple[Number, Number]]]] = None
     constraints: Optional[Union[ConstraintType, list[ConstraintType]]] = None
     linear_param: Optional[str] = None
+    save_raw_impacts: bool = False
+    save_yearsets: bool = False
 
     def __post_init__(self):
         LOGGER.debug(f'Creating the NCCSInput object')
@@ -187,13 +190,16 @@ class NCCSOptimizer(ABC):
         config = copy.deepcopy(self.input.config)
         config['parameters'] = params
 
+
         # 8-digit string to identify the run. (There's a chance we'll get repeated identifiers like this but it's not the end of the world if that happens)
         rounded_params = self._round_param_values(config['parameters'])
         rounded_params_str = json.dumps(rounded_params, sort_keys=True)
         run_hash = hashlib.sha256(rounded_params_str.encode('utf-8')).hexdigest()[-8:]
         config['run_title'] = config['run_title'] + run_hash
-        results_path = Path(get_direct_output_dir(config['run_title']), 'reproduced_obs.csv') 
 
+        direct_output_dir = folder_naming.get_direct_output_dir(config['run_title'])
+        indirect_output_dir = folder_naming.get_indirect_output_dir(config['run_title'])
+        results_path = Path(direct_output_dir, 'reproduced_obs.csv') 
 
         # If it's already in the cache but with a different linear variable:
         if self.cache_enabled:
@@ -203,7 +209,7 @@ class NCCSOptimizer(ABC):
 
         # If we've run this before
         if results is None and os.path.exists(results_path):
-            LOGGER.debug(f'Reading previous model output for this parameter combination')
+            LOGGER.debug(f'Reading previous model output for this parameter combination: {results_path}')
             # TODO add a check that the parameters in the output file match, just in case we get a hash clash
             results = pd.read_csv(results_path)
             if self.cache:
@@ -213,15 +219,32 @@ class NCCSOptimizer(ABC):
         if results is None:
             LOGGER.debug(f'This run has no previous data saved to disk or cache: we will run the modelling chain. Run title {config["run_title"]}')
             start_time = time.monotonic()
+
+            os.makedirs(direct_output_dir, exist_ok=True)
+            os.makedirs(indirect_output_dir, exist_ok=True)
+
             LOGGER.debug('Writing new impact functions')
             self.input.write_impact_functions(**params)
+
             LOGGER.debug('Running the pipeline and getting results')
             results = self.input.return_period_impacts_from_config(config)
+
             LOGGER.debug(f'Saving results to disk: {results_path}')
             results.to_csv(results_path, index=False)
             if self.cache_enabled:
                 LOGGER.debug(f'Saving results to cache')
                 self.add_to_cache(params, results)
+
+            LOGGER.debug(f'Cleaning up')
+            raw_impacts_dir = Path(direct_output_dir, 'impact_raw')
+            yearsets_dir = Path(direct_output_dir, 'yearsets')
+            if os.path.exists(raw_impacts_dir) and not self.input.save_raw_impacts:
+                for f in os.listdir(raw_impacts_dir):
+                    os.remove(Path(raw_impacts_dir, f))
+            if os.path.exists(yearsets_dir) and not self.input.save_yearsets:
+                for f in os.listdir(yearsets_dir):
+                    os.remove(Path(yearsets_dir, f))
+
             end_time = time.monotonic()
             run_time = timedelta(seconds=end_time - start_time)
             LOGGER.info(f'Model pipeline execution took {str(run_time)}')
