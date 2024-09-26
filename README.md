@@ -163,7 +163,7 @@ This should build the image tagged docker.io/celsiuspro/nccs_vm:tag_name
 
 * copy your aws credentials and config into the vm's ~/.aws folder
 the credentials should have an aws_access_key_id and aws_secret_access_key parameters
-the config should have the default region specified. Same for .venv file.
+the config should have the default region specified. Same for .env file.
 
 * install and login into docker with `docker auth login`
 
