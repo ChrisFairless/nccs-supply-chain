@@ -27,7 +27,8 @@ SECTOR_MAPPING = {
     "chemical": "Manufacturing",
     "rubber_and_plastic": "Manufacturing",
     "non_metallic_mineral": "Mining (Processing)",
-    "refin_and_transform": "Manufacturing"
+    "refin_and_transform": "Manufacturing",
+    "test": "Service"
 }
 
 def get_sector_BI_DRY(sector):

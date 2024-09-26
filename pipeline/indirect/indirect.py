@@ -27,6 +27,7 @@ SUPER_SEC = {
     "waste":[25],
     #service
     "service": list(range(27, 54)), #after interim, construction (26 excluded)
+    "test": [0]
 }
 
 

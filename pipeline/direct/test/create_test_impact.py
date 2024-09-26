@@ -6,9 +6,9 @@ from climada.engine import Impact
 from climada.util.constants import DEF_CRS
 
 # Create simple impact objects for testing
-# Copied from climada.engine.test.test_impact
+# Adapted from climada.engine.test.test_impact
 
-def dummy_impact():
+def test_impact():
     """Return an impact object for testing"""
     return Impact(
         event_id=np.arange(6) + 10,
@@ -29,9 +29,9 @@ def dummy_impact():
         haz_type="TC",
     )
 
-def dummy_impact_yearly():
+def test_impact_yearly():
     """Return an impact containing events in multiple years"""
-    imp = dummy_impact()
+    imp = test_impact()
 
     years = np.arange(2010,2010+len(imp.date))
 
