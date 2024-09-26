@@ -38,6 +38,8 @@ CONFIG = {
             "countries": ['Antigua and Barbuda', 'Turks and Caicos Islands', 'Jamaica', 'Montserrat'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "rcp26", "ref_year": "2060"},
+                {"scenario": "rcp85", "ref_year": "2060"},
             ]
         }
     ]

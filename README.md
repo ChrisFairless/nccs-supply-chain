@@ -72,14 +72,9 @@ git clone https://github.com/ChrisFairless/nccs-supply-chain
 git clone https://github.com/CLIMADA-project/climada_python
 git clone https://github.com/CLIMADA-project/climada_petals
 ```
+
 Note the paths to the directories where they are stored. If you want to work on a different branch to `main`, check out the relevant branches.
 
-Some parts of the NCCS codebase rely on raster functionality that was removed from CLIMADA Core in a recent update. If you don't require the most up-to-date version of the codebase, we recommend checking out version 4.1.0:
-```
-cd <path_to_climada_python_repo>
-git checkout v4.1.0
-cd <path_to_nccs_repo>
-```
 
 2. On the command line, navigate to the nccs-supply-chain repository and create a new environment (here called nccs_dev, you can choose any name):
 
@@ -123,3 +118,69 @@ You should now be ready to go. Any changes you make to your local copy of CLIMAD
 ```
 python -m unittest
 ```
+
+### A note on CLIMADA versions
+
+Some parts of the NCCS repository rely on functionality from different 'periods' of CLIMADA's history.
+
+The above instructions set up CLIMADA as it's required to run the modelling pipeline. This uses CLIMADA 5.0.0 or higher, which is required by the latest tropical cyclone event set (changed from 4.1.0 on 16 Sept 2024).
+
+However, the code used to generate the European Windstorm data depends on version 4.1.0 or earlier. This is _not_ required to run the model pipeline, which uses precalculated windstorm data. It's only relevant if you want to (re)generate windstorm data. 
+
+You can always change versions of CLIMADA (when you have the development environment set up as in these instructions) on the command line:
+```
+cd <path_to_climada_python_repo>
+git checkout v4.1.0
+cd <path_to_nccs_repo>
+```
+The above commands work at any time, before or after installation, since CLIMADA is installed interactively (see below).
+
+Notes:
+- We can't guarantee that changes between CLIMADA versions work 100% of the time, since different versions of CLIMADA have different package dependencies. If this happens, follow these installation instructions again, but check out the correct version of CLIMADA with the above command immediately after Step 1. This way the correct dependencies for that version of CLIMADA will be installed in Step 3.
+- We require CLIMADA Petals <= 5.0.0 at the moment while we work to accomodate a change on the develop branch. As of 16 September v5.0.0 is the latest release, so it is also the main branch.
+
+
+### How to run in a docker
+
+* The Dockerfile.vmrun in the root folder builds an image that can run locally or on a linux vm
+
+### prerequisites ###
+* Docker setup locally
+* AWS credentials in ~/.aws/
+* Bitbucket permissions
+* .env file ro run the container
+
+## build and push a docker image ##
+To build a docker image, choose a tag name and run
+`bash build_vm.sh <tag_name>`.
+This should build the image tagged docker.io/celsiuspro/nccs_vm:tag_name
+
+* Next, push your docker image to docker hub with
+`docker push docker.io/celsiuspro/nccs_vm:<tag_name>`
+
+###  How to run on a Alireza's VM  ###
+* ssh to the vm with your user
+
+* copy your aws credentials and config into the vm's ~/.aws folder
+the credentials should have an aws_access_key_id and aws_secret_access_key parameters
+the config should have the default region specified. Same for .env file.
+
+* install and login into docker with `docker auth login`
+
+* pull your image with `docker pull docker.io/celsiuspro/nccs_vm:<tag_name>`
+
+
+* run your script as follows
+`docker run -v $HOME/.aws:/root/.aws:ro -v ~/Dev/nccs-supply-chain/.env:/app/.env -it celsiuspro/nccs_vm`
+Where the .env first path should be adjusted based on where you saved your .env file on the VM.
+This starts the container. Once inside run mamba env setup with:
+`bash mamba_setup.sh` and activate `mamba activate nncs`
+This sets up the nccs venv correctly. Now you can inside the container add runnable file at the
+project root which can be then run with usual python3 command. Alternatively,
+you can in the docker run command also mount some runnable files and configs you moved to the VM
+already .
+
+### notes ###
+
+* After building / pulling lots of images, untagged images will start to accumulate in your machine and clog it. So it's best to run 
+`docker system prune` once in a while to delete all untagged images

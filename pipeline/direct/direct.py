@@ -9,6 +9,7 @@ import os
 import numpy as np
 import pycountry
 
+from climada.hazard import Hazard
 from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
 from climada.entity import ImpactFunc, ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
@@ -81,6 +82,13 @@ def download_exposure_from_s3(country, file_short):
     exp.check()
     return exp
 
+
+def download_hazard_from_s3(s3_filepath):
+    outputfile=f'{project_root}/resources/{s3_filepath}'
+    download_from_s3_bucket(s3_filepath, outputfile)
+    haz = Hazard.from_hdf5(outputfile)
+    haz.check()
+    return haz
 
 
 def get_sector_exposure(sector, country):
@@ -359,24 +367,11 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
     if haz_type == 'tropical_cyclone':
         client = Client()
         if scenario == 'None' and ref_year == 'historical':
-            return client.get_hazard(
-                'tropical_cyclone',
-                properties={
-                    'country_iso3alpha': country_iso3alpha,
-                    'climate_scenario': 'None',
-                    'event_type': 'synthetic'
-                }
-            )
+            s3_path = f'hazard/tc_wind/historical/tropcyc_{country_iso3alpha}_historical.hdf5'
         else:
-            return client.get_hazard(
-                'tropical_cyclone',
-                properties={
-                    'country_iso3alpha': country_iso3alpha,
-                    'climate_scenario': scenario,
-                    'ref_year': str(ref_year),
-                    'event_type': 'synthetic'
-                }
-            )
+            s3_path = f'hazard/tc_wind/{scenario}_{ref_year}/tropcyc_150arcsec_25synth_{country_iso3alpha}_1980_to_2023_{scenario}_{ref_year}.hdf5'
+        return download_hazard_from_s3(s3_path)
+
     elif haz_type == 'river_flood':
         client = Client()
         if scenario == 'None' and ref_year == 'historical':
