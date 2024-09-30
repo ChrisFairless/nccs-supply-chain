@@ -47,13 +47,6 @@ IS_HAZ_WET = {
     'test': 'dry'  # for dry runs
 }
 
-IS_HAZ_WET = {
-    'tropical_cyclone': 'dry',
-    'river_flood': 'wet',
-    'wildfire': 'dry',
-    'storm_europe': 'dry',
-}
-
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
@@ -240,7 +233,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     elif haz_type == 'WS':
         impf = get_impf_stormeurope(country_iso3alpha, calibrated)
     elif haz_type == 'test':
-        impf = test_impf()
+        impf = get_impf_test(calibrated)
     else:
         ValueError(f'No impact functions defined for hazard {hazard}')
     
@@ -362,6 +355,22 @@ def get_sector_impf_stormeurope(sector_bi, calibrated=True):
     raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
 
 
+def get_impf_test(calibrated):
+    if calibrated and calibrated != 1:
+        calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'test', 'custom.csv')
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+        if set(calibrated_impf_parameters.columns) == {'scale', 'v_half', 'v_thresh'}:
+            assert(calibrated_impf_parameters.shape[0] == 1)
+            impf = ImpfTropCyclone.from_emanuel_usa(
+                scale=calibrated_impf_parameters.loc[0, 'scale'],
+                v_thresh=calibrated_impf_parameters.loc[0, 'v_thresh'],
+                v_half=calibrated_impf_parameters.loc[0, 'v_half']
+            )
+            impf.id=1
+            return impf
+        raise ValueError('Test impfs are only ready to work with sigmoid impact function custom files')
+    return test_impf()
+
 
 # for wildfire, not sure if it is working
 def get_sector_impf_wf(sector_bi):
@@ -448,9 +457,8 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
 
     elif haz_type == "test":
         return test_hazard()
-        
+
     else:
         raise ValueError(
             f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
         )
-
