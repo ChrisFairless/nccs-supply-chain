@@ -6,14 +6,14 @@ from climada.hazard import Hazard, Centroids
 # Copied from the CLIMADA testing suite
 
 def test_hazard():
-    fraction = sparse.csr_matrix([[0.02, 0.03, 0.04],
-                                  [0.01, 0.01, 0.01],
-                                  [0.3, 0.1, 0.0],
-                                  [0.3, 0.2, 0.0]])
-    intensity = sparse.csr_matrix([[0.2, 0.3, 0.04],
+    fraction = sparse.csr_matrix([[0.1, 0.1, 0.1],
+                                  [1, 1, 1],
+                                  [1, 1, 1],
+                                  [1, 1, 1]])
+    intensity = sparse.csr_matrix([[1, 1, 1],
                                    [0.0, 0.0, 0.0],
-                                   [0.8, 0.6, 0.6],
-                                   [1.0, 0.3, 0.0]])
+                                   [0.5, 0.5, 0.5],
+                                   [1, 1, 1]])
 
     return Hazard(
         "TC",
