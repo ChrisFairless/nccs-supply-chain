@@ -47,6 +47,15 @@ IS_HAZ_WET = {
     'test': 'dry'  # for dry runs
 }
 
+HAZ_N_YEARS = {
+    'tropical_cyclone': 43 * 26 ,
+    'river_flood': 920,
+    'wildfire': 0,
+    'storm_europe': 3030,
+    'relative_crop_yield': 166,
+    'test': 4
+}
+
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry

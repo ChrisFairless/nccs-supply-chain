@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import logging
 from scipy import sparse
 from functools import reduce
 
@@ -7,6 +8,7 @@ from climada.entity import Exposures
 from climada.engine import Impact, ImpactCalc
 from climada.util import yearsets
 
+LOGGER = logging.getLogger(__name__)
 
 # THIS IS A QUICK FIX FOR A MORE COMPLEX PROBLEM
 # CLIMADA's yearsets currently generate years of data through a Poisson process. That is, the number of 'events' in a 
@@ -58,6 +60,8 @@ def yearset_from_imp(imp, n_sim_years, cap_exposure=1, seed=None):
         lam = 1 
     else:
         lam = np.sum(imp.frequency)
+        LOGGER.info('Correcting TC event frequencies: once these have been update by Samuel this can be removed')
+        lam = lam * 25 / 26
     
     yimp, samp_vec = yearsets.impact_yearset(
         imp,
