@@ -22,8 +22,11 @@ from calibration.base import NCCSOptimizer, NCCSInput
 
 LOGGER = logging.getLogger(__name__)
 
+
+@dataclass
 class NCCSBayesianOptimizerOutput(BayesianOptimizerOutput):
-    pass
+    def get_optimal_params(self):
+        return self.p_space_to_dataframe().sort_values(("Calibration", "Cost Function"), ascending=True)['Parameters'].iloc[0, :].to_dict()
 
 
 class NCCSBayesianOptimizerController(BayesianOptimizerController):
@@ -85,7 +88,7 @@ class NCCSBayesianOptimization(BayesianOptimization):
             LOGGER.debug(f'Adding params to queue (probe method): {params}')
             self._queue.add(params)
         else:
-            if not self.linear_param:
+            if not self.linear_param or len(self.linear_param) == 1:
                 LOGGER.debug(f'Probing params: {params}')
                 self._space.probe(params)
             elif self._how_many_points_at_this_linear_parameter(params) >= 1000:
@@ -159,6 +162,11 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
         start_time = time.monotonic()
         _ = self.collect_existing_run_data(self.input.config['run_title'])
         output = BayesianOptimizer.run(self, controller)
+        output = NCCSBayesianOptimizerOutput(
+            params=output.params,
+            target=output.target,
+            p_space=output.p_space
+            )
         end_time = time.monotonic()
         run_time = timedelta(seconds=end_time - start_time)
         LOGGER.info(f'Optimisation complete. Time taken: {str(run_time)}')
@@ -171,10 +179,10 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
         job_path_components = run_title_root.split('/')
         job_root = job_path_components[-1]
         output_dir = Path(get_output_dir(), *job_path_components[:-1])
+        existing_run_data = {}
         if os.path.exists(output_dir):
             output_dirs = os.listdir(output_dir)
             LOGGER.info(f'Gathering any data saved from previous runs in {output_dir}')
-            existing_run_data = {}
             for di in output_dirs:
                 d = Path(output_dir, di)
                 job_config_path = Path(d, 'indirect', 'config.json')
@@ -183,8 +191,8 @@ class NCCSBayesianOptimizer(NCCSOptimizer, BayesianOptimizer):
                 with open(job_config_path) as f:
                     job_config = json.load(f)
                     params = job_config['parameters']
-                    if len(params) != len(self.optimizer._space._keys):
-                        LOGGER.info(f'{di}: Uh oh, the model output has a different number of parameters to this config. Have you a different calibration in this folder?. Ignoring this data:')
+                    if not set(params.keys()) == set(self.optimizer._space._keys):
+                        LOGGER.info(f'{di}: Uh oh, the model output in this folder has different keys this config. Have you run a different calibration in this folder?. Ignoring this data. Model: {params.keys()} folder: {self.optimizer._space.keys}'   )
                         continue
                     if di in existing_run_data.keys():
                         LOGGER.info(f'{di}: We already saw these parameters in a previous folder. Ignoring them: {params}')

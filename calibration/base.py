@@ -23,7 +23,7 @@ from numbers import Number
 from climada.util.calibrate.base import Output, ConstraintType, OutputEvaluator
 
 from analysis import run_pipeline_from_config
-from utils import folder_naming
+from utils import folder_naming, delete_results
 
 
 ROUND_DECIMALS = 6   # Number of decimal places to round parameters to when storing them as keys
@@ -122,7 +122,7 @@ class NCCSOptimizer(ABC):
             self.cache_enabled = None
             self.cache_keys = None
             self.cache = None
-        
+
 
     def _target_func(self, data: pd.DataFrame, predicted: pd.DataFrame) -> Number:
         """Target function for the optimizer
@@ -254,6 +254,8 @@ class NCCSOptimizer(ABC):
     def add_to_cache(self, params: Mapping[str, Number], results: pd.DataFrame) -> None:
         params_rounded = self._round_param_values(params)
         linear_param_rounded = params_rounded[self.input.linear_param]
+        if linear_param_rounded == 0:   # Can't use a zero-value linear param
+            return
         key = self._cache_keys_from_params(params_rounded)
         if key in self.cache:
             raise ValueError(f'This already exists in the cache. Why are we writing? Downgrade this to a warning if inevitable sometimes. Params: {params_rounded}')
@@ -263,6 +265,8 @@ class NCCSOptimizer(ABC):
     def read_from_cache(self, params: Mapping[str, Number], result_colname: str = 'impact') -> pd.DataFrame:
         params_rounded = self._round_param_values(params)
         linear_param_rounded = params_rounded[self.input.linear_param]
+        if linear_param_rounded == 0:   # Can't use a zero-value linear param
+            return None
 
         key = self._cache_keys_from_params(params_rounded)
 

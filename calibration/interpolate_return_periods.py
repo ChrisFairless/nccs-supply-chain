@@ -1,5 +1,9 @@
 import numpy as np
+import logging
 import pandas as pd
+
+LOGGER = logging.getLogger(__name__)
+
 
 # Method to take two dataframes of losses by return period and country and interpolate
 # the losses of the first to match the return periods of the second (by country)

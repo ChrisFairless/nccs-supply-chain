@@ -174,7 +174,7 @@ the config should have the default region specified. Same for .env file.
 `docker run -v $HOME/.aws:/root/.aws:ro -v ~/Dev/nccs-supply-chain/.env:/app/.env -it celsiuspro/nccs_vm`
 Where the .env first path should be adjusted based on where you saved your .env file on the VM.
 This starts the container. Once inside run mamba env setup with:
-`bash mamba_setup.sh` and activate `mamba activate nncs`
+`bash mamba_setup.sh` and activate `mamba activate nccs`
 This sets up the nccs venv correctly. Now you can inside the container add runnable file at the
 project root which can be then run with usual python3 command. Alternatively,
 you can in the docker run command also mount some runnable files and configs you moved to the VM
