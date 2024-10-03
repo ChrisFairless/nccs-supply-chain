@@ -88,7 +88,7 @@ class NCCSBayesianOptimization(BayesianOptimization):
             LOGGER.debug(f'Adding params to queue (probe method): {params}')
             self._queue.add(params)
         else:
-            if not self.linear_param or len(self.linear_param) == 1:
+            if not self.linear_param:
                 LOGGER.debug(f'Probing params: {params}')
                 self._space.probe(params)
             elif self._how_many_points_at_this_linear_parameter(params) >= 1000:

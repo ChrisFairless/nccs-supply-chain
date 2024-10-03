@@ -1,16 +1,18 @@
 import numpy as np
 import pandas as pd
+import logging
 from copy import deepcopy
 from sklearn.metrics import root_mean_squared_error
 
-from .interpolate_return_periods import interpolate_return_periods
+from calibration.interpolate_return_periods import interpolate_return_periods
+
+LOGGER = logging.getLogger(__name__)
 
 # Cost function to quantify the difference between modelled and observed model return periods
 
 def rp_rmse(rp_model, rp_obs):
     #Align return periods so that modelled data matches observations
     rp = merge_outputs_and_obs(rp_model, rp_obs)
-    assert not np.any(pd.isna(rp['model']))  # There should at least be modelled zero values for every country
     
     # DECISION: we use the root mean square error to evaluate model performance (not the log). This means that errors
     # from small events aren't very important and errors from large events dominate the cost function. This is what 
@@ -21,6 +23,14 @@ def rp_rmse(rp_model, rp_obs):
 
     # DECISION: all events are weighted equally. That means that countries with more events have a stronger effect on 
     # the calibration
+
+    # DECISION: countries with observations where the model doesn't produce data are ignored. Another option would 
+    # be to assume they have modelled values of zero, but our data coverage is a bit patchy so this is probably a 
+    # bad idea
+
+    rp = rp.dropna(subset=['model'])
+    if rp.shape[0] == 0:
+        raise ValueError('No non-missing modelled values to compare to input observations.')
 
     return root_mean_squared_error(y_true=rp['obs'], y_pred=rp['model'], sample_weight=None)
 
@@ -40,7 +50,7 @@ def merge_outputs_and_obs(rp_model, rp_obs):
     # This is because the criteria for inclusion in EM-DAT is kind of vague, and many event sets include events much 
     # too small for EM-DAT to find interesting, and often they will occur in the same year as an EM-DAT event, and 
     # therefore in the same footprint
-    rp = pd.merge(rp_obs, rp_model, how="left", on=['country', 'rank']).rename(columns={'rp_x': 'rp'}).drop(columns=['rp_y', 'rank'])
+    rp = pd.merge(rp_obs, rp_model, how="left", on=['country', 'rank']).rename(columns={'rp_x': 'rp'}).drop(columns=['rp_y', 'rank'])    
     return rp
 
 

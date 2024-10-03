@@ -18,22 +18,38 @@ def interpolate_return_periods(rp_input, rp_target, left=np.nan, right=np.nan):
 
         # Deal with no modelled impacts
         if rp_input_country.shape[0] == 0:
-            raise ValueError(f'Need to deal with no modelled events . Country {country}')
+            output.append(
+                pd.DataFrame(dict(
+                    country = country,
+                    rp = rp_target_country['rp'],
+                    impact = np.nan
+                ))
+            )
         
-        output.append(
-            pd.DataFrame(dict(
-                country = country,
-                rp = rp_target_country['rp'],
-                impact = np.interp(
-                    x = np.array(rp_target_country['rp']),
-                    xp = np.array(rp_input_country['rp']),
-                    fp = np.array(rp_input_country['impact']),
-                    left=left,
-                    right=right
-                )
-            ))
-        )
+        else:
+            output.append(
+                pd.DataFrame(dict(
+                    country = country,
+                    rp = rp_target_country['rp'],
+                    impact = np.interp(
+                        x = np.array(rp_target_country['rp']),
+                        xp = np.array(rp_input_country['rp']),
+                        fp = np.array(rp_input_country['impact']),
+                        left=left,
+                        right=right
+                    )
+                ))
+            )
     
-    # print('output')
-    # print(output)
-    return pd.concat(output)
+    rp = pd.concat(output)
+
+    missing_countries_all_df = rp.groupby('country')[['impact']].apply(lambda x: x.isnull().all())
+    missing_countries_any_df = rp.groupby('country')[['impact']].apply(lambda x: x.isnull().any())
+    missing_countries_all = missing_countries_all_df[missing_countries_all_df['impact'] > 0].index.tolist()
+    missing_countries_any = missing_countries_any_df[missing_countries_any_df['impact'] > 0].index.tolist()
+    if len(missing_countries_all) > 0:
+        LOGGER.warning(f'The cost calculation had no modelled reproductions of observations for {len(missing_countries_all)} countries: {missing_countries_all}')
+    elif len(missing_countries_any) > 0:
+        LOGGER.warning(f'The cost calculation had missing modelled reproductions of observations for {len(missing_countries_any)} countries: {missing_countries_any}')
+
+    return rp

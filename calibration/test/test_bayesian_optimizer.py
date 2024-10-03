@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import logging
 import pycountry
+import os
 from pathlib import Path
 from calibration.bayesian_optimizer import NCCSBayesianOptimization, NCCSBayesianOptimizerController, NCCSBayesianOptimizer
 from calibration.base import NCCSInput, NCCSOptimizer
@@ -139,38 +140,43 @@ class TestNCCSOptimizer(unittest.TestCase):
         self.assertTrue(abs(optimal['m'] - 1) < 0.01)     
         self.assertTrue(optimal['c'] < 0.01) 
         n_iters = output.p_space_to_dataframe().shape[0]
-        output_folders = os.listdir(Path(get_output_dir("unittest_calibration/linear/")))
+        output_folders = [d for d in os.listdir(Path(get_output_dir(), "unittest_calibration/linear/")) if d[0:4] == 'test']
         self.assertEqual(n_iters, len(output_folders))
         for d in output_folders:
-            self.assertTrue(os.path.exists(Path(d, 'direct', 'reproduced_obs.csv')))
-
+            output_location = Path(get_output_dir(), "unittest_calibration/linear/", d, 'direct', 'reproduced_obs.csv')
+            self.assertTrue(os.path.exists(output_location))
 
 
     def test_we_can_set_linear_params(self):
-        _, optimal = run_linear_calibration(linear_param = 'm')
+        output, optimal = run_linear_calibration(linear_param = 'm')
         self.assertTrue(abs(optimal['m'] - 1) < 0.01)     
         self.assertTrue(optimal['c'] < 0.01)     
         n_iters = output.p_space_to_dataframe().shape[0]
-        output_folders = os.listdir(Path(get_output_dir("unittest_calibration/linear/")))
-        self.assertTrue(n_iters > len(output_folders))
+        output_folders = [d for d in os.listdir(Path(get_output_dir(), "unittest_calibration/linear/")) if d[0:4] == 'test']
+        self.assertTrue(n_iters > 2 * len(output_folders))
         for d in output_folders:
-            self.assertTrue(os.path.exists(Path(d, 'direct', 'reproduced_obs.csv')))
+            output_location = Path(get_output_dir(), "unittest_calibration/linear/", d, 'direct', 'reproduced_obs.csv')
+            self.assertTrue(os.path.exists(output_location))
 
 
-    def test_we_can_run_twice_in_the_same_folder(self):
+    def test_we_can_run_twice_in_the_same_folder_nonlinear(self):
         output1, optimal1 = run_linear_calibration(linear_param = None)
         n_output_runs1 = output1.p_space_to_dataframe().shape[0]
-        output2, optimal2 = run_linear_calibration(linear_param = None)
+        output2, optimal2 = run_linear_calibration(linear_param = None, delete_existing=False)
         n_output_runs2 = output2.p_space_to_dataframe().shape[0]
         self.assertTrue(abs(optimal2['m'] - 1) < 0.01)     
         self.assertTrue(optimal2['c'] < 0.01)
         self.assertEqual(n_output_runs1, n_output_runs2)
 
-        output3, optimal3 = run_linear_calibration(linear_param = 'm')
-        n_output_runs3 = output3.p_space_to_dataframe().shape[0]
-        self.assertTrue(abs(optimal3['m'] - 1) < 0.01)     
-        self.assertTrue(optimal3['c'] < 0.01)  
-        self.assertEqual(n_output_runs2, n_output_runs3)
+
+    def test_we_can_run_twice_in_the_same_folder_linear(self):
+        output1, optimal1 = run_linear_calibration(linear_param = 'm')
+        n_output_runs1 = output1.p_space_to_dataframe().shape[0]
+        output2, optimal2 = run_linear_calibration(linear_param = 'm', delete_existing=False)
+        n_output_runs2 = output2.p_space_to_dataframe().shape[0]
+        self.assertTrue(abs(optimal2['m'] - 1) < 0.01)     
+        self.assertTrue(optimal2['c'] < 0.01)
+        self.assertEqual(n_output_runs1, n_output_runs2)
 
 
     def test_we_can_calibrate_linear_params(self):
@@ -178,6 +184,9 @@ class TestNCCSOptimizer(unittest.TestCase):
         # output2, optimal2 = run_linear_calibration(linear_param='m', delete_existing=True)
         output1, optimal1 = run_test_pipeline_calibration(linear_param=None, delete_existing=True)
         output2, optimal2 = run_test_pipeline_calibration(linear_param='scale', delete_existing=True)
+        optimal_cost1 = output1.p_space_to_dataframe()[('Calibration', 'Cost Function')].min()
+        optimal_cost2 = output2.p_space_to_dataframe()[('Calibration', 'Cost Function')].min()
+        self.assertTrue(abs(optimal_cost1 - optimal_cost2) / optimal_cost1 < 0.01)
         for v1, v2 in zip(optimal1.values(), optimal2.values()):
             self.assertTrue(abs(v1 - v2) < 0.01)
 
@@ -218,3 +227,7 @@ class TestNCCSOptimizer(unittest.TestCase):
 
     def we_can_handle_countries_with_no_impact(self):
         pass
+
+
+if __name__ == "__main__":
+    unittest.main()
