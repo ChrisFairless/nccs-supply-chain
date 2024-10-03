@@ -110,7 +110,8 @@ class NCCSBayesianOptimization(BayesianOptimization):
     @staticmethod
     def add_points_around_value(x, bounds) -> np.ndarray:
         scaling = bounds[1] - bounds[0]
-        delta = [d**3 for d in np.arange(-1, 1.01, 0.1)]
+        # delta = [d**3 for d in np.arange(-1, 1.01, 0.1)]   # Actually, too many samples slows down the suggest method
+        delta = [-0.1, -0.05, -0.02, 0, 0.02, 0.05, 0.1]
         x_probes = [x + scaling * d for d in delta]
         x_probes = [x] + [p for p in x_probes if (p >= bounds[0] and p <= bounds[1] and p!= x)]
         return x_probes
