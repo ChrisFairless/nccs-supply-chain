@@ -12,6 +12,7 @@ cache*
 *.tif
 *.tiff
 *.png
+*.xlsx
 climada_petals/
 *.nc4
 *.nc4
