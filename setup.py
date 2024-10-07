@@ -4,7 +4,7 @@ setup(
     name='nccs',
     version='0.1',
     description='NCCS Supply Chain module',
-    url='http://github.com/example',
+    url='http://github.com/ChrisFairless/nccs-supply-chain',
     author='NCCS',
     author_email='chrisfairless@hotmail.com',
     license='OSI Approved :: GNU Lesser General Public License v3 (GPLv3)',
