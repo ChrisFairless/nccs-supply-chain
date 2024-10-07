@@ -524,7 +524,7 @@ def get_impact_from_file(filepath: str, use_s3: bool = False):
         filename = os.path.basename(filepath)
         download_from_s3_bucket(s3_filename=filename, output_path=filepath)
         return Impact.from_hdf5(filepath)
-    raise FileExistsError(f"Could not find an impact object at {filepath}")
+    raise FileNotFoundError(f"Could not find an impact object at {filepath}")
 
 
 def write_impact_to_file(imp, filepath: str, use_s3: bool = False):
