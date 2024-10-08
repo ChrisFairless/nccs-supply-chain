@@ -8,7 +8,6 @@ ncpus = pa.helpers.cpu_count() - 1
 
 CONFIG = {
     "run_title": "mvp_test",
-    "n_sim_years": 300,
     "n_sim_years": 300,                     # Number of stochastic years of supply chain impacts to simulate
     "io_approach": ["ghosh", "leontief"],   # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,           # If an intermediate file or output already exists should it be recalculated?
