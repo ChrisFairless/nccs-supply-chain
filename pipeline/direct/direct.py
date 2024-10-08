@@ -358,11 +358,21 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         _, crop_type = agriculture.split_agriculture_hazard(haz_type)
         # TODO currently always returns the same hazard
         if scenario == 'None' and ref_year == "historical":
-            return agriculture.get_hazard(
-                country=country_iso3alpha,
-                year_range="1971_2001",
-                scenario="historical",
-                crop_type=crop_type
+            #For soy, there is another historical period available (due to availability)
+            if crop_type == 'soy':
+                return agriculture.get_hazard(
+                    country=country_iso3alpha,
+                    year_range="1980_2012",
+                    scenario="historical",
+                    crop_type=crop_type
+                )
+            #For the other crop types we use this historical period (due to availability)
+            else:
+                return agriculture.get_hazard(
+                    country=country_iso3alpha,
+                    year_range="1971_2001",
+                    scenario="historical",
+                    crop_type=crop_type
             )
         else:
             return agriculture.get_hazard(
