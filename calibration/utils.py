@@ -36,12 +36,6 @@ def return_period_impacts_from_config(config):
     countries_missing = list(compress(countries, ~imp_exists))
     countries = list(compress(countries, imp_exists))
     if len(countries_missing) > 0:
-        # print(imp_path_country)
-        # print(os.listdir(imp_path_country['Maldives'].parent))
-        # print(os.path.exists(imp_path_country['Maldives']))
-        # print(imp_exists)
-        # print(countries_missing)
-        # print(countries)
         LOGGER.warning(f'No output data found for countries {countries_missing}')
 
     imp_country = [
@@ -68,4 +62,7 @@ def return_period_impacts_from_config(config):
     df['rp'] = df.groupby(['country'])['rank'].transform(lambda x: n_years / x) 
     df = df[['country', 'impact', 'rp']]
     df = df.reset_index()
+    
+    df = df[df['rp'] >= 1]  # save a huge amount of memory by not saving events with very low return periods. Note: this makes the dataset unsuitable for an average annual loss calculation
+    
     return df
