@@ -544,6 +544,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from nccs.run_configurations.test_config import CONFIG  # change here to test_config if needed
+    from run_configurations.config_mvp import CONFIG  # change here to test_config if needed
 
     run_pipeline_from_config(CONFIG)
