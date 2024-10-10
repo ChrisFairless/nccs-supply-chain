@@ -22,6 +22,12 @@ def write_sigmoid_impf_to_file(hazard_type, v_half, scale, v_thresh=25.8):
     impf_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
     impf_df.to_csv(impf_path, index=False)
 
+#Flood uses 2/(1+exp(-x/a))-1 so a is only parameter
+def write_exp_impf_to_file(hazard_type, v_half):
+    impf_df = pd.DataFrame(dict(v_half=[v_half]))
+    impf_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
+    impf_df.to_csv(impf_path, index=False)
+
 
 def return_period_impacts_from_config(config):
     # Run the pipeline
