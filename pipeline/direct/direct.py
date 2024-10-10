@@ -256,7 +256,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     return  ImpactFuncSet([impf])
 
 
-def get_impf_tc(country_iso3alpha, calibrated=True):
+def get_impf_tc(country_iso3alpha, calibrated=True):#TODO: this is the one to change for FL
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
