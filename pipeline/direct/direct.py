@@ -240,7 +240,7 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     elif haz_type == 'WF':
         impf = get_impf_wf()
     elif haz_type == 'WS':
-        impf = get_impf_stormeurope(country_iso3alpha, calibrated)
+        impf = get_impf_stormeurope(calibrated)
     elif haz_type == 'test':
         impf = get_impf_test(calibrated)
     else:
@@ -341,7 +341,7 @@ def get_impf_rf(country_iso3alpha, calibrated=True):
     raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
 
 
-def get_sector_impf_stormeurope(sector_bi, calibrated=True):
+def get_impf_stormeurope(calibrated=True):
     impf = ImpfStormEurope.from_schwierz()
     if not calibrated:
         return impf
@@ -351,14 +351,18 @@ def get_sector_impf_stormeurope(sector_bi, calibrated=True):
         return impf
 
     # Custom impact function
-    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
-    if not os.path.exists(calibrated_impf_parameters_file):
-        return impf
+    calibrated_impf_file = Path(get_resources_dir(), 'impact_functions', 'storm_europe', 'custom.csv')
+    calibrated_impf_df = pd.read_csv(calibrated_impf_parameters_file)
 
-    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
-    if set(calibrated_impf_parameters.columns) == {'x_scale', 'y_scale', 'x_translate'}:
-        x_scale, y_scale, x_translate = calibrated_impf_parameters.loc[0, 'x_scale'], calibrated_impf_parameters.loc[0, 'y_scale'], calibrated_impf_parameters.loc[0, 'x_translate']
-        return impf_linear_transform(impf, x_scale, y_scale, x_translate)
+    if set(calibrated_impf_df.columns) == {'id', 'intensity', 'mdd', 'paa'}:
+        return ImpactFunc(
+            name = 'Scaled ' + impf.name,
+            id = impf.id,
+            intensity_unit = impf.intensity_unit,
+            intensity = df['intensity'],
+            paa = df['paa'],
+            mdd = df['mdd']
+        )
 
     # TODO extend with other ways of specifying calibrations
     raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")

@@ -23,6 +23,28 @@ def write_sigmoid_impf_to_file(hazard_type, v_half, scale, v_thresh=25.8):
     impf_df.to_csv(impf_path, index=False)
 
 
+def write_scaled_impf_to_file(hazard_type, impf, translate = 0, scale = 1):
+    if np.any(scale * impf.mdd > 1):
+        raise ValueError(f'The chosen scaling of {scale} takes MDD above 100%. TODO: code around this')
+    scaled_impf = ImpactFunc(
+        name = "Scaled " + impf.name,
+        id = 1,
+        intensity_unit = impf.intensity_unit,
+        intensity = impf.intensity + translate,
+        paa = impf.paa,
+        mdd = scale * mdd
+    )
+    scaled_impf.check()
+    df = pd.DataFrame(dict(
+        id = scaled_impf.id,
+        intensity = scaled_impf.intensity,
+        paa = scaled_impf.paa,
+        mdd = scaled_impf.mdd
+    ))
+    output_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
+    df.to_csv(output_path)
+
+
 def return_period_impacts_from_config(config):
     # Run the pipeline
     analysis_df = run_pipeline_from_config(config)
