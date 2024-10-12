@@ -1,7 +1,7 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
-from utils.folder_naming import get_resources_dir
+from nccs.utils.folder_naming import get_resources_dir
 from functools import cache
 from pathlib import Path
 import pandas as pd
@@ -16,16 +16,16 @@ from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
-from utils.s3client import download_from_s3_bucket
+from nccs.utils.s3client import download_from_s3_bucket
 from exposures.utils import root_dir
 
 # for the wilfire impact function:
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
-from pipeline.direct import agriculture, stormeurope
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
+from nccs.pipeline.direct import agriculture, stormeurope
+from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
+from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
 
 project_root = root_dir()
 # /wildfire.py

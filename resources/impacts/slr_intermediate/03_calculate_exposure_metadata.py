@@ -12,7 +12,7 @@ import pycountry
 import climada.util.coordinates as u_coord
 import pathos as pa
 
-from pipeline.direct.direct import get_sector_exposure
+from nccs.pipeline.direct.direct import get_sector_exposure
 
 aqueduct_metadata_path = Path('.', 'data', 'aqueduct_download_metadata.csv')
 country_bounding_box_path = Path('.', 'data', 'country_bounding_boxes.csv')

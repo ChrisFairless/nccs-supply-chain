@@ -15,7 +15,7 @@ LOGGER = logging.getLogger()
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 from exposures.utils import root_dir
-from utils.s3client import upload_to_s3_bucket
+from nccs.utils.s3client import upload_to_s3_bucket
 
 # Get the root directory
 project_root = root_dir()

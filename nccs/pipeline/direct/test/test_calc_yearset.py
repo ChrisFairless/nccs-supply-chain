@@ -3,8 +3,8 @@ import numpy as np
 from copy import deepcopy
 from scipy import sparse
 
-from pipeline.direct.calc_yearset import yearset_from_imp
-from pipeline.direct.test.create_test_impact import dummy_impact, dummy_impact_yearly
+from nccs.pipeline.direct.calc_yearset import yearset_from_imp
+from nccs.pipeline.direct.test.create_test_impact import dummy_impact, dummy_impact_yearly
 
 seed = 1312
 np.random.seed(seed)

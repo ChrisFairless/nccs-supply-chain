@@ -16,11 +16,11 @@ import sys
 from climada.util.config import CONFIG as CLIMADA_CONFIG
 from climada.engine import Impact
 
-from pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_simple
-from pipeline.direct.calc_yearset import yearset_from_imp, combine_yearsets
-from pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
-from utils import folder_naming
-from utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, download_from_s3_bucket
+from nccs.pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_simple
+from nccs.pipeline.direct.calc_yearset import yearset_from_imp, combine_yearsets
+from nccs.pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
+from nccs.utils import folder_naming
+from nccs.utils.s3client import upload_to_s3_bucket, file_exists_on_s3_bucket, download_from_s3_bucket
 
 LOGGER = logging.getLogger(__name__)
 

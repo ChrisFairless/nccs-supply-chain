@@ -8,7 +8,7 @@ import botocore
 
 from botocore.errorfactory import ClientError
 
-from utils.folder_naming import get_output_dir
+from nccs.utils.folder_naming import get_output_dir
 
 BUCKET_NAME = "nccs-modeling"
 

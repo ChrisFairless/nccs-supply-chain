@@ -1,0 +1,5 @@
+include resources/impact_functions/business_interruption/*.csv
+include resources/impact_functions/tropical_cyclone/calibrate_emanuel_v1.csv
+include countries_wgs84.geojson
+include GDP_Worldbank_without_regions.csv
+include climada.conf
