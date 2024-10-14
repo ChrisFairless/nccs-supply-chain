@@ -36,13 +36,14 @@ def rp_rmse(rp_model, rp_obs, grouping_var='country'):
 
 
 def merge_outputs_and_obs(rp_model, rp_obs, grouping_var='country'):
+    rp_model, rp_obs = deepcopy(rp_model), deepcopy(rp_obs)
+    rp_model = interpolate_return_periods(rp_model, rp_obs, grouping_var=grouping_var)
+
     if not grouping_var:
         grouping_var = '_group_'
         rp_model[grouping_var] = 1
         rp_obs[grouping_var] = 1
 
-    rp_model, rp_obs = deepcopy(rp_model), deepcopy(rp_obs)
-    rp_model = interpolate_return_periods(rp_model, rp_obs, grouping_var=grouping_var)
     rp_model = rp_model[[grouping_var, 'rp', 'impact']].rename(columns={'impact': 'model'})
     rp_obs = rp_obs[[grouping_var, 'rp', 'impact']].rename(columns={'impact': 'obs'})
 
