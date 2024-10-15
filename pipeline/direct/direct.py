@@ -321,7 +321,8 @@ def get_impf_rf(country_iso3alpha, calibrated=True):
 
     impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
     impf.id = 1
-
+    print("I am here")
+    print(calibrated)
     if not calibrated:
         return impf
     if calibrated == 1:
