@@ -16,9 +16,9 @@ from bokeh.models import (
 )
 from bokeh.plotting import figure
 
-import utils.folder_naming
-from utils.folder_naming import get_resources_dir
-from utils.s3client import download_complete_csvs_to_results
+import nccs.utils.folder_naming
+from nccs.utils.folder_naming import get_resources_dir
+from nccs.utils.s3client import download_complete_csvs_to_results
 
 logging.getLogger().setLevel(logging.INFO)
 

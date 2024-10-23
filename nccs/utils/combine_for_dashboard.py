@@ -1,7 +1,7 @@
 import glob
 import pandas as pd
 
-from utils.folder_naming import get_indirect_output_dir, get_run_dir
+from nccs.utils.folder_naming import get_indirect_output_dir, get_run_dir
 
 RUN_TITLE = "interim_report_18_06_24_TC_calibrated"
 

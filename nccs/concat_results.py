@@ -1,6 +1,6 @@
 import glob
 import pandas as pd
-from utils.folder_naming import get_indirect_output_dir, get_direct_output_dir
+from nccs.utils.folder_naming import get_indirect_output_dir, get_direct_output_dir
 
 """
 Gnerartes a csv file containg all the individual country csv files of a run

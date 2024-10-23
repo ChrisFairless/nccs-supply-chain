@@ -12,8 +12,8 @@ from climada.util.api_client import Client
 from climada.hazard import Hazard
 from climada.entity import ImpactFuncSet
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
-from utils.s3client import download_from_s3_bucket
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
+from nccs.utils.s3client import download_from_s3_bucket
+from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 
 LOGGER = logging.getLogger(__name__)
 
