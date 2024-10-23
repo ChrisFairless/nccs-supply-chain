@@ -1,7 +1,7 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
-from utils.folder_naming import get_resources_dir
+from nccs.utils.folder_naming import get_resources_dir
 from functools import cache
 from pathlib import Path
 import pandas as pd
@@ -20,11 +20,14 @@ from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 from utils.s3client import download_from_s3_bucket
 from exposures.utils import root_dir
-from pipeline.direct import agriculture, stormeurope
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry, convert_impf_to_sectoral_bi_wet
-from pipeline.direct.test.create_test_hazard import test_hazard
-from pipeline.direct.test.create_test_exposures import test_exposures
-from pipeline.direct.test.create_test_impf import test_impf
+from nccs.pipeline.direct import agriculture, stormeurope
+from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry, convert_impf_to_sectoral_bi_wet
+from nccs.pipeline.direct.test.create_test_hazard import test_hazard
+from nccs.pipeline.direct.test.create_test_exposures import test_exposures
+from nccs.pipeline.direct.test.create_test_impf import test_impf
+from nccs.utils.s3client import download_from_s3_bucket
+from exposures.utils import root_dir
+
 
 project_root = root_dir()
 # /wildfire.py
