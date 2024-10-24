@@ -10,8 +10,8 @@ from copy import deepcopy
 from calibration.base import NCCSOptimizer
 from calibration.test.create_test_input import simple_linear_input
 from calibration.test.create_test_obs import create_test_obs
-from utils import folder_naming
-from utils.delete_results import delete_results_folder
+from nccs.utils import folder_naming
+from nccs.utils.delete_results import delete_results_folder
 
 
 test_dir = 'unittest_calibration/base/'

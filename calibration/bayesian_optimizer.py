@@ -16,7 +16,7 @@ from bayes_opt.event import Events
 from typing import Mapping
 from numbers import Number
 
-from utils.folder_naming import get_output_dir
+from nccs.utils.folder_naming import get_output_dir
 from dataclasses import dataclass
 from calibration.base import NCCSOptimizer, NCCSInput
 

@@ -10,9 +10,9 @@ import pycountry
 import logging
 
 sys.path.append('../..')
-from utils.folder_naming import get_resources_dir, get_direct_output_dir
-from analysis import run_pipeline_from_config
-from pipeline.direct.direct import HAZ_N_YEARS
+from nccs.utils.folder_naming import get_resources_dir, get_direct_output_dir
+from nccs.analysis import run_pipeline_from_config
+from nccs.pipeline.direct.direct import HAZ_N_YEARS
 
 LOGGER = logging.getLogger(__name__)
 

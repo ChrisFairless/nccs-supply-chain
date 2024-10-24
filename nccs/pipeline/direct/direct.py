@@ -18,8 +18,8 @@ from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
-from utils.s3client import download_from_s3_bucket
 from exposures.utils import root_dir
+from nccs.utils.s3client import download_from_s3_bucket
 from nccs.pipeline.direct import agriculture, stormeurope
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry, convert_impf_to_sectoral_bi_wet
 from nccs.pipeline.direct.test.create_test_hazard import test_hazard
