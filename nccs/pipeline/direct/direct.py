@@ -8,6 +8,7 @@ import pandas as pd
 import os
 import numpy as np
 import pycountry
+import logging
 
 from climada.hazard import Hazard
 from climada.engine.impact_calc import ImpactCalc, Impact
@@ -59,16 +60,21 @@ HAZ_N_YEARS = {
     'test': 4
 }
 
+LOGGER = logging.getLogger(__name__)
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    LOGGER.debug(f'...Loading hazard: {haz_type} {country_iso3alpha}')
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
+    LOGGER.debug(f'...Loading exposures: {sector} {country}')
     exp.gdf['impf_'] = 1
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
+    LOGGER.debug(f'...Loading impacts function set: {haz_type} {sector} {country_iso3alpha}')
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
+    LOGGER.debug(f'...Calculating impact')
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
     imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
