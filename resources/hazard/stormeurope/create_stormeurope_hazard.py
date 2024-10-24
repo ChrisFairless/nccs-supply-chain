@@ -6,8 +6,8 @@ from climada.hazard import Hazard
 import glob
 from pathlib import Path    
 
-import pipeline.direct.stormeurope as stormeurope
-from utils.s3client import upload_to_s3_bucket
+import nccs.pipeline.direct.stormeurope as stormeurope
+from nccs.utils.s3client import upload_to_s3_bucket
 
 # Script to generate stormeurope data
 

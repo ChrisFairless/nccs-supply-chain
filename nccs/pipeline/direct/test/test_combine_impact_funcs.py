@@ -3,7 +3,7 @@ import numpy as np
 from copy import deepcopy
 
 from climada.entity.impact_funcs import ImpactFunc
-from pipeline.direct.combine_impact_funcs import ImpactFuncComposable 
+from nccs.pipeline.direct.combine_impact_funcs import ImpactFuncComposable 
 
 class TestImpactFuncComposable(unittest.TestCase):
 

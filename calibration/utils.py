@@ -29,6 +29,28 @@ def write_exp_impf_to_file(hazard_type, v_half):
     impf_df.to_csv(impf_path, index=False)
 
 
+def write_scaled_impf_to_file(hazard_type, impf, translate = 0, scale = 1):
+    if np.any(scale * impf.mdd > 1):
+        raise ValueError(f'The chosen scaling of {scale} takes MDD above 100%. TODO: code around this')
+    scaled_impf = ImpactFunc(
+        name = "Scaled " + impf.name,
+        id = 1,
+        intensity_unit = impf.intensity_unit,
+        intensity = impf.intensity + translate,
+        paa = impf.paa,
+        mdd = scale * mdd
+    )
+    scaled_impf.check()
+    df = pd.DataFrame(dict(
+        id = scaled_impf.id,
+        intensity = scaled_impf.intensity,
+        paa = scaled_impf.paa,
+        mdd = scaled_impf.mdd
+    ))
+    output_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
+    df.to_csv(output_path)
+
+
 def return_period_impacts_from_config(config):
     # Run the pipeline
     analysis_df = run_pipeline_from_config(config)
@@ -42,12 +64,6 @@ def return_period_impacts_from_config(config):
     countries_missing = list(compress(countries, ~imp_exists))
     countries = list(compress(countries, imp_exists))
     if len(countries_missing) > 0:
-        # print(imp_path_country)
-        # print(os.listdir(imp_path_country['Maldives'].parent))
-        # print(os.path.exists(imp_path_country['Maldives']))
-        # print(imp_exists)
-        # print(countries_missing)
-        # print(countries)
         LOGGER.warning(f'No output data found for countries {countries_missing}')
 
     imp_country = [
@@ -74,4 +90,7 @@ def return_period_impacts_from_config(config):
     df['rp'] = df.groupby(['country'])['rank'].transform(lambda x: n_years / x) 
     df = df[['country', 'impact', 'rp']]
     df = df.reset_index()
+    
+    df = df[df['rp'] >= 1]  # save a huge amount of memory by not saving events with very low return periods. Note: this makes the dataset unsuitable for an average annual loss calculation
+    
     return df
