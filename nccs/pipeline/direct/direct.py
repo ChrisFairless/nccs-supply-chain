@@ -8,6 +8,7 @@ import pandas as pd
 import os
 import numpy as np
 import pycountry
+import logging
 
 from climada.hazard import Hazard
 from climada.engine.impact_calc import ImpactCalc, Impact
@@ -18,15 +19,14 @@ from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
-from utils.s3client import download_from_s3_bucket
-from exposures.utils import root_dir
+from nccs.utils.s3client import download_from_s3_bucket
+from exposures.utils import root_dir   # TODO we need to use the nccs.util.folder_naming functionality here
 from nccs.pipeline.direct import agriculture, stormeurope
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry, convert_impf_to_sectoral_bi_wet
 from nccs.pipeline.direct.test.create_test_hazard import test_hazard
 from nccs.pipeline.direct.test.create_test_exposures import test_exposures
 from nccs.pipeline.direct.test.create_test_impf import test_impf
 from nccs.utils.s3client import download_from_s3_bucket
-from exposures.utils import root_dir
 
 
 project_root = root_dir()
@@ -59,16 +59,21 @@ HAZ_N_YEARS = {
     'test': 4
 }
 
+LOGGER = logging.getLogger(__name__)
 
 def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
+    LOGGER.debug(f'...Loading hazard: {haz_type} {country_iso3alpha}')
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
-    exp = get_sector_exposure(sector, country)  # was originally here
+    LOGGER.debug(f'...Loading exposures: {sector} {country}')
+    exp = get_sector_exposure(sector, country)
     exp.gdf['impf_'] = 1
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
+    LOGGER.debug(f'...Loading impacts function set: {haz_type} {sector} {country_iso3alpha}')
     impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
+    LOGGER.debug(f'...Calculating impact')
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
     imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
@@ -116,7 +121,6 @@ def get_sector_exposure(sector, country):
     results are now also availabe in the s3 bucket and could be selected by changing the file path to the s3 bucket
     would require to create a new donwload function, as for instance the mining file is an xlsx and would not work with the opening command
     """
-
     if sector == 'service':
         client = Client()
         exp = client.get_litpop(country)
@@ -356,10 +360,10 @@ def get_impf_stormeurope(calibrated=True):
 
     # Custom impact function
     calibrated_impf_file = Path(get_resources_dir(), 'impact_functions', 'storm_europe', 'custom.csv')
-    calibrated_impf_df = pd.read_csv(calibrated_impf_parameters_file)
-
-    if set(calibrated_impf_df.columns) == {'id', 'intensity', 'mdd', 'paa'}:
+    df = pd.read_csv(calibrated_impf_file)
+    if set(df.columns) == {'id', 'intensity', 'mdd', 'paa'}:
         return ImpactFunc(
+            haz_type = 'WS',
             name = 'Scaled ' + impf.name,
             id = impf.id,
             intensity_unit = impf.intensity_unit,
@@ -369,7 +373,7 @@ def get_impf_stormeurope(calibrated=True):
         )
 
     # TODO extend with other ways of specifying calibrations
-    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
+    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {df.columns}")
 
 
 def get_impf_test(calibrated):

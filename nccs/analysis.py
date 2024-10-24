@@ -287,6 +287,7 @@ def calculate_direct_impacts_from_df(df, config):
 
         logging_dict = {k: calc[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
         try:
+            LOGGER.debug(f'Working on {logging_dict}')
             imp = nccs_direct_impacts_simple(
                 haz_type=calc['hazard'],
                 sector=calc['sector'],
@@ -551,4 +552,4 @@ if __name__ == "__main__":
     # This is for testing
     from run_configurations.config_mvp import CONFIG  # change here to test_config if needed
 
-    _ = run_pipeline_from_config(CONFIG)
+    _ = run_pipeline_from_config(CONFIG4)

@@ -22,8 +22,8 @@ from scipy.optimize import Bounds
 from numbers import Number
 from climada.util.calibrate.base import Output, ConstraintType, OutputEvaluator
 
-from analysis import run_pipeline_from_config
-from utils import folder_naming, delete_results
+from nccs.analysis import run_pipeline_from_config
+from nccs.utils import folder_naming, delete_results
 
 
 ROUND_DECIMALS = 6   # Number of decimal places to round parameters to when storing them as keys

@@ -9,14 +9,14 @@ import os
 from pathlib import Path
 from calibration.bayesian_optimizer import NCCSBayesianOptimization, NCCSBayesianOptimizerController, NCCSBayesianOptimizer
 from calibration.base import NCCSInput, NCCSOptimizer
-from run_configurations.test import test_config
-from utils.folder_naming import get_resources_dir, get_output_dir
+from nccs.run_configurations.test import test_config
+from nccs.utils.folder_naming import get_resources_dir, get_output_dir
 from calibration.test.create_test_obs import create_test_obs
 from calibration.test.create_test_input import simple_linear_input
-from pipeline.direct.test.create_test_exposures import test_exposures
+from nccs.pipeline.direct.test.create_test_exposures import test_exposures
 from calibration.utils import return_period_impacts_from_config, write_sigmoid_impf_to_file
 from calibration.rp_errors import rp_rmse
-from utils.delete_results import delete_results_folder
+from nccs.utils.delete_results import delete_results_folder
 
 
 LOGGER = logging.getLogger(__name__)
