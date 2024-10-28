@@ -176,12 +176,12 @@ CONFIG5 = {
 
     "runs": [
         {
-            "hazard": "relative_crop_yield",
-            "sectors": ["agriculture"],
-            "countries": ['Canada','Egypt', 'Portugal','Pakistan','Armenia','Belarus','Peru'],
+            "hazard": "tropical_cyclone",
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste"],
+            "countries": ['United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
+                {"scenario": "rcp26", "ref_year": "2060"},
             ]
         }
     ]
