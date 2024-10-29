@@ -279,7 +279,7 @@ def get_impf_tc(country_iso3alpha, calibrated=True):
             v_half=calibrated_impf_parameters.loc[region_id, 'v_half']
         )
     elif calibrated == 0:
-        fun_id = impf_ids[region]
+        fun_id = impf_ids[region_id]
         impf = ImpfSetTropCyclone.from_calibrated_regional_ImpfSet().get_func(haz_type='TC', fun_id=fun_id)   # To use Eberenz functions
     else:
         calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'tropical_cyclone', 'custom.csv')
