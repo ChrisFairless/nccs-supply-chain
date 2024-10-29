@@ -61,6 +61,40 @@ def download_from_s3_bucket(s3_filename: str, output_path: typing.Union[str, Non
     )
 
 
+def download_folder_from_s3_bucket(s3_path: str, output_path: typing.Union[str, None] = None, overwrite=False):
+    """
+    Downloads a folder from the S3 bucket.
+    if no output_path is provided, the file is downloaded to the current working directory.
+
+    :param s3_path:
+    :param output_path:
+    :return:
+    """
+    if output_path is None:
+        output_path = ''
+
+    if not overwrite and os.path.exists(output_path):
+        return
+
+    dotenv.load_dotenv()
+    access_key_id = os.environ.get("S3_ACCESS_KEY_ID")
+    access_key = os.environ.get("S3_ACCESS_KEY")
+    s3 = boto3.resource('s3', aws_access_key_id=access_key_id, aws_secret_access_key=access_key)
+
+    bucket = s3.Bucket(BUCKET_NAME)
+    for obj in bucket.objects.filter(Prefix=s3_path):
+        if output_path=='':
+            target = obj.key
+        else:
+            target = os.path.join(output_path, os.path.relpath(obj.key, s3_path))
+        if not os.path.exists(os.path.dirname(target)):
+            os.makedirs(os.path.dirname(target))
+        if obj.key[-1] == '/':
+            continue
+        print(target)
+        bucket.download_file(obj.key, target)
+
+
 def upload_to_s3_bucket(input_filepath: str, s3_filename: typing.Union[str, None] = None):
     """
     Uploads a file to the S3 bucket.
