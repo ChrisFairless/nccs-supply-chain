@@ -2,7 +2,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import logging
-
+import os
 from climada.entity import ImpactFunc
 from nccs.utils.folder_naming import get_resources_dir
 from nccs.pipeline.direct.combine_impact_funcs import ImpactFuncComposable
@@ -40,8 +40,8 @@ def get_sector_BI_DRY(sector):
         haz_type='BI',
         id=1,
         intensity=np.array(bi.index).astype(float),
-        mdd=np.minimum(1, bi.values),
-        paa=np.ones_like(bi.values),
+        mdd=np.minimum(1, bi.values* float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
+        paa=np.ones_like(bi.values* float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
         intensity_unit="",
         name="Business interruption: " + sector
     )
@@ -56,8 +56,8 @@ def get_sector_BI_WET(sector):
         haz_type='BI',
         id=1,
         intensity=np.array(bi.index).astype(float),
-        mdd=np.minimum(1, bi.values),
-        paa=np.ones_like(bi.values),
+        mdd=np.minimum(1, bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
+        paa=np.ones_like(bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
         intensity_unit="",
         name="Business interruption: " + sector
     )

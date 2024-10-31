@@ -1,8 +1,59 @@
+import glob
+import logging
+import os
+from logging import ERROR, getLogger
+
+import numpy as np
+import pandas as pd
+
 from nccs.analysis import run_pipeline_from_config
+from multiprocessing import Pool
+getLogger('nccs.analysis').setLevel(ERROR)
 
 
+def calc_error(file_no_bi, file_bi, weight: float) -> [float, float, float]:
+    df = pd.read_csv(file_no_bi)
+    sum_aapl_no_bi = df['AAPL'].sum()
 
-def
+    df = pd.read_csv(file_bi)
+    sum_aapl_bi = df['AAPL'].sum()
+
+    return abs(sum_aapl_no_bi * weight - sum_aapl_bi), sum_aapl_no_bi, sum_aapl_bi
+
+
+def optimize(country, hazard, sectors, n_iterations=20, initial_scale=1.0, weight=0.47):
+    lst_cost = np.inf
+    for i in range(n_iterations):
+        print(f"Iteration:{i}, Current scale:{initial_scale}")
+        os.environ['BI_CALIBRATION_SCALE'] = str(round(initial_scale, 6))
+        # Run the pipeline
+        config['run_title'] = f'bi-calibration-bi-{country}-{hazard}-{i}'
+        config['business_interruption'] = True
+        config['runs'][0]['sectors'] = sectors
+        config['runs'][0]['hazard'] = hazard
+        config['runs'][0]['countries'] = [country]
+        run_pipeline_from_config(config)
+        file_bi = glob.glob(f'results/{config["run_title"]}/direct/*{sectors[0]}*.csv')[0]
+
+        config['run_title'] = f'bi-calibration-no-bi-{country}-{hazard}-{i}'
+        config['business_interruption'] = False
+        config['runs'][0]['sectors'] = sectors
+        config['runs'][0]['hazard'] = hazard
+        config['runs'][0]['countries'] = [country]
+        run_pipeline_from_config(config)
+        file_no_bi = glob.glob(f'results/{config["run_title"]}/direct/*{sectors[0]}*.csv')[0]
+
+        cost, no_bi, bi = calc_error(file_no_bi, file_bi, weight)
+        print(f'Cost: {cost}, no_bi: {no_bi}, bi: {bi}')
+        if cost < lst_cost:
+            lst_cost = cost
+            initial_scale = initial_scale - 0.05
+            os.remove(file_bi)
+            os.remove(file_no_bi)
+        else:
+            print(f'Cost: {cost}, final scale: {initial_scale}')
+            return {"cost": cost, "no_bi": no_bi, "bi": bi, "scale": initial_scale}
+
 
 if __name__ == '__main__':
     # Configuration to calibrate against
@@ -33,7 +84,7 @@ if __name__ == '__main__':
 
         "runs": [
             {
-                "hazard": "tropical_cyclone",
+                "hazard": "river_flood",
                 "sectors": [
                     # "agriculture",
                     # "forestry", "mining",
@@ -50,14 +101,30 @@ if __name__ == '__main__':
         ]
     }
 
-    # Run the pipeline
-    config['run_title'] = 'bi-calibration-tc-bi'
-    config['business_interruption'] = True
-    run_pipeline_from_config(config)
-
-    config['run_title'] = 'bi-calibration-tc-no-bi'
-    config['business_interruption'] = False
-    run_pipeline_from_config(config)
-
+    # config['run_title'] = 'bi-calibration-tc-bi'
+    # config['business_interruption'] = True
+    # res_1 = run_pipeline_from_config(config)
+    #
+    # config['run_title'] = 'bi-calibration-tc-no-bi'
+    # config['business_interruption'] = False
+    # res_2 = run_pipeline_from_config(config)
+    countries = [
+        ("United States", 0.47),
+        ("Germany", 0.55),
+        ("China", 0.4),
+        ("Nigeria", 0.5)
+    ]
+    result = []
+    for country, weight in countries:
+        for sector in ["manufacturing", "service", "energy", "agriculture", "mining"]:
+            try:
+                res = optimize(country, "river_flood", [sector], 20, 0.7, weight)
+                res['country'] = country
+                res['sector'] = sector
+                res['hazard'] = 'river_flood'
+                result.append(res)
+            except Exception as e:
+                logging.exception(e)
+    pd.DataFrame(result).to_csv('results/bi-calibration-results.csv')
 
 
