@@ -176,8 +176,8 @@ CONFIG5 = {
 
     "runs": [
         {
-            "hazard": "relative_crop_yield_whe",
-            "sectors": ["agriculture_whe"],
+            "hazard": "relative_crop_yield",
+            "sectors": ["agriculture"],
             "countries": ['Germany', 'United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
@@ -185,31 +185,31 @@ CONFIG5 = {
             ]
         },
         {
-            "hazard": "relative_crop_yield_ric",
-            "sectors": ["agriculture_ric"],
+            "hazard": "relative_crop_yield",
+            "sectors": ["agriculture"],
             "countries": ['Germany', 'United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 {"scenario": "rcp60", "ref_year": "future"},
             ]
         },
-        {
-            "hazard": "relative_crop_yield_soy",
-            "sectors": ["agriculture_soy"],
-            "countries": ['Germany', 'United States'],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
-            ]
-        },
-        {
-            "hazard": "relative_crop_yield_mai",
-            "sectors": ["agriculture_mai"],
-            "countries": ['Germany', 'United States'],
-            "scenario_years": [
-                {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
-            ]
-        }
+        # {
+        #     "hazard": "relative_crop_yield",
+        #     "sectors": ["agriculture"],
+        #     "countries": ['Germany', 'United States'],
+        #     "scenario_years": [
+        #         {"scenario": "None", "ref_year": "historical"},
+        #         {"scenario": "rcp60", "ref_year": "future"},
+        #     ]
+        # },
+        # {
+        #     "hazard": "relative_crop_yield",
+        #     "sectors": ["agriculture"],
+        #     "countries": ['Germany', 'United States'],
+        #     "scenario_years": [
+        #         {"scenario": "None", "ref_year": "historical"},
+        #         {"scenario": "rcp60", "ref_year": "future"},
+        #     ]
+        # }
     ]
 }

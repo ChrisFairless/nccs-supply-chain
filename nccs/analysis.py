@@ -126,6 +126,29 @@ def run_pipeline_from_config(
     analysis_df_path = Path(indirect_output_dir, analysis_df_filename) 
     analysis_df.to_csv(analysis_df_path)
 
+    # aggregate agriculture sectors
+    crop_yield_analyses = analysis_df[analysis_df['hazard'].str.contains('relative_crop_yield') == False]
+    for sector in crop_yield_analyses.sector.unique():
+        for country in crop_yield_analyses.country.unique():
+            for scenario in crop_yield_analyses.scenario.unique():
+                for ref_year in crop_yield_analyses.ref_year.unique():
+                    files = crop_yield_analyses[
+                        (crop_yield_analyses['sector'] == sector) &
+                        (crop_yield_analyses['country'] == country) &
+                        (crop_yield_analyses['scenario'] == scenario) &
+                        (crop_yield_analyses['ref_year'] == ref_year)
+                    ]['direct_impact_path'].values
+                    res = None
+                    for f in files:
+                        df = pd.read_csv(f)
+                        df['sector'] = "agriculture"
+                        df['hazard'] = "relative_crop_yield"
+                        if res is None:
+                            res = df
+                        else:
+                            res = res.merge(df, on=['sector', 'hazard', 'country', 'scenario', 'ref_year'], how='outer')
+                            res =
+
 
     ### ------------------- ###
     ### SAMPLE IMPACT YEARS ###
@@ -246,6 +269,17 @@ def config_to_dataframe(
         for country in run['countries']
         for sector in run['sectors']
     ])
+    # unfold the agriculture sector into the different crop types
+    for crop_type in ["whe", "mai", "ric", "soy"]:
+        df_crop_yield = df[df['hazard'] == 'relative_crop_yield'].copy()
+        df_crop_yield['sector'] = df_crop_yield['sector'].apply(lambda x: f'{x}_{crop_type}')
+        df_crop_yield['hazard'] = df_crop_yield['hazard'].apply(lambda x: f'{x}_{crop_type}')
+        df = pd.concat([df, df_crop_yield])
+    df = df.reset_index(drop=True)
+    # Drop the original agriculture rows
+    df = df[df['hazard'] != 'relative_crop_yield']
+
+
     for i, row in df.iterrows():
         direct_impact_filename = folder_naming.get_direct_namestring(
             prefix="impact_raw",
