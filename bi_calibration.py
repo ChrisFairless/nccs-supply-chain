@@ -21,7 +21,7 @@ def calc_error(file_no_bi, file_bi, weight: float) -> [float, float, float]:
     return abs(sum_aapl_no_bi * weight - sum_aapl_bi), sum_aapl_no_bi, sum_aapl_bi
 
 
-def optimize(country, hazard, sectors, n_iterations=20, initial_scale=1.0, weight=0.47):
+def optimize(country, hazard, sectors, n_iterations=20, initial_scale=1, weight=0.47):
     lst_cost = np.inf
     for i in range(n_iterations):
         print(f"Iteration:{i}, Current scale:{initial_scale}")
@@ -101,30 +101,31 @@ if __name__ == '__main__':
         ]
     }
 
-    # config['run_title'] = 'bi-calibration-tc-bi'
-    # config['business_interruption'] = True
-    # res_1 = run_pipeline_from_config(config)
-    #
-    # config['run_title'] = 'bi-calibration-tc-no-bi'
-    # config['business_interruption'] = False
-    # res_2 = run_pipeline_from_config(config)
+#Option 1: all countries
+    # file_path = r"C:\Users\AlinaMastai\Correntics\Correntics - Documents\Collaborations\NCCS\2024-04_BI_Impact_functions\2024-10-BI-calibration\bi_scaling.xlsx"
+    # df = pd.read_excel(file_path)
+    # countries = list(zip(df['Countries'], df['bi_scale']))
+
+#Option 2: Reduced country set
     countries = [
-        ("United States", 0.47),
-        ("Germany", 0.55),
-        ("China", 0.4),
-        ("Nigeria", 0.5)
+        ("United States", 0.31),
+        ("Germany", 0.41),
+        ("China", 0.29),
+        ("Nigeria", 0.36),
+        ("Japan", 0.29)
     ]
+
     result = []
     for country, weight in countries:
-        for sector in ["manufacturing", "service", "energy", "agriculture", "mining"]:
+        for sector in ["forestry", "mining", "manufacturing", "service", "energy"]:
             try:
-                res = optimize(country, "river_flood", [sector], 20, 0.7, weight)
+                res = optimize(country, "river_flood", [sector], 20, 0.9, weight)
                 res['country'] = country
                 res['sector'] = sector
                 res['hazard'] = 'river_flood'
                 result.append(res)
             except Exception as e:
                 logging.exception(e)
-    pd.DataFrame(result).to_csv('results/bi-calibration-results.csv')
+    pd.DataFrame(result).to_csv('results/bi-calibration-results_test_without.csv')
 
 
