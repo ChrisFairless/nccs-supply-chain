@@ -12,8 +12,10 @@ from climada.util.api_client import Client
 from climada.hazard import Hazard
 from climada.entity import ImpactFuncSet
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
-from utils.s3client import download_from_s3_bucket
-from pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
+from nccs.utils.s3client import download_from_s3_bucket
+from nccs.utils.folder_naming import get_resources_dir
+from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +30,7 @@ WS_SCENARIO_LOOKUP = {
 }
 # Available scenarios: 'None' (historical), 'ssp126', 'ssp245', 'ssp370', 'ssp585'
 
-DEFAULT_DATA_DIR = Path('resources', 'hazard', 'stormeurope', 'data')
+DEFAULT_DATA_DIR = Path(get_resources_dir(), 'hazard', 'stormeurope', 'data')
 
 
 def download_hazard_from_s3(cmip_scenario, country_iso3alpha, scenario, save_dir=DEFAULT_DATA_DIR):

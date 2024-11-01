@@ -10,7 +10,7 @@ from climada_petals.engine import SupplyChain
 import logging
 
 from exposures.utils import root_dir
-from utils.s3client import upload_to_s3_bucket
+from nccs.utils.s3client import upload_to_s3_bucket
 
 # Get the root directory
 project_root = root_dir()

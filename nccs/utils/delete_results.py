@@ -1,5 +1,5 @@
 import os
-from utils import folder_naming
+from nccs.utils import folder_naming
 from shutil import rmtree
 
 def delete_results_folder(run_title):
