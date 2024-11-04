@@ -27,6 +27,7 @@ from nccs.pipeline.direct.test.create_test_hazard import test_hazard
 from nccs.pipeline.direct.test.create_test_exposures import test_exposures
 from nccs.pipeline.direct.test.create_test_impf import test_impf
 from nccs.utils.s3client import download_from_s3_bucket
+from calibration.version1.rf_calibration import ImpfFlood
 
 
 project_root = root_dir()
@@ -315,10 +316,10 @@ def get_impf_tc(country_iso3alpha, calibrated=True):#TODO: this is the one to ch
 
 def get_impf_rf(country_iso3alpha, calibrated=True):
     # Use the flood module's lookup to get the regional impact function for the country
-    country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
-    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+    #country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
+    #impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
     # Grab just that impact function from the flood set, and set its ID to 1
-    impf_set = flood_imp_func_set()
+    #impf_set = flood_imp_func_set()
     # impf_AFR = impf_set.get_func(fun_id=1)
     # impf_ASIA = impf_set.get_func(fun_id=2)
     # impf_EU = impf_set.get_func(fun_id=3)
@@ -326,27 +327,26 @@ def get_impf_rf(country_iso3alpha, calibrated=True):
     # impf_OCE = impf_set.get_func(fun_id=5)
     # impf_SAM = impf_set.get_func(fun_id=6)
 
-    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
-    impf.id = 1
-    print("I am here")
-    print(calibrated)
+    #impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+    #impf.id = 1
     if not calibrated:
         return impf
     if calibrated == 1:
         # TODO: add final calibration
         return impf
-
-    # Custom impact function
-    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
-    if not os.path.exists(calibrated_impf_parameters_file):
-        return impf
-
-    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
-    if set(calibrated_impf_parameters.columns) == {'x_scale', 'y_scale', 'x_translate'}:
-        x_scale, y_scale, x_translate = calibrated_impf_parameters.loc[0, 'x_scale'], calibrated_impf_parameters.loc[0, 'y_scale'], calibrated_impf_parameters.loc[0, 'x_translate']
-        return impf_linear_transform(impf, x_scale, y_scale, x_translate)
-    # TODO extend with other ways of specifying calibrations
-    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
+    else:
+        calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+        print(calibrated_impf_parameters.columns)
+        if set(calibrated_impf_parameters.columns) == {'v_half'}:
+            assert(calibrated_impf_parameters.shape[0] == 1)
+            impf = ImpfFlood.from_exp_sigmoid(
+                v_half=calibrated_impf_parameters.loc[0, 'v_half'])
+            impf.id = 1
+            return impf
+        else:
+            # TODO extend with other ways of specifying calibrations
+            raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
 
 
 def get_impf_stormeurope(calibrated=True):
