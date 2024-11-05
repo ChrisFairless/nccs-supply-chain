@@ -2,6 +2,9 @@ venv
 .git
 #exosures
 #pipeline
+results
+resources
+!resources/observations
 results_row_adjusted
 docs
 climada_petals

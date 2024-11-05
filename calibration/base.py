@@ -63,6 +63,16 @@ class NCCSInput:
     constraints : Constraint or list of Constraint, optional
         One or multiple instances of ``scipy.minimize.LinearConstraint``,
         ``scipy.minimize.NonlinearConstraint``, or a mapping.
+    linear_param : If the calculated cost function is linear in one of the parameters specified in the 
+        bounds, provide that here. Since that makes the function very cheap to evaluate the optimisation
+        will take advantage of that
+    save_raw_impacts : Save the calculated raw direct impacts. They are not required after the calculation. 
+        Set to False to save disk space.
+    save_yearsets : Delete saved yearsets after calculation. Set to False to save disk space.
+    callback : Optional. If there are any additional operations you'd like the analysis to do at each stage 
+        of the operation, you can provide a method here that takes the run's config as its only input. Called 
+        right after return_period_impacts_from_config and before any cleanup, so it has access to all of the 
+        modelled output. Note: this is not called if the results already exist or are cached.
     """
 
     config: dict
@@ -75,6 +85,7 @@ class NCCSInput:
     linear_param: Optional[str] = None
     save_raw_impacts: bool = False
     save_yearsets: bool = False
+    callback: Optional[Callable] = None
 
     def __post_init__(self):
         LOGGER.debug(f'Creating the NCCSInput object')
@@ -232,6 +243,9 @@ class NCCSOptimizer(ABC):
             if self.cache_enabled:
                 LOGGER.debug(f'Saving results to cache')
                 self.add_to_cache(params, results)
+            
+            if self.input.callback:
+                self.input.callback(config)
 
             LOGGER.debug(f'Cleaning up')
             raw_impacts_dir = Path(direct_output_dir, 'impact_raw')

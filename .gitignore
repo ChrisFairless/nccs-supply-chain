@@ -16,6 +16,7 @@ cache*
 climada_petals/
 *.nc4
 *.nc4
+nccs.egg-info/
 /results/test_run/direct/test_run_direct_impacts_complete.xlsx
 /results/test_run/indirect/test_run_indirect_impacts_complete.xlsx
 *.h5
