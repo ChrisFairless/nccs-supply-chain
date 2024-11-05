@@ -141,6 +141,7 @@ def return_period_total_impacts_from_config(config):
     df = df[['impact', 'rp']]
     df = df.reset_index()
     
+    rp_cutoff = max(1, float(n_years)/1000)
     df = df[df['rp'] >= 1]  # save a huge amount of memory by not saving events with very low return periods. Note: this makes the dataset unsuitable for an average annual loss calculation
     
     return df
