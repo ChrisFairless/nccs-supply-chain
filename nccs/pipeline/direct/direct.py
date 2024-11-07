@@ -289,7 +289,7 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi):
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_wet(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_wet(impf, sector_bi, country_iso3alpha)
 
 
 def get_sector_impf_stormeurope(sector_bi):

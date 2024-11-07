@@ -2,7 +2,7 @@ import glob
 import logging
 import os
 from logging import ERROR, getLogger
-
+import shutil
 import numpy as np
 import pandas as pd
 
@@ -48,8 +48,6 @@ def optimize(country, hazard, sectors, n_iterations=20, initial_scale=1, weight=
         if cost < lst_cost:
             lst_cost = cost
             initial_scale = initial_scale - 0.05
-            os.remove(file_bi)
-            os.remove(file_no_bi)
         else:
             print(f'Cost: {cost}, final scale: {initial_scale}')
             return {"cost": cost, "no_bi": no_bi, "bi": bi, "scale": initial_scale}
@@ -102,30 +100,33 @@ if __name__ == '__main__':
     }
 
 #Option 1: all countries
-    # file_path = r"C:\Users\AlinaMastai\Correntics\Correntics - Documents\Collaborations\NCCS\2024-04_BI_Impact_functions\2024-10-BI-calibration\bi_scaling.xlsx"
-    # df = pd.read_excel(file_path)
-    # countries = list(zip(df['Countries'], df['bi_scale']))
+file_path = r"C:\Users\GaudenzHalter\Downloads\bi_scaling.xlsx"
+df = pd.read_excel(file_path)
+countries = list(zip(df['Countries'], df['bi_scale']))
 
 #Option 2: Reduced country set
-    countries = [
-        ("United States", 0.31),
-        ("Germany", 0.41),
-        ("China", 0.29),
-        ("Nigeria", 0.36),
-        ("Japan", 0.29)
-    ]
+countries = [
+    ("United States", 0.31),
+    ("Thailand", 0.29),
+]
 
-    result = []
-    for country, weight in countries:
-        for sector in ["forestry", "mining", "manufacturing", "service", "energy"]:
-            try:
-                res = optimize(country, "river_flood", [sector], 20, 0.9, weight)
-                res['country'] = country
-                res['sector'] = sector
-                res['hazard'] = 'river_flood'
-                result.append(res)
-            except Exception as e:
-                logging.exception(e)
-    pd.DataFrame(result).to_csv('results/bi-calibration-results_test_without.csv')
+result = []
+for country, weight in countries:
+    for sector in ["forestry", "mining", "manufacturing", "service", "energy"]:
+        try:
+            if sector == "forestry":
+                inital_weight = 0.9
+            else:
+                inital_weight = 0.5
+            res = optimize(country, "river_flood", [sector], 20, inital_weight, weight)
+            res['country'] = country
+            res['sector'] = sector
+            res['hazard'] = 'river_flood'
+            os.makedirs('results/calib', exist_ok=True)
+            pd.DataFrame(res).to_csv(f'results/calib/bi-calibration-{country}-{sector}.csv')
+            result.append(res)
+        except Exception as e:
+            logging.exception(e)
+pd.DataFrame(result).to_csv('results/bi-calibration-results_test_without.csv')
 
 
