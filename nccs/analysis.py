@@ -16,6 +16,7 @@ import sys
 from climada.util.config import CONFIG as CLIMADA_CONFIG
 from climada.engine import Impact
 
+sys.path.append('../')
 from nccs.pipeline.direct.direct import get_sector_exposure, nccs_direct_impacts_simple
 from nccs.pipeline.direct.calc_yearset import yearset_from_imp, combine_yearsets
 from nccs.pipeline.indirect.indirect import dump_direct_to_csv, dump_supchain_to_csv, supply_chain_climada
