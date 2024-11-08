@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 df = pd.read_csv(r'C:\github\nccs-supply-chain\resources\impact_functions\business_interruption\FL_HAZUS_BI_industry_modifiers.csv')
 #Output of the optimization
-country_factors = pd.read_csv(r"C:\github\nccs-supply-chain\results\bi-calibration-results_test.csv")
+country_factors = pd.read_csv(r"C:\github\nccs-supply-chain\results\bi-calibration-results_test_without.csv")
 
 # Convert rows to columns
 df = df.T
@@ -14,6 +14,10 @@ new_header = df.iloc[0] #grab the first row for the header
 df = df[1:] #take the data less the header row
 df.columns = new_header #set the header row as the df header
 
+# Convert the index to numeric
+df.index = pd.to_numeric(df.index)
+# Overwrite the Agriculture column with the index values
+df['Agriculture'] = df.index
 
 # plot the columns take the first column as x-axis as line plot for each colum a line
 plt.figure()
@@ -66,7 +70,7 @@ for country, scaled_df in scaled_dfs.items():
     plt.ylabel('y (scaled)')
     plt.ylim(0, 1.2)
 
-    plt.xlim(0, 1.2)
+    # plt.xlim(0, 1.2)
 
     plt.legend()
     plt.show()
