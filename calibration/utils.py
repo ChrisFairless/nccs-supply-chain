@@ -29,6 +29,11 @@ def write_exp_impf_to_file(hazard_type, v_half):
     impf_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
     impf_df.to_csv(impf_path, index=False)
 
+def write_translated_exp_impf_to_file(hazard_type, v_half, translate):
+    impf_df = pd.DataFrame(dict(v_half=[v_half], translate=[translate]))
+    impf_path = Path(get_resources_dir(), 'impact_functions', hazard_type, 'custom.csv')
+    impf_df.to_csv(impf_path, index=False)
+
 
 def write_impf_to_custom_csv(hazard_type, impf):
     df = pd.DataFrame(dict(

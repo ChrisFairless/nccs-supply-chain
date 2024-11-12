@@ -20,7 +20,7 @@ class ImpfFlood(ImpactFunc):
 
     @classmethod
     def from_exp_sigmoid(cls, impf_id=1, intensity=np.arange(0.0, 12.0, 0.1),
-                        v_half=0.5):
+                        v_half=0.5, translate=0):
         """
         RF impact function (2 / (1+np.exp(-intensity/scale_fact)))-1
         It has a single free parameter scale_fact which related to 
@@ -54,7 +54,7 @@ class ImpfFlood(ImpactFunc):
         impf.name = 'Exp sigmoid'
         impf.id = impf_id
         impf.intensity_unit = 'm'
-        impf.intensity = intensity
+        impf.intensity = intensity + translate
         impf.paa = np.ones(intensity.shape)
         scale_fact = v_half/ np.log(3)
         impf.mdd =(2 / (1+np.exp(-intensity/scale_fact)))-1

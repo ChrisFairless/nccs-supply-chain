@@ -5,9 +5,11 @@ venv
 results
 resources
 !resources/observations
+!resources/vuln_2022_nd_gain.csv
 results_row_adjusted
 docs
 climada_petals
+*.ipynb
 .idea
 .vscode
 .env

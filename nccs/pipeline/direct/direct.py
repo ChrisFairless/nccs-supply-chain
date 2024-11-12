@@ -334,19 +334,25 @@ def get_impf_rf(country_iso3alpha, calibrated=True):
     if calibrated == 1:
         # TODO: add final calibration
         return impf
-    else:
-        calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
-        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
-        print(calibrated_impf_parameters.columns)
-        if set(calibrated_impf_parameters.columns) == {'v_half'}:
-            assert(calibrated_impf_parameters.shape[0] == 1)
-            impf = ImpfFlood.from_exp_sigmoid(
-                v_half=calibrated_impf_parameters.loc[0, 'v_half'])
-            impf.id = 1
-            return impf
-        else:
-            # TODO extend with other ways of specifying calibrations
-            raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
+    calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
+    calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+    if set(calibrated_impf_parameters.columns) == {'v_half'}:
+        assert(calibrated_impf_parameters.shape[0] == 1)
+        impf = ImpfFlood.from_exp_sigmoid(
+            v_half=calibrated_impf_parameters.loc[0, 'v_half']
+        )
+        impf.id = 1
+        return impf
+    if set(calibrated_impf_parameters.columns) == {'v_half', 'translate'}:
+        assert(calibrated_impf_parameters.shape[0] == 1)
+        impf = ImpfFlood.from_exp_sigmoid(
+            v_half=calibrated_impf_parameters.loc[0, 'v_half'],
+            translate=calibrated_impf_parameters.loc[0, 'translate']
+            )
+        impf.id = 1
+        return impf
+    # TODO extend with other ways of specifying calibrations
+    raise ValueError(f"Did not recognise the format of the custom impact function file: columns {calibrated_impf_parameters.columns}")
 
 
 def get_impf_stormeurope(calibrated=True):
