@@ -18,13 +18,14 @@ df.plot()
 plt.ylim(0, 1.2)
 plt.show()
 
+#Factors with flood protection
 regional_factors = {
-    "Africa": 0.5,
-    "Asia": 0.4,
-    "Europe": 0.55,
-    "North America": 0.47,
-    "Oceania": 0.5,
-    "South America": 0.3
+    "Africa": 0.22,
+    "Asia": 0.18,
+    "Europe": 0.27,
+    "North America": 0.15,
+    "Oceania": 0.1,
+    "South America": 0.061
 }
 factor_sectors = ["Manufacturing", "Utilities", "Service"]
 
@@ -66,8 +67,10 @@ for region in regional_factors:
     plt.ylim(0, 1.2)
     plt.show()
 
-#Todo remove agriculture from the plot as it is not being used within the pipeline
-#Agriculture does not get a sector scaling, as the loss is already in crop loss
+#Todo remove agriculture from the plot as it is not being used within the pipeline --> Agriculture does not get a sector scaling, as the loss is already in crop loss
+
+#TODO extract a reduction factor for each region/ sector that can be used in the pipeline
+# or actually, save those curves per region and recall them for each country using a region mapping 
 
 
 
