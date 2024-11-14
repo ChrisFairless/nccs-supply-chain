@@ -35,7 +35,6 @@ SECTOR_MAPPING = {
 def get_sector_bi_dry(sector, country_iso3alpha):
 
     #TODO include the regional bi-scaling here too (not yet implemented as we do not have the scaling yet for dry)
-
     bi_sector = SECTOR_MAPPING[sector]
     bi = pd.read_csv(SECTOR_BI_DRY_PATH).set_index(['Industry Type']).loc[bi_sector]
     if np.max(bi.values) > 1:
@@ -56,6 +55,11 @@ def get_sector_bi_wet(sector, country_iso3alpha):
     bi = pd.read_csv(SECTOR_BI_WET_PATH).set_index(['Industry Type']).loc[bi_sector]
     if np.max(bi.values) > 1:
         logging.warning(f'The {sector} business interruption function ({bi_sector} in the HAZUS tables) has values > 1. Capping at 1 for now.')
+    #map the iso code back to a country
+    country = pycountry.countries.get(alpha_3=country_iso3alpha).name
+    #get the factor from the csv
+    country_sclae = (pd.read_csv(SECTOR_BI_WET_SCALE_PATH)[(lambda df: (df['country'] == country) & (df['sector'] == sector))])
+    factor= country_sclae.iloc[0]['scale'] if not country_sclae.empty else None
 
 
     #map the iso coe back to the country name
