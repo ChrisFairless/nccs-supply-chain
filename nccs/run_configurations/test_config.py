@@ -46,8 +46,8 @@ CONFIG = {
 }
 
 CONFIG2 = {
-    "run_title": "test_run",
-    "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
+    "run_title": "test_run_DEU_no_bi",
+    "n_sim_years": 1000,                 # Number of stochastic years of supply chain impacts to simulate
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
     "use_s3": False,                    # Also load and save data from an S3 bucket
@@ -61,7 +61,7 @@ CONFIG2 = {
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
 
     # Impact functions:
-    "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
+    "business_interruption": False,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
     "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
 
     # Parallisation:
@@ -72,7 +72,7 @@ CONFIG2 = {
         {
             "hazard": "river_flood",
             "sectors": ["manufacturing"],
-            "countries": ['China','Germany','Burundi','Italy'],
+            "countries": ['Germany'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]

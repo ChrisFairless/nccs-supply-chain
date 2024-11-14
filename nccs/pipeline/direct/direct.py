@@ -110,6 +110,15 @@ def get_sector_exposure(sector, country):
         file_short = f'manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country,  file_short)
 
+        #Just for debugging the non-lineraly scaled thailand manufacturing exposure
+        # outputfile = r"C:\Users\AlinaMastai\Correntics\Correntics - Documents\Collaborations\NCCS\2024-04_BI_Impact_functions\2024-10-BI-calibration\global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled_non_linear_THA.h5"
+        # h5_file = pd.read_hdf(outputfile)
+        # # Generate an Exposures instance from DataFrame
+        # exp = Exposures(h5_file)
+        # exp.set_geometry_points()
+        # exp.gdf['value'] = exp.gdf.value
+        # exp.check()
+
     if sector == 'mining':
         # best guesstimate run used this:
         # # load an exposure from an excel file
@@ -287,12 +296,19 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi):
 
     # impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
 
+    # Chris functions
     impf_intensity = np.arange(0, 20, 0.5)
     impf_paa = np.ones(impf_intensity.shape)
-
-    v_half = 15.0   # from the calibration
+    v_half = 15.0   # from the calibration for US
+    # #v_half = 1.97  # Chris advice should be the goal for Thailand
     scale_factor = v_half/ np.log(3)
     impf_mdd = (2 / (1+np.exp(-impf_intensity/scale_factor)))-1
+
+    # #Total loss
+    # impf_intensity = np.linspace(0, 1, 100)
+    # impf_paa = np.ones(impf_intensity.shape)
+    # impf_mdd = np.where(impf_intensity <= 0.1, 0, 1)
+
 
     impf = ImpactFunc(
         name = 'Exp sigmoid',
