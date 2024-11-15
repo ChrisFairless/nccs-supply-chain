@@ -1,3 +1,5 @@
+#This script is for visualizing the regional BI functions in relation to the North American relationship
+#Assuming HAZUS delivers "true" values for the US
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -19,6 +21,7 @@ plt.ylim(0, 1.2)
 plt.show()
 
 #Factors with flood protection
+#Result from Taguchi, 2023
 regional_factors = {
     "Africa": 0.22,
     "Asia": 0.18,
@@ -66,12 +69,6 @@ for region in regional_factors:
     plt.title(region)
     plt.ylim(0, 1.2)
     plt.show()
-
-#Todo remove agriculture from the plot as it is not being used within the pipeline --> Agriculture does not get a sector scaling, as the loss is already in crop loss
-
-#TODO extract a reduction factor for each region/ sector that can be used in the pipeline
-# or actually, save those curves per region and recall them for each country using a region mapping 
-
 
 
 

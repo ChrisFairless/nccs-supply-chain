@@ -10,7 +10,7 @@ from nccs.pipeline.direct.combine_impact_funcs import ImpactFuncComposable
 
 SECTOR_BI_DRY_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'TC_HAZUS_BI_industry_modifiers_v2.csv')
 SECTOR_BI_WET_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'FL_HAZUS_BI_industry_modifiers.csv')
-SECTOR_BI_WET_SCALE_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'bi-calibration-results_test_USA_THAI.csv')
+SECTOR_BI_WET_SCALE_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'bi_scaling_regional.csv')
 
 SECTOR_MAPPING = {
     "agriculture": "Agriculture",
@@ -53,20 +53,14 @@ def get_sector_bi_dry(sector, country_iso3alpha):
 def get_sector_bi_wet(sector, country_iso3alpha):
     bi_sector = SECTOR_MAPPING[sector]
     bi = pd.read_csv(SECTOR_BI_WET_PATH).set_index(['Industry Type']).loc[bi_sector]
-    if np.max(bi.values) > 1:
-        logging.warning(f'The {sector} business interruption function ({bi_sector} in the HAZUS tables) has values > 1. Capping at 1 for now.')
     #map the iso code back to a country
     country = pycountry.countries.get(alpha_3=country_iso3alpha).name
     #get the factor from the csv
-    country_sclae = (pd.read_csv(SECTOR_BI_WET_SCALE_PATH)[(lambda df: (df['country'] == country) & (df['sector'] == sector))])
-    factor= country_sclae.iloc[0]['scale'] if not country_sclae.empty else None
+    country_scale = (pd.read_csv(SECTOR_BI_WET_SCALE_PATH)[(lambda df: (df['country'] == country))])
+    factor= country_scale.iloc[0]['normalized_NA'] if not country_scale.empty else None
 
-
-    #map the iso coe back to the country name
-    country = pycountry.countries.get(alpha_3=country_iso3alpha).name
-    #get the factor from the csv
-    country_scale = pd.read_csv(SECTOR_BI_WET_SCALE_PATH)[(lambda df: (df['country'] == country) & (df['sector'] == sector))]
-    factor = country_scale.iloc[0]['scale'] if not country_scale.empty else None
+    if np.max(bi.values) > 1:
+        logging.warning(f'The {sector} business interruption function ({bi_sector} in the HAZUS tables) has values > 1. Capping at 1 for now.')
 
     return ImpactFunc(
         haz_type='BI',
