@@ -418,7 +418,7 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
                 year_range="2006_2099",
                 scenario=scenario,
                 crop_type=crop_type
-            )
+            ).select(date=('2045-01-01', '2074-12-31'))
     else:
         raise ValueError(
             f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP)}'
