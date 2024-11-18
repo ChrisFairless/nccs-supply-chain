@@ -126,30 +126,6 @@ def run_pipeline_from_config(
     analysis_df_path = Path(indirect_output_dir, analysis_df_filename) 
     analysis_df.to_csv(analysis_df_path)
 
-    # aggregate agriculture sectors
-    crop_yield_analyses = analysis_df[analysis_df['hazard'].str.contains('relative_crop_yield') == False]
-    for sector in crop_yield_analyses.sector.unique():
-        for country in crop_yield_analyses.country.unique():
-            for scenario in crop_yield_analyses.scenario.unique():
-                for ref_year in crop_yield_analyses.ref_year.unique():
-                    files = crop_yield_analyses[
-                        (crop_yield_analyses['sector'] == sector) &
-                        (crop_yield_analyses['country'] == country) &
-                        (crop_yield_analyses['scenario'] == scenario) &
-                        (crop_yield_analyses['ref_year'] == ref_year)
-                    ]['direct_impact_path'].values
-                    res = None
-                    for f in files:
-                        df = pd.read_csv(f)
-                        df['sector'] = "agriculture"
-                        df['hazard'] = "relative_crop_yield"
-                        if res is None:
-                            res = df
-                        else:
-                            res = res.merge(df, on=['sector', 'hazard', 'country', 'scenario', 'ref_year'], how='outer')
-                            res =
-
-
     ### ------------------- ###
     ### SAMPLE IMPACT YEARS ###
     ### ------------------- ###
@@ -186,10 +162,22 @@ def run_pipeline_from_config(
 
     # Next: combine yearsets by hazard to create multihazard yearsets
 
-    # We get a bit stricter: each run in the config file should have the same number of scenarios
+
+
+    # Combine the yearsets for each agriculture crop type to one agriculture yearset
+    analysis_df_crop = analysis_df[analysis_df['hazard'].str.contains('relative_crop_yield')]
+    analysis_df_no_crop = analysis_df[~analysis_df['hazard'].str.contains('relative_crop_yield')]
+    if analysis_df_crop.shape[0] > 0:
+        LOGGER.info("\n\nCOMBINING CRP CROP YIELD YEARSETS")
+        grouping_cols = ['i_scenario', 'country']
+        df_aggregated_yearsets = analysis_df_crop \
+            .groupby(grouping_cols)[grouping_cols + ['scenario', 'ref_year', 'yearset_path']] \
+            .apply(df_create_combined_hazard_yearsets_agriculture) \
+            .reset_index()
+        analysis_df = pd.concat([analysis_df_no_crop, df_aggregated_yearsets]).reset_index()
+
     _ = _check_config_valid_for_indirect_aggregations(config)
     grouping_cols = ['i_scenario', 'sector', 'country']
-
     if config['do_multihazard']:
         LOGGER.info("\n\nCOMBINING HAZARDS TO MULTIHAZARD YEARSETS")
         df_aggregated_yearsets = analysis_df \
@@ -197,7 +185,7 @@ def run_pipeline_from_config(
             .apply(df_create_combined_hazard_yearsets) \
             .reset_index()
 
-        analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index!
+        analysis_df = pd.concat([analysis_df, df_aggregated_yearsets]).reset_index()  # That's right! I don't know how to use reset_index! # No worries, no one does, but don't forget to call it!
     else:
         LOGGER.info("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
 
@@ -393,6 +381,65 @@ def df_create_combined_hazard_yearsets(
         )
         # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
 
+        combined.write_hdf5(combined_path)
+        out['yearset_path'] = combined_path
+        out['_yearset_exists'] = True
+        # out['annual_impacts'] = combined.at_event
+    else:
+        out['_yearset_exists'] = False
+
+    return pd.Series(out)
+
+
+def df_create_combined_hazard_yearsets_agriculture(
+        df: pd.DataFrame
+):
+    """For each grouping of scenario, country and sector, combine hazard yearsets
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe containing analyses metadata created by config_to_dataframe
+
+    Returns
+    -------
+    pandas.DataFrame
+        A dataframe containing analysis metadata for a supply chain analysis
+        for all hazards combined.
+
+    Notes
+    -----
+    This function adapts pymrio.tools.iomath.calc_x to compute
+    value added (v).
+    """
+
+    r = df.iloc[0].to_dict()
+    yearset_output_dir = os.path.dirname(r['yearset_path'])
+    LOGGER.info(r)
+    combined_filename = folder_naming.get_direct_namestring(
+        prefix='yearset',
+        extension='hdf5',
+        haz_type='relative_crop_yield',
+        sector="agriculture",
+        scenario=r['scenario'],
+        ref_year=r['ref_year'],
+        country_iso3alpha=r['country']
+    )
+    combined_path = Path(yearset_output_dir, combined_filename)
+
+    impact_list = [get_impact_from_file(f) for f in df['yearset_path'] if os.path.exists(f)]
+
+    out = {
+        'hazard': 'relative_crop_yield',
+        'scenario': r['scenario'],
+        'ref_year': r['ref_year'],
+        'sector': 'agriculture'
+    }
+
+    if len(impact_list) > 0:
+        combined = combine_yearsets(
+            impact_list=impact_list
+        )
         combined.write_hdf5(combined_path)
         out['yearset_path'] = combined_path
         out['_yearset_exists'] = True
