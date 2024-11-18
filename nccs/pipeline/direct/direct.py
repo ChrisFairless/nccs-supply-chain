@@ -128,7 +128,8 @@ def get_sector_exposure(sector, country):
         # exp.gdf['value'] = exp.gdf.value
         # exp.check()
 
-        file_short = f'{ sector}/refinement_1/country_split/global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled'
+        file_short = (f'{ sector}/refinement_1/country_split/'
+                      f'global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
         # only used for best guesstimate
@@ -142,12 +143,21 @@ def get_sector_exposure(sector, country):
     #     exp.gdf['value'] = exp.gdf.value
     #     exp.check()
 
+    # In this case a sub sector of agriculture is selected, this is only applied during the direct impacts
+    if sector.startswith('agriculture_'):
+        _, crop_type = agriculture.split_agriculture_sector(sector)
+        exp = agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
+
     if sector == "agriculture":
         # For agriculture, we need to combine the exposures for the different crop types. Since we
         # have already merged the yearsets for the different crop types.
         exps = [agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
                 for crop_type in ["whe", "mai", "soy", "ric"]]
-        exp = Exposures.concat(exps)
+        # Sum up the exposures
+        exp = exps[0].copy()
+        columns_to_sum = ["impf_RC",  "impf_",  "value"]
+        for i in range(1, len(exps)):
+            exp.gdf[columns_to_sum] += exps[i].gdf[columns_to_sum]
 
     if sector == 'forestry':
         # exp = load_forestry_exposure() #only used for best guesstimate
