@@ -181,26 +181,8 @@ CONFIG5 = {
             "countries": ['Germany', 'United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
+                {"scenario": "rcp60", "ref_year": 2060},
             ]
         },
-        # {
-        #     "hazard": "relative_crop_yield",
-        #     "sectors": ["agriculture"],
-        #     "countries": ['Germany', 'United States'],
-        #     "scenario_years": [
-        #         {"scenario": "None", "ref_year": "historical"},
-        #         {"scenario": "rcp60", "ref_year": "future"},
-        #     ]
-        # },
-        # {
-        #     "hazard": "relative_crop_yield",
-        #     "sectors": ["agriculture"],
-        #     "countries": ['Germany', 'United States'],
-        #     "scenario_years": [
-        #         {"scenario": "None", "ref_year": "historical"},
-        #         {"scenario": "rcp60", "ref_year": "future"},
-        #     ]
-        # }
     ]
 }
