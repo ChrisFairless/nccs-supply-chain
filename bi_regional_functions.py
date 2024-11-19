@@ -14,6 +14,9 @@ new_header = df.iloc[0] #grab the first row for the header
 df = df[1:] #take the data less the header row
 df.columns = new_header #set the header row as the df header
 
+# Convert the index to numeric
+df.index = pd.to_numeric(df.index)
+
 # plot the columns take the first column as x-axis as line plot for each colum a line
 plt.figure()
 df.plot()
@@ -68,6 +71,8 @@ for region in regional_factors:
     plt.legend(df.columns)
     plt.title(region)
     plt.ylim(0, 1.2)
+    plt.xlabel('Building Damage [%]')
+    plt.ylabel('Business Interruption [Annual ratio]')
     plt.show()
 
 
