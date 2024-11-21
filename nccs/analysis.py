@@ -407,7 +407,6 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
     # No need to parallelise this: it already seems to max out the CPUs
     for i, row in df.iterrows():
         logging_dict = {k: row[k] for k in ['hazard', 'sector', 'country', 'scenario', 'ref_year']}
-        LOGGER.info(f'Modelling supply chain for {logging_dict}')
 
         if not row['_indirect_calculate']:
             LOGGER.info('No yearset data available. Skipping supply chain calculation')
@@ -415,21 +414,22 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
 
         # TODO put this in a function: it's used in the supply_chain_climada method too
         country_iso3alpha = pycountry.countries.get(name=row['country']).alpha_3
-        direct_path = f"{direct_output_dir}/" \
-            f"direct_impacts" \
-            f"_{row['hazard']}" \
-            f"_{row['sector'].replace(' ', '_')[:15]}" \
-            f"_{row['scenario']}" \
-            f"_{row['ref_year']}" \
-            f"_{country_iso3alpha}" \
-            f".csv"
+        supchain_indirect_output_path = f"{indirect_output_dir}/" \
+           f"indirect_impacts" \
+           f"_{row['hazard']}" \
+           f"_{row['sector'].replace(' ', '_')[:15]}" \
+           f"_{row['scenario']}" \
+           f"_{row['ref_year']}" \
+           f"_{io_a}" \
+           f"_{country_iso3alpha}" \
+           f".csv"
 
-        if os.path.exists(direct_path):
-            LOGGER.info(f'Output already exists, skipping calculation: {direct_path}')
+        if os.path.exists(supchain_indirect_output_path):
+            LOGGER.info(f'Output already exists, skipping calculation: {supchain_indirect_output_path}')
             continue
 
         try:
-            LOGGER.info(f"Calculating indirect {io_a} impacts for {logging_dict}...")
+            LOGGER.info(f"Calculating indirect {io_a} supply chain for {logging_dict}...")
             imp = Impact.from_hdf5(row['yearset_path'])
             if not imp.at_event.any():
                 # TODO return an object with zero losses so that there's data
