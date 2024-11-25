@@ -16,6 +16,34 @@ CropType = typing.Literal[
 IrrigationType = typing.Literal["firr", "noirr"]
 
 
+class ImpfRelativeCropyieldNCCS(ImpfRelativeCropyield):
+    """Impact functions for agricultural droughts."""
+    @classmethod
+    def impf_relativeyield(cls):
+        """Impact functions defining the impact as intensity
+
+        Returns
+        -------
+        impf : climada.entity.impact_funcs.ImpfRelativeCropyield instance
+        """
+        impf = cls()
+        impf.haz_type = 'RC'
+        impf.id = 1
+        impf.name = 'Relative Cropyield ISIMIP'
+        impf.intensity_unit = ''
+        # intensity = 0 when the crop production is equivalent to the historical mean
+        # intensity = -1 for a complete crop failure
+        # intensity = 1 for a crop production surplus of 100%
+
+        # the impact function covers the common stretch of the hazard intensity
+        # CLIMADA interpolates linearly in case of larger intensity values
+        impf.intensity = -1 * np.arange(-1, 10)
+        impf.mdr = (impf.intensity)
+        impf.mdd = (impf.intensity)
+        impf.paa = np.ones(len(impf.intensity))
+
+        return impf
+
 def split_agriculture_hazard(label):
     """ Parses a label like 'relative_crop_yield_whe' into its components. """
     hazard = "relative_crop_yield"
@@ -46,6 +74,10 @@ def get_impf_set(crop_type: typing.Union[CropType, None] = None):
     impf_cp = ImpactFuncSet()
     impf_def = ImpfRelativeCropyield()
     impf_def.set_relativeyield()
+
+    # Invert the impact function to match the expected behavior
+    impf_def.intensity = impf_def.intensity
+
     impf_cp.append(impf_def)
     impf_cp.check()
     return impf_cp
@@ -90,4 +122,6 @@ def get_hazard(
         hazard.centroids.gdf.region_id = np.nan
     hazard.centroids.set_region_id()
     region_id = int(countries.get(alpha_3=country).numeric)
-    return hazard.select(reg_id=region_id)
+    hazard = hazard.select(reg_id=region_id)
+    # Invert the hazard to match the expected behavior
+    return hazard
