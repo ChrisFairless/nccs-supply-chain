@@ -12,7 +12,7 @@ import pycountry
 from climada.hazard import Hazard
 from climada.engine.impact_calc import ImpactCalc, Impact
 from climada.entity import Exposures
-from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
+from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone, ImpactFunc
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
@@ -109,6 +109,15 @@ def get_sector_exposure(sector, country):
         #current active version
         file_short = f'manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
         exp = download_exposure_from_s3(country,  file_short)
+
+        #Just for debugging the non-lineraly scaled thailand manufacturing exposure
+        # outputfile = r"C:\Users\AlinaMastai\Correntics\Correntics - Documents\Collaborations\NCCS\2024-04_BI_Impact_functions\2024-10-BI-calibration\global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled_non_linear_THA.h5"
+        # h5_file = pd.read_hdf(outputfile)
+        # # Generate an Exposures instance from DataFrame
+        # exp = Exposures(h5_file)
+        # exp.set_geometry_points()
+        # exp.gdf['value'] = exp.gdf.value
+        # exp.check()
 
     if sector == 'mining':
         # best guesstimate run used this:
@@ -263,30 +272,54 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
 def get_sector_impf_rf(country_iso3alpha, sector_bi):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
-    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
-    # Grab just that impact function from the flood set, and set its ID to 1
-    impf_set = flood_imp_func_set()
-    impf_set.plot()
-    impf_AFR = impf_set.get_func(fun_id=1)
-    impf_AFR[0].plot()
+    # impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+    # # Grab just that impact function from the flood set, and set its ID to 1
+    # impf_set = flood_imp_func_set()
+    # impf_set.plot()
+    # impf_AFR = impf_set.get_func(fun_id=1)
+    # impf_AFR[0].plot()
 
-    impf_ASIA = impf_set.get_func(fun_id=2)
-    impf_ASIA[0].plot()
+    # impf_ASIA = impf_set.get_func(fun_id=2)
+    # impf_ASIA[0].plot()
 
-    impf_EU = impf_set.get_func(fun_id=3)
-    impf_EU[0].plot()
+    # impf_EU = impf_set.get_func(fun_id=3)
+    # impf_EU[0].plot()
 
-    impf_NA = impf_set.get_func(fun_id=4)
-    impf_NA[0].plot()
+    # impf_NA = impf_set.get_func(fun_id=4)
+    # impf_NA[0].plot()
 
-    impf_OCE = impf_set.get_func(fun_id=5)
-    impf_OCE[0].plot()
+    # impf_OCE = impf_set.get_func(fun_id=5)
+    # impf_OCE[0].plot()
 
-    impf_SAM = impf_set.get_func(fun_id=6)
-    impf_SAM[0].plot()
+    # impf_SAM = impf_set.get_func(fun_id=6)
+    # impf_SAM[0].plot()
 
-    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
-    impf.id = 1
+    # impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+
+    # Chris functions
+    impf_intensity = np.arange(0, 20, 0.5)
+    impf_paa = np.ones(impf_intensity.shape)
+    v_half = 15.0   # from the calibration for US
+    # #v_half = 1.97  # Chris advice should be the goal for Thailand
+    scale_factor = v_half/ np.log(3)
+    impf_mdd = (2 / (1+np.exp(-impf_intensity/scale_factor)))-1
+
+    # #Total loss
+    # impf_intensity = np.linspace(0, 1, 100)
+    # impf_paa = np.ones(impf_intensity.shape)
+    # impf_mdd = np.where(impf_intensity <= 0.1, 0, 1)
+
+
+    impf = ImpactFunc(
+        name = 'Exp sigmoid',
+        haz_type = 'RF',
+        id = 1,
+        intensity_unit = 'm',
+        intensity = impf_intensity,
+        paa = impf_paa,
+        mdd = impf_mdd
+    )
+
     if not sector_bi:
         return impf
     return convert_impf_to_sectoral_bi_wet(impf, sector_bi)
