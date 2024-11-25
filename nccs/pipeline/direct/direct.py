@@ -316,10 +316,10 @@ def get_impf_tc(country_iso3alpha, calibrated=True):#TODO: this is the one to ch
 
 def get_impf_rf(country_iso3alpha, calibrated=True):
     # Use the flood module's lookup to get the regional impact function for the country
-    #country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
-    #impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+    country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
+    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
     # Grab just that impact function from the flood set, and set its ID to 1
-    #impf_set = flood_imp_func_set()
+    impf_set = flood_imp_func_set()
     # impf_AFR = impf_set.get_func(fun_id=1)
     # impf_ASIA = impf_set.get_func(fun_id=2)
     # impf_EU = impf_set.get_func(fun_id=3)
@@ -327,8 +327,8 @@ def get_impf_rf(country_iso3alpha, calibrated=True):
     # impf_OCE = impf_set.get_func(fun_id=5)
     # impf_SAM = impf_set.get_func(fun_id=6)
 
-    #impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
-    #impf.id = 1
+    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+    impf.id = 1
     if not calibrated:
         return impf
     if calibrated == 1:
