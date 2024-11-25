@@ -39,14 +39,14 @@ HAZ_TYPE_LOOKUP = {
 }
 
 
-def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True):
+def nccs_direct_impacts_simple(haz_type, sector, country, scenario, ref_year, business_interruption=True, calibrated=True, use_sector_bi_scaling=True):
     # Country names can be checked here: https://github.com/flyingcircusio/pycountry/blob/main/src/pycountry
     # /databases/iso3166-1.json
     country_iso3alpha = pycountry.countries.get(name=country).alpha_3
     haz = get_hazard(haz_type, country_iso3alpha, scenario, ref_year)
     exp = get_sector_exposure(sector, country)  # was originally here
     # exp = sectorial_exp_CI_MRIOT(country=country_iso3alpha, sector=sector) #replaces the command above
-    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated)
+    impf_set = apply_sector_impf_set(haz_type, sector, country_iso3alpha, business_interruption, calibrated, use_sector_bi_scaling)
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
     imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
@@ -198,7 +198,7 @@ def get_sector_exposure(sector, country):
     return exp
 
 
-def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interruption=True, calibrated=True):
+def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interruption=True, calibrated=True, use_sector_bi_scaling=True):
     haz_type = HAZ_TYPE_LOOKUP[hazard]
 
     if not business_interruption or sector in ['agriculture', 'economic_assets']:
@@ -209,20 +209,20 @@ def apply_sector_impf_set(hazard, sector, country_iso3alpha, business_interrupti
     if haz_type == 'TC' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
     if haz_type == 'TC':
-        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated)])
+        return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
     if haz_type == 'RF':
-        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi)])
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
     if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_wf(sector_bi)])
+        return ImpactFuncSet([get_sector_impf_wf(sector_bi, country_iso3alpha, use_sector_bi_scaling)])
     if haz_type == 'WS':
-        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi)])
+        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling)])
     if haz_type == 'RC':
         return agriculture.get_impf_set()
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
 
-def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
+def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector_bi_scaling=True):
     _, impf_ids, _, region_mapping = ImpfSetTropCyclone.get_countries_per_region()
     region = [region for region, country_list in region_mapping.items() if country_iso3alpha in country_list]
     if len(region) != 1:
@@ -244,7 +244,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
 
 
 #####
@@ -260,7 +260,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True):
 #     return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
-def get_sector_impf_rf(country_iso3alpha, sector_bi):
+def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
@@ -289,23 +289,23 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi):
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_wet(impf, sector_bi, country_iso3alpha)
+    return convert_impf_to_sectoral_bi_wet(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
 
 
-def get_sector_impf_stormeurope(sector_bi):
+def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling=True):
     impf = ImpfStormEurope.from_schwierz()
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
 
 
 # for wildfire, not sure if it is working
-def get_sector_impf_wf(sector_bi):
+def get_sector_impf_wf(sector_bi, country_iso3alpha=None, use_sector_bi_scaling=True):
     impf = ImpfWildfire.from_default_FIRMS(i_half=409.4) # adpated i_half according to hazard resolution of 4km: i_half=409.4
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
 
 
 
