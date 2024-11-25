@@ -187,12 +187,12 @@ def run_pipeline_from_config(
     analysis_df['_indirect_ghosh_already_exists'] = [os.path.exists(p) for p in analysis_df['supchain_indirect_ghosh_path']]
 
     if 'leontief' in config['io_approach']:
-        analysis_df['_indirect_leontief_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_leontief_already_exists']
+        analysis_df['_indirect_leontief_calculate'] = True if config['force_recalculation'] else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_leontief_already_exists']
     else:
         analysis_df['_indirect_leontief_calculate'] = False
 
     if 'ghosh' in config['io_approach']:
-        analysis_df['_indirect_ghosh_calculate'] = True if force_recalculation else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_ghosh_already_exists']
+        analysis_df['_indirect_ghosh_calculate'] = True if config['force_recalculation'] else analysis_df['_yearset_exists'] * ~analysis_df['_indirect_ghosh_already_exists']
     else:
         analysis_df['_indirect_ghosh_calculate'] = False
 
