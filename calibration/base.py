@@ -262,6 +262,7 @@ class NCCSOptimizer(ABC):
             LOGGER.info(f'Model pipeline execution took {str(run_time)}')
 
         # Compute cost function
+        LOGGER.debug(f'Cost function: {self._target_func(results, self.input.data)}')
         return self._target_func(results, self.input.data)
 
 

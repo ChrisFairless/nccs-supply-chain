@@ -13,7 +13,7 @@ LOGGER = logging.getLogger(__name__)
 def rp_rmse(rp_model, rp_obs, grouping_var='country'):
     #Align return periods so that modelled data matches observations
     rp = merge_outputs_and_obs(rp_model, rp_obs, grouping_var)
-    
+
     # DECISION: we use the root mean square error to evaluate model performance (not the log). This means that errors
     # from small events aren't very important and errors from large events dominate the cost function. This is what 
     # we want. (Other options to consider: root_mean_squared_log_error, mean_squared_error)

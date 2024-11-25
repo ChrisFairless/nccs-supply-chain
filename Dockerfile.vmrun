@@ -19,4 +19,3 @@ RUN echo ". ${HOME}/conda/etc/profile.d/conda.sh" >> /etc/skel/.bashrc && \
     echo ". ${HOME}/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
     echo ". ${HOME}/conda/etc/profile.d/mamba.sh" >> /etc/skel/.bashrc && \
     echo ". ${HOME}/conda/etc/profile.d/mamba.sh" >> ~/.bashrc
-

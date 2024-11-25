@@ -7,6 +7,8 @@ from climada.entity import ImpactFunc
 from nccs.utils.folder_naming import get_resources_dir
 from nccs.pipeline.direct.combine_impact_funcs import ImpactFuncComposable
 
+LOGGER = logging.getLogger(__name__)
+
 SECTOR_BI_DRY_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'TC_HAZUS_BI_industry_modifiers_v2.csv')
 SECTOR_BI_WET_PATH = Path(get_resources_dir(), 'impact_functions', 'business_interruption', 'FL_HAZUS_BI_industry_modifiers.csv')
 
