@@ -22,7 +22,7 @@ CONFIG = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
-    "do_sector_bi_scaling": True,       # Calculate sectoral business interruption scaling # TODO @mastai: Check this would be the new argument
+    "use_sector_bi_scaling": True,       # Calculate sectoral business interruption scaling # TODO @mastai: Check this would be the new argument
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility

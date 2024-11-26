@@ -51,9 +51,13 @@ SECTOR_MAPPING = {
 
 
 def get_sector_bi_dry(sector, country_iso3alpha, use_sector_bi_scaling=True):
-    # TODO include the regional bi-scaling here too (not yet implemented as we do not have the scaling yet for dry)
     bi_sector = SECTOR_MAPPING[sector]
     bi = pd.read_csv(SECTOR_BI_DRY_PATH).set_index(['Industry Type']).loc[bi_sector]
+
+    if use_sector_bi_scaling:
+        factor = get_country_sector_scaling(country_iso3alpha)
+    else:
+        factor = 1.0
 
     if np.max(bi.values) > 1:
         logging.warning(
@@ -65,8 +69,8 @@ def get_sector_bi_dry(sector, country_iso3alpha, use_sector_bi_scaling=True):
         haz_type='BI',
         id=1,
         intensity=np.array(bi.index).astype(float),
-        mdd=np.minimum(1, bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
-        paa=np.ones_like(bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))),
+        mdd=np.minimum(1, bi.values * float(factor)),
+        paa=np.ones_like(bi.values * float(factor)),
         intensity_unit="",
         name="Business interruption: " + sector
     )
@@ -74,11 +78,8 @@ def get_sector_bi_dry(sector, country_iso3alpha, use_sector_bi_scaling=True):
 
 def get_sector_bi_wet(sector, country_iso3alpha, use_sector_bi_scaling=True):
     bi_sector = SECTOR_MAPPING[sector]
-
     bi = pd.read_csv(SECTOR_BI_WET_PATH).set_index(['Industry Type']).loc[bi_sector]
 
-    # map the iso code back to a country
-    # todo @mastaia: Include this also into the get_sector_bi_dry function
     if use_sector_bi_scaling:
         factor = get_country_sector_scaling(country_iso3alpha)
     else:
@@ -95,8 +96,6 @@ def get_sector_bi_wet(sector, country_iso3alpha, use_sector_bi_scaling=True):
         haz_type='BI',
         id=1,
         intensity=np.array(bi.index).astype(float),
-        # mdd=np.minimum(1, bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))), #used when calibration run
-        # paa=np.ones_like(bi.values * float(os.environ.get('BI_CALIBRATION_SCALE', 1.0))), #used when calibration run
         mdd=np.minimum(1, bi.values * float(factor)),
         paa=np.ones_like(bi.values * float(factor)),
         intensity_unit="",
@@ -111,8 +110,6 @@ def get_country_sector_scaling(country_iso3alpha):
     factor = country_scale.iloc[0]['normalized_NA'] if not country_scale.empty else None
     return factor
 
-
-# TODO add BI regional modifiers for the dry function similar to wet (add country_iso3alpha here too)
 def convert_impf_to_sectoral_bi_dry(impf, sector, country_iso3alpha, id=1, use_sector_bi_scaling=True):
     impf_bi = get_sector_bi_dry(sector, country_iso3alpha=None, use_sector_bi_scaling=use_sector_bi_scaling)
     return ImpactFuncComposable.from_impact_funcs(

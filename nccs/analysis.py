@@ -291,7 +291,6 @@ def calculate_direct_impacts_from_df(df, config):
                 business_interruption=config['business_interruption'],
                 calibrated=config['calibrated'],
                 use_sector_bi_scaling=config['use_sector_bi_scaling']
-
             )
             write_impact_to_file(imp, calc['direct_impact_path'], config['use_s3'])
         except Exception as e:
