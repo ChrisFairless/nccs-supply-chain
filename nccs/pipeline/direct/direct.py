@@ -285,7 +285,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling=use_sector_bi_scaling)
 
 
 #####
@@ -342,7 +342,7 @@ def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scal
     impf = ImpfStormEurope.from_schwierz()
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
+    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling=use_sector_bi_scaling)
 
 
 # for wildfire, not sure if it is working
