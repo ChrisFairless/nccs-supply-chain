@@ -111,7 +111,7 @@ def get_country_sector_scaling(country_iso3alpha):
     return factor
 
 def convert_impf_to_sectoral_bi_dry(impf, sector, country_iso3alpha, id=1, use_sector_bi_scaling=True):
-    impf_bi = get_sector_bi_dry(sector, country_iso3alpha=None, use_sector_bi_scaling=use_sector_bi_scaling)
+    impf_bi = get_sector_bi_dry(sector, country_iso3alpha, use_sector_bi_scaling)
     return ImpactFuncComposable.from_impact_funcs(
         impf_list=[impf, impf_bi],
         id=id,
