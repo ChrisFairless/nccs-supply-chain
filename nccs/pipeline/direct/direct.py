@@ -289,7 +289,12 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True)
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_wet(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
+    return convert_impf_to_sectoral_bi_wet(
+        impf,
+        sector_bi,
+        country_iso3alpha=country_iso3alpha,
+        use_sector_bi_scaling=use_sector_bi_scaling
+    )
 
 
 def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling=True):
@@ -305,8 +310,12 @@ def get_sector_impf_wf(sector_bi, country_iso3alpha=None, use_sector_bi_scaling=
     impf.haz_type = 'WFseason'  # TODO there is a warning when running the code that the haz_type is set to WFsingle, but if I set it to WFsingle, the code does not work
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha, use_sector_bi_scaling)
-
+    return convert_impf_to_sectoral_bi_dry(
+        impf,
+        sector_bi,
+        country_iso3alpha=country_iso3alpha,
+        use_sector_bi_scaling=use_sector_bi_scaling
+    )
 
 
 def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
