@@ -1,8 +1,7 @@
 import typing
 
 import numpy as np
-from climada.entity import ImpactFunc
-from climada.entity import ImpactFuncSet
+from climada.entity import Exposures, ImpactFunc, ImpactFuncSet
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.relative_cropyield import ImpfRelativeCropyield
 from pycountry import countries
@@ -16,15 +15,17 @@ CropType = typing.Literal[
 IrrigationType = typing.Literal["firr", "noirr"]
 
 
-def get_exposure(crop_type: CropType = "whe", scenario="histsoc", irr: IrrigationType = "firr"):
+def get_exposure(country, crop_type: CropType = "whe", irr: IrrigationType = "firr"):
     client = Client()
-    return client.get_exposures(
+    exp = client.get_exposures(
         "crop_production", properties={
             "irrigation_status": irr,
             "crop": crop_type,
             "unit": "USD"
         }
     )
+    region_id = int(countries.get(name=country).numeric)
+    return Exposures(data=exp.gdf[exp.gdf['region_id'] == region_id])
 
 
 def get_impf_set():
@@ -70,6 +71,7 @@ def get_hazard(country,
     )
     if hasattr(hazard.centroids, 'gdf') and np.all(hazard.centroids.region_id == 1):   # if the region ids exist but are all 1 (happens in newer climada)
         hazard.centroids.gdf.region_id = np.nan
-    hazard.centroids.set_region_id()
+        # TODO this is slow and will be calculated many times for the same hazard. We should save this locally or update the hazard data on the Data API
+        hazard.centroids.set_region_id()
     region_id = int(countries.get(alpha_3=country).numeric)
     return hazard.select(reg_id=region_id)

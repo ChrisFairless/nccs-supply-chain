@@ -136,7 +136,7 @@ def get_sector_exposure(sector, country):
     #     exp.check()
 
     if sector == 'agriculture':
-        exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
+        exp = agriculture.get_exposure(country=country, crop_type="whe", irr="firr")
 
     if sector == 'forestry':
         # exp = load_forestry_exposure() #only used for best guesstimate
