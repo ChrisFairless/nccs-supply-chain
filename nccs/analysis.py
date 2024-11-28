@@ -548,7 +548,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
             dump_direct_to_csv(
                 supchain=supchain,
                 haz_type=row['hazard'],
-                sector=impacted_sector,
+                sector=row['sector'],
                 scenario=row['scenario'],
                 ref_year=row['ref_year'],
                 country=row['country'],
@@ -561,7 +561,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
             dump_supchain_to_csv(
                 supchain=supchain,
                 haz_type=row['hazard'],
-                sector=impacted_sector,
+                sector=row['sector'],
                 scenario=row['scenario'],
                 ref_year=row['ref_year'],
                 country=row['country'],
