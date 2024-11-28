@@ -155,7 +155,7 @@ def get_sector_exposure(sector, country):
                 for crop_type in ["whe", "mai", "soy", "ric"]]
         # Sum up the exposures
         exp = exps[0].copy()
-        columns_to_sum = ["impf_RC",  "impf_",  "value"]
+        columns_to_sum = "value"
         for i in range(1, len(exps)):
             exp.gdf[columns_to_sum] += exps[i].gdf[columns_to_sum]
 
