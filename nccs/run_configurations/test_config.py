@@ -22,6 +22,7 @@ CONFIG = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,       # Calculate sectoral business interruption scaling
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
@@ -35,18 +36,16 @@ CONFIG = {
         {
             "hazard": "tropical_cyclone",
             "sectors": ["manufacturing"],
-            "countries": ['United States', 'Ireland', 'Japan', 'Taiwan, Province of China', 'China', 'Korea, Republic of'],
+            "countries": ['United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp26", "ref_year": "2060"},
-                {"scenario": "rcp85", "ref_year": "2060"},
             ]
         }
     ]
 }
 
 CONFIG2 = {
-    "run_title": "test_run",
+    "run_title": "test_run_MEX_region",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
@@ -59,6 +58,7 @@ CONFIG2 = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,     # Calculate sectoral business interruption scaling
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
@@ -72,7 +72,7 @@ CONFIG2 = {
         {
             "hazard": "river_flood",
             "sectors": ["manufacturing"],
-            "countries": ['China','Germany','Burundi','Italy'],
+            "countries": ['Mexico'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]
@@ -94,6 +94,7 @@ CONFIG3 = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,  # Calculate sectoral business interruption scaling
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
@@ -129,6 +130,7 @@ CONFIG4 = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,  # Calculate sectoral business interruption scaling
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
@@ -165,6 +167,7 @@ CONFIG5 = {
     "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
     "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
     "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,  # Calculate sectoral business interruption scaling
 
     # Impact functions:
     "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
@@ -176,12 +179,12 @@ CONFIG5 = {
 
     "runs": [
         {
-            "hazard": "relative_crop_yield",
-            "sectors": ["agriculture"],
-            "countries": ['Canada','Egypt', 'Portugal','Pakistan','Armenia','Belarus','Peru'],
+            "hazard": "tropical_cyclone",
+            "sectors": ["agriculture", "forestry", "mining", "manufacturing", "service", "energy", "water", "waste"],
+            "countries": ['United States'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
-                {"scenario": "rcp60", "ref_year": "future"},
+                {"scenario": "rcp26", "ref_year": "2060"},
             ]
         }
     ]

@@ -289,7 +289,8 @@ def calculate_direct_impacts_from_df(df, config):
                 scenario=calc['scenario'],
                 ref_year=calc['ref_year'],
                 business_interruption=config['business_interruption'],
-                calibrated=config['calibrated']
+                calibrated=config['calibrated'],
+                use_sector_bi_scaling=config['use_sector_bi_scaling']
             )
             write_impact_to_file(imp, calc['direct_impact_path'], config['use_s3'])
         except Exception as e:
@@ -544,6 +545,6 @@ if __name__ == "__main__":
     # from run_configurations.config import CONFIG
 
     # This is for testing
-    from run_configurations.config_mvp import CONFIG  # change here to test_config if needed
+    from run_configurations.test_config import CONFIG  # change here to test_config if needed
 
     run_pipeline_from_config(CONFIG)
