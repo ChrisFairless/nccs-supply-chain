@@ -94,5 +94,4 @@ def get_hazard(
     hazard.centroids.set_region_id()
     region_id = int(countries.get(alpha_3=country).numeric)
     hazard = hazard.select(reg_id=region_id)
-    # Invert the hazard to match the expected behavior
     return hazard
