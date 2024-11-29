@@ -19,8 +19,8 @@ LOGGER = logging.getLogger()
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 """
-Important Note, when running the script with a new version or modifications, make sure to delete the files on the s3 bucket
-or that they are properly replaced. Goal to only have the relevant files on the s3 bucket and no duplicates
+Important Note, when running the script with a new version or modifications, make sure to delete teh files on the s3 bucket
+or that they are properly replace. Goal to onyl have the relevant files on the s3 bucket and no duplicates
 """
 
 
@@ -30,12 +30,16 @@ def get_manufacturing_exp(data,
                           countries,
                           mriot_type,
                           mriot_year,
-                          repr_sectors
+                          repr_sectors,
+                          country_run
                           ):
     glob_prod, repr_sectors, IO_countries = get_prod_secs(mriot_type, mriot_year, repr_sectors)
 
     cnt_dfs = []
-    for iso3_cnt in countries:
+
+    alpha = 0.01
+    power = 2
+    for iso3_cnt in country_run:
         cnt_df = data.loc[data['region_id'] == iso3_cnt]
 
         # calculate total emissions per country (tons)
@@ -45,9 +49,30 @@ def get_manufacturing_exp(data,
         # Attempt to calculate total area and normalize if it's non-zero
         try:
             if country_sum_emissions != 0:
-                # Normalize 'emissions' values by dividing by total area
-                cnt_df['normalized_emissions'] = cnt_df['emi_nox'] / country_sum_emissions
+                #linerar scaling
+                # # Normalize 'emissions' values by dividing by total area
+                # cnt_df['normalized_emissions'] = cnt_df['emi_nox'] / country_sum_emissions
+                # print(f"Total emissions of {iso3_cnt} NOx is {country_sum_emissions}")
+
+                #exponential scaling
+                # # Apply exponential scaling for each grid cell's emission
+                # # Exponentiate each grid cell emission and normalize by total
+                # cnt_df['weighted_emissions'] = np.exp(alpha * cnt_df['emi_nox'])  # exponential scaling
+                # total_weighted_emissions = cnt_df['weighted_emissions'].sum()
+                # # Normalize exponentiated emissions
+                # cnt_df['normalized_emissions'] = cnt_df['weighted_emissions'] / total_weighted_emissions
+                # print(f"Total emissions of {iso3_cnt} NOx is {country_sum_emissions}")
+
+                #power scaling
+                cnt_df['weighted_emissions'] = np.power(cnt_df['emi_nox'], power)
+                # Sum of power-scaled emissions for normalization
+                total_weighted_emissions = cnt_df['weighted_emissions'].sum()
+
+                # Normalize power-scaled emissions
+                cnt_df['normalized_emissions'] = cnt_df['weighted_emissions'] / total_weighted_emissions
                 print(f"Total emissions of {iso3_cnt} NOx is {country_sum_emissions}")
+
+
             else:
                 cnt_df['normalized_emissions'] = cnt_df['emi_nox']
                 print(f"Total area of {iso3_cnt} is zero. Cannot perform normalization of emissions.")
@@ -149,65 +174,67 @@ data = pd.read_hdf(
     f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3.h5")
 countries = data["region_id"].unique().tolist()
 countries.sort()
+country_run = ["THA"]
 
 # apply function that alters the value using MRIO
 exp = get_manufacturing_exp(data=data,
                             countries=countries,
                             mriot_type=mriot_type,
                             mriot_year=mriot_year,
-                            repr_sectors=repr_sectors
+                            repr_sectors=repr_sectors,
+                            country_run = country_run
                             )
 
 """
 Saving of file, first, locally and secondly also to the s3 Bukcet
 """
 
-# Save a shape file to check it in QGIS
-df_shape = exp.gdf.drop(columns=["emi_nox", "normalized_emissions"])
-filename_shp =f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
-s3_filename_shp =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
-df_shape.to_file(filename_shp,driver="ESRI Shapefile")
-# upload the file to the s3 Bucket
-upload_to_s3_bucket(filename_shp, s3_filename_shp)
-print(f"upload of {s3_filename_shp} to s3 bucket successful")
+# # Save a shape file to check it in QGIS
+# df_shape = exp.gdf.drop(columns=["emi_nox", "normalized_emissions"])
+# filename_shp =f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
+# s3_filename_shp =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.shp"
+# df_shape.to_file(filename_shp,driver="ESRI Shapefile")
+# # upload the file to the s3 Bucket
+# upload_to_s3_bucket(filename_shp, s3_filename_shp)
+# print(f"upload of {s3_filename_shp} to s3 bucket successful")
 
 
-# Save final file to a climada available format h5
+# # Save final file to a climada available format h5
 df = exp.gdf.drop(columns=["geometry", "emi_nox", "normalized_emissions"])
-filename_h5 = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
-s3_filename_h5 =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
-df.to_hdf(filename_h5,key="data", mode="w")  # hih res
-# upload the file to the s3 Bucket
-upload_to_s3_bucket(filename_h5, s3_filename_h5)
-print(f"upload of {s3_filename_h5} to s3 bucket successful")
+# filename_h5 = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
+# s3_filename_h5 =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.h5"
+# df.to_hdf(filename_h5,key="data", mode="w")  # hih res
+# # upload the file to the s3 Bucket
+# upload_to_s3_bucket(filename_h5, s3_filename_h5)
+# print(f"upload of {s3_filename_h5} to s3 bucket successful")
 
 
-# Save individual country files
-for region_id in df['region_id'].unique():
-    subset_df = df[df['region_id'] == region_id]
-    filename_country = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
-    s3_filename_country =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
-    subset_df.to_hdf(filename_country, key="data", mode="w")
-    #upload the individual country files to s3 bucket
-    upload_to_s3_bucket(filename_country, s3_filename_country)
-    print(f"upload of {s3_filename_country} to s3 bucket successful")
-
-
-
-"""Check points, not needed fot the final output, but create some credibility"""
-
-# count number of zeros
-num_rows_with_zero = len(df[df['value'] == 0])
+# # Save individual country files
+# for region_id in df['region_id'].unique():
+#     subset_df = df[df['region_id'] == region_id]
+#     filename_country = f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
+#     s3_filename_country =f"exposures/manufacturing/manufacturing_general_exposure/refinement_1/country_split/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled_{region_id}.h5"
+#     subset_df.to_hdf(filename_country, key="data", mode="w")
+#     #upload the individual country files to s3 bucket
+#     upload_to_s3_bucket(filename_country, s3_filename_country)
+#     print(f"upload of {s3_filename_country} to s3 bucket successful")
 
 #
-# ##total emissions
-# sum_emissions= exp.gdf['emi_nox'].sum()
-# print("Total emissions within grid cells in t/year", sum_emissions)
 #
+# """Check points, not needed fot the final output, but create some credibility"""
 #
-
-# #### Some checkpoints:
-# country sum of value
+# # count number of zeros
+# num_rows_with_zero = len(df[df['value'] == 0])
+#
+# #
+# # ##total emissions
+# # sum_emissions= exp.gdf['emi_nox'].sum()
+# # print("Total emissions within grid cells in t/year", sum_emissions)
+# #
+# #
+#
+# # #### Some checkpoints:
+# # country sum of value
 value_sum_per_country = df.groupby('region_id')['value'].sum().reset_index()
 print(f"value_sum_per_country for Manufacturing", value_sum_per_country)
 # plot a barblot with this
@@ -238,26 +265,26 @@ cbar = plt.colorbar(sc, ax=ax0, label='Value')
 ax0.set_xlabel('Longitude')
 ax0.set_ylabel('Latitude')
 ax0.set_title(f'Manufacturing Exposure with MRIO values scaled by total Manufacturing production in M.USD')
-
-# Plot the bar chart for the number of points per country (switched order)
-ax2 = plt.subplot(gs[0, 1])
-sorted_num_points_per_country.plot(kind='bar', ax=ax2)
-ax2.set_ylabel('Number of Points')
-ax2.set_xlabel('Country Code')
-ax2.set_title('Top 30 Countries by Number of Points')
-
-# Plot the bar chart for the sum of values per country (switched order)
-ax1 = plt.subplot(gs[1, :])
-sorted_value_sum_per_country.plot(x='region_id', y='value', kind='bar', ax=ax1)
-ax1.set_ylabel('Sum of Values')
-ax1.set_xlabel('Country Code')
-ax1.set_title('Top 30 Countries by Sum of Values')
-
-plt.tight_layout()
-plt.savefig(
-    f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.png",
-    bbox_inches='tight')
-plt.show()
+#
+# # Plot the bar chart for the number of points per country (switched order)
+# ax2 = plt.subplot(gs[0, 1])
+# sorted_num_points_per_country.plot(kind='bar', ax=ax2)
+# ax2.set_ylabel('Number of Points')
+# ax2.set_xlabel('Country Code')
+# ax2.set_title('Top 30 Countries by Number of Points')
+#
+# # Plot the bar chart for the sum of values per country (switched order)
+# ax1 = plt.subplot(gs[1, :])
+# sorted_value_sum_per_country.plot(x='region_id', y='value', kind='bar', ax=ax1)
+# ax1.set_ylabel('Sum of Values')
+# ax1.set_xlabel('Country Code')
+# ax1.set_title('Top 30 Countries by Sum of Values')
+#
+# plt.tight_layout()
+# plt.savefig(
+#     f"{project_root}/exposures/manufacturing/manufacturing_general_exposure/refinement_1/intermediate_data_EDGAR/global_noxemissions_{year}_above_100t_0.1deg_ISO3_values_Manfac_scaled.png",
+#     bbox_inches='tight')
+# plt.show()
 
 #
 # #country sum or normalized emission
