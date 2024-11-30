@@ -1,41 +1,37 @@
 # for the wilfire impact function:
 # /climada_petals/blob/main/climada_petals/entity/impact_funcs/wildfire.py
 
-from nccs.utils.folder_naming import get_resources_dir
-from functools import cache
 from pathlib import Path
-import pandas as pd
-import os
-import numpy as np
-import pycountry
 
-from climada.hazard import Hazard
-from climada.engine.impact_calc import ImpactCalc, Impact
+import pandas as pd
+import pycountry
+from climada.engine.impact_calc import ImpactCalc
 from climada.entity import Exposures
-from climada.entity import ImpactFuncSet, ImpfTropCyclone, ImpfSetTropCyclone
+from climada.entity import ImpactFuncSet, ImpfSetTropCyclone, ImpfTropCyclone
 from climada.entity.impact_funcs.storm_europe import ImpfStormEurope
+from climada.hazard import Hazard
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.river_flood import RIVER_FLOOD_REGIONS_CSV, flood_imp_func_set
-from nccs.utils.s3client import download_from_s3_bucket
-from exposures.utils import root_dir
-
 # for the wilfire impact function:
 # https://github.com/CLIMADA-project/climada_petals/blob/main/climada_petals/entity/impact_funcs
 from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
+from exposures.utils import root_dir
 from nccs.pipeline.direct import agriculture, stormeurope
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
+from nccs.utils.folder_naming import get_resources_dir
+from nccs.utils.s3client import download_from_s3_bucket
 
 project_root = root_dir()
 # /wildfire.py
 
 HAZ_TYPE_LOOKUP = {
-    'tropical_cyclone': 'TC',
-    'river_flood': 'RF',
-    'wildfire': 'WF',
-    'storm_europe': 'WS',
-    "relative_crop_yield": "RC",
+    'tropical_cyclone',
+    'river_flood',
+    'wildfire',
+    'storm_europe',
+    "relative_crop_yield",
 }
 
 
@@ -125,8 +121,8 @@ def get_sector_exposure(sector, country):
         # exp.gdf['value'] = exp.gdf['value']  # / 100
 
         # current active version
-        file_short = f'manufacturing/manufacturing_general_exposure/refinement_1/' \
-                     f'country_split/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_general_exposure/refinement_1/country_split'
+                      f'/global_noxemissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'mining':
@@ -140,8 +136,8 @@ def get_sector_exposure(sector, country):
         # exp.gdf['value'] = exp.gdf.value
         # exp.check()
 
-        file_short = f'{sector}/refinement_1/country_split/' \
-                     f'global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled'
+        file_short = (f'{sector}/refinement_1/country_split/'
+                      f'global_miningarea_v2_30arcsecond_converted_ISO3_improved_values_MP_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
         # only used for best guesstimate
@@ -155,8 +151,21 @@ def get_sector_exposure(sector, country):
     #     exp.gdf['value'] = exp.gdf.value
     #     exp.check()
 
-    if sector == 'agriculture':
-        exp = agriculture.get_exposure(crop_type="whe", scenario="histsoc", irr="firr")
+    # In this case a sub sector of agriculture is selected, this is only applied during the direct impacts
+    if sector.startswith('agriculture_'):
+        _, crop_type = agriculture.split_agriculture_sector(sector)
+        exp = agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
+
+    if sector == "agriculture":
+        # For agriculture, we need to combine the exposures for the different crop types. Since we
+        # have already merged the yearsets for the different crop types.
+        exps = [agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
+                for crop_type in ["whe", "mai", "soy", "ric"]]
+        # Sum up the exposures
+        exp = exps[0].copy()
+        columns_to_sum = "value"
+        for i in range(1, len(exps)):
+            exp.gdf[columns_to_sum] += exps[i].gdf[columns_to_sum]
 
     if sector == 'forestry':
         # exp = load_forestry_exposure() #only used for best guesstimate
@@ -178,43 +187,43 @@ def get_sector_exposure(sector, country):
 
     # raw materials
     if sector == 'pharmaceutical':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/'
+                      f'{sector}_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'basic_metals':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_CO_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split'
+                      f'/{sector}_CO_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'chemical':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_process/country_split/' \
-                     f'{sector}_process_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_process/country_split/'
+                      f'{sector}_process_NMVOC_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'food':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_and_paper/country_split/' \
-                     f'{sector}_and_paper_NOX_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}_and_paper/country_split'
+                      f'/{sector}_and_paper_NOX_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'non_metallic_mineral':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_PM10_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/'
+                      f'{sector}_PM10_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'refin_and_transform':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_NOx_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/'
+                      f'{sector}_NOx_emissions_2011_above_0t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'rubber_and_plastic':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/'
+                      f'{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'wood':
-        file_short = f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split/' \
-                     f'{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled'
+        file_short = (f'manufacturing/manufacturing_sub_exposures/refinement_1/{sector}/country_split'
+                      f'/{sector}_NOx_emissions_2011_above_100t_0.1deg_ISO3_values_Manfac_scaled')
         exp = download_exposure_from_s3(country, file_short)
 
     if sector == 'economic_assets':
@@ -233,25 +242,24 @@ def apply_sector_impf_set(
         business_interruption=True,
         calibrated=True,
         use_sector_bi_scaling=True):
-    haz_type = HAZ_TYPE_LOOKUP[hazard]
-
     if not business_interruption or sector in ['agriculture', 'economic_assets']:
         sector_bi = None
     else:
         sector_bi = sector
 
-    if haz_type == 'TC' and sector == 'agriculture':
+    if hazard == 'tropical_cyclone' and sector == 'agriculture':
         return agriculture.get_impf_set_tc()
-    if haz_type == 'TC':
+    if hazard == 'tropical_cyclone':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
-    if haz_type == 'RF':
+    if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
-    if haz_type == 'WF':
-        return ImpactFuncSet([get_sector_impf_wf(sector_bi, country_iso3alpha, use_sector_bi_scaling)])
-    if haz_type == 'WS':
-        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling)])
-    if haz_type == 'RC':
-        return agriculture.get_impf_set()
+    if hazard == 'wildfire':
+        return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
+    if hazard == 'storm_europe':
+        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi, use_sector_bi_scaling)])
+    if hazard.startswith('relative_crop_yield'):
+        _, crop_type = agriculture.split_agriculture_hazard(hazard)
+        return agriculture.get_impf_set(crop_type)
     raise ValueError(f'No impact functions defined for hazard {hazard}')
 
 
@@ -285,7 +293,12 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
     impf.id = 1
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha=country_iso3alpha, use_sector_bi_scaling=use_sector_bi_scaling)
+    return convert_impf_to_sectoral_bi_dry(
+        impf,
+        sector_bi,
+        country_iso3alpha=country_iso3alpha,
+        use_sector_bi_scaling=use_sector_bi_scaling
+    )
 
 
 #####
@@ -342,7 +355,12 @@ def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scal
     impf = ImpfStormEurope.from_schwierz()
     if not sector_bi:
         return impf
-    return convert_impf_to_sectoral_bi_dry(impf, sector_bi, country_iso3alpha=country_iso3alpha, use_sector_bi_scaling=use_sector_bi_scaling)
+    return convert_impf_to_sectoral_bi_dry(
+        impf,
+        sector_bi,
+        country_iso3alpha=country_iso3alpha,
+        use_sector_bi_scaling=use_sector_bi_scaling
+    )
 
 
 # for wildfire, not sure if it is working
@@ -368,8 +386,8 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         if scenario == 'None' and ref_year == 'historical':
             s3_path = f'hazard/tc_wind/historical/tropcyc_{country_iso3alpha}_historical.hdf5'
         else:
-            s3_path = f'hazard/tc_wind/{scenario}_{ref_year}/tropcyc_150arcsec_25synth_' \
-                      f'{country_iso3alpha}_1980_to_2023_{scenario}_{ref_year}.hdf5'
+            s3_path = (f'hazard/tc_wind/{scenario}_{ref_year}/tropcyc_150arcsec_25synth_'
+                       f'{country_iso3alpha}_1980_to_2023_{scenario}_{ref_year}.hdf5')
         return download_hazard_from_s3(s3_path)
 
     elif haz_type == 'river_flood':
@@ -406,21 +424,34 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         )
         return haz
 
-    elif haz_type == "relative_crop_yield":
+    elif haz_type.startswith("relative_crop_yield"):
+        _, crop_type = agriculture.split_agriculture_hazard(haz_type)
         # TODO currently always returns the same hazard
         if scenario == 'None' and ref_year == "historical":
-            return agriculture.get_hazard(
-                country=country_iso3alpha,
-                year_range="1971_2001",
-                scenario="historical"
-            )
+            # For soy, there is another historical period available (due to availability)
+            if crop_type == 'soy':
+                return agriculture.get_hazard(
+                    country=country_iso3alpha,
+                    year_range="1980_2012",
+                    scenario="historical",
+                    crop_type=crop_type
+                )
+            # For the other crop types we use this historical period (due to availability)
+            else:
+                return agriculture.get_hazard(
+                    country=country_iso3alpha,
+                    year_range="1971_2001",
+                    scenario="historical",
+                    crop_type=crop_type
+                )
         else:
             return agriculture.get_hazard(
                 country=country_iso3alpha,
                 year_range="2006_2099",
-                scenario=scenario
-            )
+                scenario=scenario,
+                crop_type=crop_type
+            ).select(date=('2045-01-01', '2074-12-31'))
     else:
         raise ValueError(
-            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP.keys())}'
+            f'Unrecognised haz_type variable: {haz_type}.\nPlease use one of: {list(HAZ_TYPE_LOOKUP)}'
         )
