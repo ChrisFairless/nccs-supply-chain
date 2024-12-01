@@ -1,0 +1,191 @@
+﻿country,continent,raw_bi,normalized_NA
+Afghanistan,Asia,0.18,1.2
+Albania,Europe,0.27,1.8
+Algeria,Africa,0.22,1.466666667
+Andorra,Europe,0.27,1.8
+Angola,Africa,0.22,1.466666667
+Antigua and Barbuda,South America,0.061,0.406666667
+Argentina,South America,0.061,0.406666667
+Armenia,Asia,0.18,1.2
+Australia,Oceania,0.1,0.666666667
+Austria,Europe,0.27,1.8
+Azerbaijan,Asia,0.18,1.2
+Bahamas,South America,0.061,0.406666667
+Bahrain,Asia,0.18,1.2
+Bangladesh,Asia,0.18,1.2
+Barbados,South America,0.061,0.406666667
+Belarus,Europe,0.27,1.8
+Belgium,Europe,0.27,1.8
+Belize,South America,0.061,0.406666667
+Benin,Africa,0.22,1.466666667
+Bhutan,Asia,0.18,1.2
+"Bolivia, Plurinational State of",South America,0.061,0.406666667
+Bosnia and Herzegovina,Europe,0.27,1.8
+Botswana,Africa,0.22,1.466666667
+Brazil,South America,0.061,0.406666667
+Brunei Darussalam,Africa,0.22,1.466666667
+Bulgaria,Europe,0.27,1.8
+Burkina Faso,Africa,0.22,1.466666667
+Burundi,Africa,0.22,1.466666667
+Cabo Verde,Africa,0.22,1.466666667
+Cambodia,South America,0.061,0.406666667
+Cameroon,Africa,0.22,1.466666667
+Canada,North America,0.15,1
+Central African Republic,Africa,0.22,1.466666667
+Chad,Africa,0.22,1.466666667
+Chile,South America,0.061,0.406666667
+China,Asia,0.18,1.2
+Colombia,South America,0.061,0.406666667
+Comoros,South America,0.061,0.406666667
+Congo,Africa,0.22,1.466666667
+"Congo, The Democratic Republic of the",Africa,0.22,1.466666667
+Costa Rica,South America,0.061,0.406666667
+Croatia,Europe,0.27,1.8
+Côte d'Ivoire,Africa,0.22,1.466666667
+Cuba,South America,0.061,0.406666667
+Cyprus,Europe,0.27,1.8
+Czechia,Europe,0.27,1.8
+Denmark,Europe,0.27,1.8
+Djibouti,Africa,0.22,1.466666667
+Dominica,South America,0.061,0.406666667
+Dominican Republic,South America,0.061,0.406666667
+Timor-Leste,Asia,0.18,1.2
+Ecuador,South America,0.061,0.406666667
+Egypt,Africa,0.22,1.466666667
+El Salvador,South America,0.061,0.406666667
+Equatorial Guinea,Africa,0.22,1.466666667
+Eritrea,Africa,0.22,1.466666667
+Estonia,Europe,0.27,1.8
+Eswatini,Africa,0.22,1.466666667
+Ethiopia,Africa,0.22,1.466666667
+Fiji,Oceania,0.1,0.666666667
+Finland,Europe,0.27,1.8
+France,Europe,0.27,1.8
+Gabon,Africa,0.22,1.466666667
+Gambia,Africa,0.22,1.466666667
+Georgia,Asia,0.18,1.2
+Germany,Europe,0.27,1.8
+Ghana,Africa,0.22,1.466666667
+Greece,Europe,0.27,1.8
+Grenada,South America,0.061,0.406666667
+Guatemala,South America,0.061,0.406666667
+Guinea,Africa,0.22,1.466666667
+Guinea-Bissau,Africa,0.22,1.466666667
+Guyana,South America,0.061,0.406666667
+Haiti,South America,0.061,0.406666667
+Honduras,South America,0.061,0.406666667
+Hungary,Europe,0.27,1.8
+Iceland,Europe,0.27,1.8
+India,Asia,0.18,1.2
+Indonesia,Asia,0.18,1.2
+"Iran, Islamic Republic of",Asia,0.18,1.2
+Iraq,Asia,0.18,1.2
+Ireland,Europe,0.27,1.8
+Israel,Asia,0.18,1.2
+Italy,Europe,0.27,1.8
+Jamaica,South America,0.061,0.406666667
+Japan,Asia,0.18,1.2
+Jordan,Asia,0.18,1.2
+Kazakhstan,Asia,0.18,1.2
+Kenya,Africa,0.22,1.466666667
+Kiribati,Oceania,0.1,0.666666667
+"Korea, Democratic People's Republic of",Asia,0.18,1.2
+"Korea, Republic of",Asia,0.18,1.2
+Kuwait,Asia,0.18,1.2
+Kyrgyzstan,Asia,0.18,1.2
+Lao People's Democratic Republic,Asia,0.18,1.2
+Latvia,Europe,0.27,1.8
+Lebanon,Africa,0.22,1.466666667
+Lesotho,Africa,0.22,1.466666667
+Liberia,Africa,0.22,1.466666667
+Libya,Africa,0.22,1.466666667
+Liechtenstein,Europe,0.27,1.8
+Lithuania,Europe,0.27,1.8
+Luxembourg,Europe,0.27,1.8
+Madagascar,Africa,0.22,1.466666667
+Malawi,Africa,0.22,1.466666667
+Malaysia,Asia,0.18,1.2
+Maldives,Asia,0.18,1.2
+Mali,Africa,0.22,1.466666667
+Malta,Europe,0.27,1.8
+Marshall Islands,Oceania,0.1,0.666666667
+Mauritania,Africa,0.22,1.466666667
+Mauritius,Africa,0.22,1.466666667
+Mexico,South America,0.061,0.406666667
+"Micronesia, Federated States of",Oceania,0.1,0.666666667
+"Moldova, Republic of",Europe,0.27,1.8
+Monaco,Europe,0.27,1.8
+Mongolia,Asia,0.18,1.2
+Morocco,Africa,0.22,1.466666667
+Mozambique,Africa,0.22,1.466666667
+Myanmar,Asia,0.18,1.2
+Namibia,Africa,0.22,1.466666667
+Nauru,Oceania,0.1,0.666666667
+Nepal,Asia,0.18,1.2
+Netherlands,Europe,0.27,1.8
+New Zealand,Oceania,0.1,0.666666667
+Nicaragua,South America,0.061,0.406666667
+Niger,Africa,0.22,1.466666667
+Nigeria,Africa,0.22,1.466666667
+North Macedonia,Europe,0.27,1.8
+Norway,Europe,0.27,1.8
+Oman,Asia,0.18,1.2
+Pakistan,Asia,0.18,1.2
+Palau,Oceania,0.1,0.666666667
+Panama,South America,0.061,0.406666667
+Papua New Guinea,Oceania,0.1,0.666666667
+Paraguay,South America,0.061,0.406666667
+Peru,South America,0.061,0.406666667
+Philippines,Asia,0.18,1.2
+Poland,Europe,0.27,1.8
+Portugal,Europe,0.27,1.8
+Qatar,Asia,0.18,1.2
+Romania,Europe,0.27,1.8
+Russian Federation,Asia,0.18,1.2
+Rwanda,Africa,0.22,1.466666667
+Saint Kitts and Nevis,South America,0.061,0.406666667
+Saint Lucia,South America,0.061,0.406666667
+Saint Vincent and the Grenadines,South America,0.061,0.406666667
+Samoa,Oceania,0.1,0.666666667
+San Marino,Europe,0.27,1.8
+Sao Tome and Principe,Africa,0.22,1.466666667
+Saudi Arabia,Asia,0.18,1.2
+Senegal,Africa,0.22,1.466666667
+Seychelles,Africa,0.22,1.466666667
+Sierra Leone,Africa,0.22,1.466666667
+Singapore,Asia,0.18,1.2
+Slovakia,Europe,0.27,1.8
+Slovenia,Europe,0.27,1.8
+Solomon Islands,Oceania,0.1,0.666666667
+Somalia,Africa,0.22,1.466666667
+South Africa,Africa,0.22,1.466666667
+Spain,Europe,0.27,1.8
+Sri Lanka,Asia,0.18,1.2
+Sudan,Africa,0.22,1.466666667
+Suriname,South America,0.061,0.406666667
+Sweden,Europe,0.27,1.8
+Syrian Arab Republic,Asia,0.18,1.2
+"Taiwan, Province of China",Asia,0.18,1.2
+Tajikistan,Asia,0.18,1.2
+"Tanzania, United Republic of",Africa,0.22,1.466666667
+Thailand,Asia,0.18,1.2
+Togo,Africa,0.22,1.466666667
+Tonga,Oceania,0.1,0.666666667
+Trinidad and Tobago,South America,0.061,0.406666667
+Tunisia,Africa,0.22,1.466666667
+Turkey,Asia,0.18,1.2
+Turkmenistan,Asia,0.18,1.2
+Tuvalu,Oceania,0.1,0.666666667
+Uganda,Africa,0.22,1.466666667
+Ukraine,Europe,0.27,1.8
+United Arab Emirates,Asia,0.18,1.2
+United Kingdom,Europe,0.27,1.8
+United States,North America,0.15,1
+Uruguay,South America,0.061,0.406666667
+Uzbekistan,Asia,0.18,1.2
+Vanuatu,Oceania,0.1,0.666666667
+"Venezuela, Bolivarian Republic of",South America,0.061,0.406666667
+Viet Nam,Asia,0.18,1.2
+Yemen,Asia,0.18,1.2
+Zambia,Africa,0.22,1.466666667
+Zimbabwe,Africa,0.22,1.466666667

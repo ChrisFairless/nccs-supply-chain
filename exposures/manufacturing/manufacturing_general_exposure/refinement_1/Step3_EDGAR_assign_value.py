@@ -19,8 +19,8 @@ LOGGER = logging.getLogger()
 worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 """
-Important Note, when running the script with a new version or modifications, make sure to delete teh files on the s3 bucket
-or that they are properly replace. Goal to onyl have the relevant files on the s3 bucket and no duplicates
+Important Note, when running the script with a new version or modifications, make sure to delete the files on the s3 bucket
+or that they are properly replaced. Goal to only have the relevant files on the s3 bucket and no duplicates
 """
 
 
@@ -38,10 +38,10 @@ def get_manufacturing_exp(data,
     for iso3_cnt in countries:
         cnt_df = data.loc[data['region_id'] == iso3_cnt]
 
-        # calculate total emssions per country (tons)
+        # calculate total emissions per country (tons)
         country_sum_emissions = cnt_df['emi_nox'].sum()
 
-        # normalize each area with the total area
+        # normalize grid cell emission by the total country emission
         # Attempt to calculate total area and normalize if it's non-zero
         try:
             if country_sum_emissions != 0:
@@ -53,7 +53,7 @@ def get_manufacturing_exp(data,
                 print(f"Total area of {iso3_cnt} is zero. Cannot perform normalization of emissions.")
         except Exception as e:
             print(f"Emissions of {cnt_df} is not zero")
-            # Handle the error as needed
+
 
         try:
             # For countries that are explicitely in the MRIO  table:

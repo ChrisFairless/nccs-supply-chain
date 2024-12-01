@@ -65,7 +65,7 @@ To run concat_results.py please update the RUN_TITLE
 
 # ### DIRECT
 
-RUN_TITLE = "interim_report_31_05_24"
+RUN_TITLE = "test_run"
 
 
 data_files = glob.glob(f"{get_direct_output_dir(RUN_TITLE)}/direct_impacts_*.csv")
