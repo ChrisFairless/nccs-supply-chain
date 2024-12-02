@@ -282,12 +282,12 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
         raise ValueError(f'Could not find a unique region for ISO3 code {country_iso3alpha}. Results: {region}')
     region = region[0]
 
-    if calibrated:
+    if calibrated == 1:
         calibrated_impf_parameters_file = Path(
             get_resources_dir(),
             'impact_functions',
             'tropical_cyclone',
-            'calibrated_emanuel_v1.csv'
+            'calibrated_emanuel_v2.csv'
         )
         calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file).set_index(['region'])
         impf = ImpfTropCyclone.from_emanuel_usa(
