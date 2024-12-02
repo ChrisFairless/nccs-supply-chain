@@ -1,4 +1,5 @@
 import sys
+import os
 import pandas as pd
 import traceback
 from pathlib import Path
@@ -35,6 +36,7 @@ def validate_from_config(config):
 
     analysis_df = config_to_dataframe(config, direct_output_dir, indirect_output_dir)
     LOGGER.info(f'There are {analysis_df.shape[0]} analysis calculations in this run')
+    os.makedirs(direct_output_dir.parent, exist_ok=True)
 
     # HAZARD
     haz_id_cols = ['hazard', 'country', 'scenario', 'i_scenario', 'ref_year']
