@@ -1,7 +1,7 @@
 venv
 .git
 exposures
-!exposures/util.py
+!exposures/utils.py
 results_row_adjusted
 docs
 climada_petals
