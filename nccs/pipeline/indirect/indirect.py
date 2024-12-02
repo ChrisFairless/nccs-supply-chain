@@ -5,7 +5,7 @@ from climada_petals.engine import SupplyChain
 from exposures.utils import root_dir
 from pathlib import Path
 
-from utils.folder_naming import get_filename_supchain_direct, get_filename_supchain_indirect
+from nccs.utils.folder_naming import get_filename_supchain_direct, get_filename_supchain_indirect
 
 # original
 # SERVICE_SEC = {"service": range(26, 56)}
