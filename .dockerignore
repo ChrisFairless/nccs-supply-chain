@@ -6,6 +6,8 @@ results
 resources
 !resources/observations
 !resources/vuln_2022_nd_gain.csv
+!resources/impact_functions
+!resources/GDP_Worldbank_without_regions.csv
 results_row_adjusted
 docs
 climada_petals
