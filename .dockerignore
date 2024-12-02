@@ -1,10 +1,15 @@
 venv
 .git
-#exosures
-#pipeline
+exposures
+!exposures/util.py
 results_row_adjusted
 docs
 climada_petals
+results
+resources
+!resources/observations
+!resources/vuln_2022_nd_gain.csv
+*.ipynb
 .idea
 .vscode
 .env
