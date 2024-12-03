@@ -24,9 +24,9 @@ logging.getLogger().setLevel(logging.INFO)
 
 dotenv.load_dotenv()
 """
-To run the dashboard.py 
+To run the nccs\dashboard.py 
 first: run the the terminal the following command: python dashboard.py
-next: bokeh serve dashboard.py --show
+next: bokeh serve nccs\dashboard.py --show
 """
 
 
@@ -479,4 +479,4 @@ lt = layout(
 )
 curdoc().add_root(lt)
 curdoc().title = "NCCS - Dashboard"
-print("Done!\nTo show the Dashboard run:\nbokeh serve dashboard.py --show")
+print("Done!\nTo show the Dashboard run:\nbokeh serve nccs\dashboard.py --show")

@@ -45,7 +45,7 @@ CONFIG = {
 }
 
 CONFIG2 = {
-    "run_title": "test_run_MEX_region",
+    "run_title": "test_run_agri_fun",
     "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
     "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
     "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
@@ -71,8 +71,8 @@ CONFIG2 = {
     "runs": [
         {
             "hazard": "river_flood",
-            "sectors": ["manufacturing"],
-            "countries": ['Mexico'],
+            "sectors": ["agriculture"],
+            "countries": ['Nigeria', 'United States', 'Germany', 'China', 'Australia'],
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
             ]
