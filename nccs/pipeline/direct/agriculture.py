@@ -146,10 +146,10 @@ def get_impf_set_rf(country_iso3alpha):
             name = "Flood North America JRC Agriculture",
             intensity_unit="m",
             haz_type="RF",
-            intensity = np.array([0, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
-            mdd = np.array([0.02, 0.27, 0.47, 0.55, 0.60, 0.76, 0.87,
+            intensity = np.array([0, 0.01, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
+            mdd = np.array([0, 0.02, 0.27, 0.47, 0.55, 0.60, 0.76, 0.87,
                             0.95, 1.00]),
-            paa = np.array([1, 1, 1, 1, 1, 1, 1,
+            paa = np.array([1, 1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
         impf_jrc_northamerica.check()
