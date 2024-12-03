@@ -53,19 +53,26 @@ def sample_from_poisson(n_sampled_years, lam, seed=None):
 yearsets.sample_from_poisson = sample_from_poisson
 
 
-def yearset_from_imp(imp, n_sim_years, cap_exposure=1, seed=None):
-    if np.all(imp.frequency == 1):
-        lam = 1 
-    else:
+def yearset_from_imp(imp, n_sim_years, poisson=True, cap_exposure=None, seed=None):
+    if poisson:
         lam = np.sum(imp.frequency)
-    
-    yimp, samp_vec = yearsets.impact_yearset(
-        imp,
-        lam=lam,
-        sampled_years=list(range(1, n_sim_years + 1)),
-        correction_fac=False,
-        seed=seed
-    )
+        LOGGER.info('Correcting TC event frequencies: once these have been update by Samuel this can be removed')
+        lam = lam * 25 / 26
+        yimp, samp_vec = yearsets.impact_yearset(
+            imp,
+            lam=lam,
+            sampled_years=list(range(1, n_sim_years + 1)),
+            correction_fac=False,
+            seed=seed
+        )
+    else:
+        samp_vec = np.array([np.array([x]) for x in np.random.randint(len(imp.at_event), size=n_sim_years)])
+        yimp = yearsets.impact_yearset_from_sampling_vect(
+            imp,
+            sampled_years = list(range(1, n_sim_years + 1)),
+            sampling_vect = samp_vec,
+            correction_fac=False
+        )
 
     # TODO remove this once it's added to yearsets core
     yimp.event_name = [str(y) for y in range(1, n_sim_years + 1)]
@@ -80,7 +87,8 @@ def yearset_from_imp(imp, n_sim_years, cap_exposure=1, seed=None):
     )
 
     # TODO extend CLIMADA's yearsets (or possibly Impact) class with this too!
-    yimp = cap_impact(yimp, cap_exposure)
+    if cap_exposure is not None:
+        yimp = cap_impact(yimp, cap_exposure)
 
     return yimp
 
@@ -160,7 +168,10 @@ def cap_impact(imp, cap_exposure):
         m2 = cap_exposure
 
     imp_mat = sparse.csr_matrix((np.minimum(m1, m2), imp_mat.indices, imp_mat.indptr), shape=shape)
-
     imp_mat.eliminate_zeros()
+
     imp.imp_mat = imp_mat
+    imp.at_event = ImpactCalc.at_event_from_mat(imp_mat)
+    imp.eai_exp = ImpactCalc.eai_exp_from_mat(imp_mat, freq=imp.frequency)
+    imp.aai_agg = ImpactCalc.aai_agg_from_eai_exp(imp.eai_exp)
     return imp

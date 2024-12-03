@@ -474,6 +474,7 @@ def df_create_combined_hazard_yearsets_agriculture(
 def create_single_yearset(
         analysis_spec: pd.DataFrame,
         n_sim_years: int,
+        poisson: bool,
         seed: int,
 ):
     """Take the metadata for an analysis and create an impact yearset if it 
@@ -486,17 +487,24 @@ def create_single_yearset(
         A row of a dataframe created by config_to_dataframe
     n_sim_years : int
         Number of years to create for each output yearset
+    poisson: bool
+        Treat the sampling as a poisson process (the number of events in a year 
+        is a random variable), or not (there is one event per year, sampled from
+        the event set).
     seed : int
         The random number seed to use in each yearset's sampling
     """
-
     row = analysis_spec.copy().to_dict()
     imp = get_impact_from_file(row['direct_impact_path'])
+
+    poisson_hazards = ['tropical_cyclone']
+    poisson = row['haz_type'] in poisson_hazards
 
     # TODO we don't actually want to generate a yearset if we're looking at observed events
     imp_yearset = yearset_from_imp(
         imp,
         n_sim_years,
+        poisson=poisson,
         cap_exposure=get_sector_exposure(row['sector'], row['country']),
         seed=seed
     )
