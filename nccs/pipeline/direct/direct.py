@@ -251,6 +251,8 @@ def apply_sector_impf_set(
         return agriculture.get_impf_set_tc()
     if hazard == 'tropical_cyclone':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
+    if hazard == 'river_flood' and sector == 'agriculture':
+        return agriculture.get_impf_set_rf(country_iso3alpha)
     if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
     if hazard == 'wildfire':
