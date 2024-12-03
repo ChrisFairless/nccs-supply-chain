@@ -154,12 +154,12 @@ def get_sector_exposure(sector, country):
     # In this case a sub sector of agriculture is selected, this is only applied during the direct impacts
     if sector.startswith('agriculture_'):
         _, crop_type = agriculture.split_agriculture_sector(sector)
-        exp = agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
+        exp = agriculture.get_exposure(country=country, crop_type=crop_type, scenario="histsoc", irr="firr")
 
     if sector == "agriculture":
         # For agriculture, we need to combine the exposures for the different crop types. Since we
         # have already merged the yearsets for the different crop types.
-        exps = [agriculture.get_exposure(crop_type=crop_type, scenario="histsoc", irr="firr")
+        exps = [agriculture.get_exposure(country=country, crop_type=crop_type, scenario="histsoc", irr="firr")
                 for crop_type in ["whe", "mai", "soy", "ric"]]
         # Sum up the exposures
         exp = exps[0].copy()
