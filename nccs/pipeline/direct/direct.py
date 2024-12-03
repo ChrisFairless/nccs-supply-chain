@@ -424,6 +424,31 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
         )
         return haz
 
+    elif haz_type == 'sea_level_rise':
+        """
+        Sea level rise has the following file configurations:
+        
+        "future climate" includes changes also to the TC surge
+                
+        - historical climate, no SLR: tc_surge/no_cc/no_slr/
+        - future climate, no SLR:
+            tc_surge/rcp26_2060/no_slr/
+            tc_surge/rcp85_2060/no_slr/
+         
+        -historical climate, future SLR: 
+            tc_surge/no_cc/ssp126_2060slr/
+            tc_surge/no_cc/sspssp585_2060slr/
+        future climate, future SLR:
+            tc_surge/rcp26_2060/ssp126_2060slr/
+            tc_surge/rcp26_2060/ssp585_2060slr/
+        """
+        if scenario == 'None' and ref_year == 'historical':
+            s3_path = f'hazard/tc_surge/no_cc/no_slr/surge_28arcsec_25synth_{country_iso3alpha}_nossp_noslr_no_cc.hdf5'
+        else:
+            s3_path = (f'hazard/tc_surge/{scenario}_{ref_year}/surge_28arcsec_25synth_{country_iso3alpha}'
+                       f'_{scenario}_{ref_year}_no_cc.hdf5')
+        return download_hazard_from_s3(s3_path)
+
     elif haz_type.startswith("relative_crop_yield"):
         _, crop_type = agriculture.split_agriculture_hazard(haz_type)
         # TODO currently always returns the same hazard
