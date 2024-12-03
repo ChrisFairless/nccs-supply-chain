@@ -72,7 +72,7 @@ def get_impf_set_tc():
 
 
 
-def get_impf_set_rf(country_iso3alpha):
+def get_impf_set_rf(country_iso3alpha, haz_type="RF"):
     """
     New Impact function set for river flood and agriculture for specified region in the world
 
@@ -96,81 +96,78 @@ def get_impf_set_rf(country_iso3alpha):
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
 
     if impf_id == 1:
-        impf_jrc_africa = ImpactFunc(
+        impf = ImpactFunc(
             id = 1,
             name = "Flood Africa JRC Agriculture",
             intensity_unit="m",
-            haz_type="RF",
+            haz_type=haz_type,
             intensity = np.array([0, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
             mdd = np.array([0.00, 0.24, 0.47, 0.74, 0.92, 1.00, 1.00,
                             1.00, 1.00]),
             paa = np.array([1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
-        impf_jrc_africa.check()
-        imp_fun_set = ImpactFuncSet([impf_jrc_africa])
+
 
     elif impf_id == 2:
-        impf_jrc_asia = ImpactFunc(
+        impf = ImpactFunc(
             id = 1,
             name = "Flood Asia JRC Agriculture",
             intensity_unit="m",
-            haz_type="RF",
+            haz_type=haz_type,
             intensity = np.array([0, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
             mdd = np.array([0.00, 0.14, 0.37, 0.52, 0.56, 0.66, 0.83,
                             0.99, 1.00]),
             paa = np.array([1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
-        impf_jrc_asia.check()
-        imp_fun_set = ImpactFuncSet([impf_jrc_asia])
+
+
 
     elif impf_id == 3:
-        impf_jrc_europe = ImpactFunc(
+        impf = ImpactFunc(
             id = 1,
             name = "Flood Europe JRC Agriculture",
             intensity_unit="m",
-            haz_type="RF",
+            haz_type=haz_type,
             intensity = np.array([0, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
             mdd = np.array([0.00, 0.30, 0.55, 0.65, 0.75, 0.85, 0.95,
                             1.00, 1.00]),
             paa = np.array([1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
-        impf_jrc_europe.check()
-        imp_fun_set = ImpactFuncSet([impf_jrc_europe])
+
 
     elif impf_id == 4:
-        impf_jrc_northamerica = ImpactFunc(
+        impf = ImpactFunc(
             id = 1,
             name = "Flood North America JRC Agriculture",
             intensity_unit="m",
-            haz_type="RF",
+            haz_type=haz_type,
             intensity = np.array([0, 0.01, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
             mdd = np.array([0, 0.02, 0.27, 0.47, 0.55, 0.60, 0.76, 0.87,
                             0.95, 1.00]),
             paa = np.array([1, 1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
-        impf_jrc_northamerica.check()
-        imp_fun_set = ImpactFuncSet([impf_jrc_northamerica])
+
     else:
-        impf_jrc_global = ImpactFunc(
+        impf = ImpactFunc(
             id=1,
             name = "Flood Global JRC Agriculture",
             intensity_unit="m",
-            haz_type="RF",
+            haz_type=haz_type,
             intensity = np.array([0, 0.5, 1, 1.5, 2, 3, 4, 5, 6]),
             mdd = np.array([0.00, 0.24, 0.47, 0.62, 0.71, 0.82, 0.91,
                             0.99, 1.00]),
             paa = np.array([1, 1, 1, 1, 1, 1, 1,
                             1, 1])
         )
-        impf_jrc_global.check()
-        imp_fun_set = ImpactFuncSet([impf_jrc_global])
 
-    return imp_fun_set
 
+    impf.check()
+
+    return ImpactFuncSet([impf])
 
 
 
