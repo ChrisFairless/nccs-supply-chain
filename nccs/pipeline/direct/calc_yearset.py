@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import logging
 from scipy import sparse
 from functools import reduce
 
@@ -51,6 +52,7 @@ def sample_from_poisson(n_sampled_years, lam, seed=None):
 
 
 yearsets.sample_from_poisson = sample_from_poisson
+LOGGER = logging.getLogger(__name__)
 
 
 def yearset_from_imp(imp, n_sim_years, poisson=True, cap_exposure=None, seed=None):
