@@ -5,8 +5,11 @@ from nccs.utils.folder_naming import get_indirect_output_dir, get_direct_output_
 """
 Generates a difference between the baseline and the future steps of sea level rise
 
-Uses the the raw ouput of the pipeline and calculates the difference of the impact between the 
+Uses the the raw output of the pipeline and calculates the difference of the impact between the 
 baseline and the future scenario
+
+The order is future minus past, so positive values should show and increase of the impact in the future and negative 
+values should indicate less impact in the future
 
 """
 
@@ -16,8 +19,8 @@ import pandas as pd
 RUN_TITLE = "test_sea"
 
 # Paths to the folder containing the CSV files and the output folder
-input_folder = f"{get_indirect_output_dir(RUN_TITLE)}"  # Replace with the directory containing your CSV files
-output_folder = f"{get_indirect_output_dir(RUN_TITLE)}/sea-level-difference"   # Replace with the directory where you want to save outputs
+input_folder = f"{get_indirect_output_dir(RUN_TITLE)}"
+output_folder = f"{get_indirect_output_dir(RUN_TITLE)}/sea-level-difference"
 columns_to_diff = ["imaxPL", "irmaxPL", "iAAPL", "irAAPL", "iPL100", "irPL100"]
 
 
@@ -41,7 +44,7 @@ def parse_filename(filename):
         "scenario": parts[6],
         "year": parts[7],
         "methodology": parts[8],
-        "country": parts[9].split('.')[0],  # Remove file extension
+        "country": parts[9].split('.')[0],
     }
 
 def calculate_differences(file1, file2, columns_to_diff, output_path, historical_file, future_scenario):

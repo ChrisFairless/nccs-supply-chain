@@ -222,7 +222,7 @@ CONFIG6 = {
             "scenario_years": [
                 {"scenario": "None", "ref_year": "historical"},
                 {"scenario": "ssp126", "ref_year": 2060},
-                # {"scenario": "ssp585", "ref_year": 2060},
+                {"scenario": "ssp585", "ref_year": 2060},
             ]
         }
     ]
