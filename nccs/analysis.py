@@ -489,14 +489,17 @@ def create_single_yearset(
     seed : int
         The random number seed to use in each yearset's sampling
     """
-
     row = analysis_spec.copy().to_dict()
     imp = get_impact_from_file(row['direct_impact_path'])
+
+    poisson_hazards = ['tropical_cyclone', 'sea_level_rise']
+    poisson = row['hazard'] in poisson_hazards
 
     # TODO we don't actually want to generate a yearset if we're looking at observed events
     imp_yearset = yearset_from_imp(
         imp,
         n_sim_years,
+        poisson=poisson,
         cap_exposure=get_sector_exposure(row['sector'], row['country']),
         seed=seed
     )
