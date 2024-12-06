@@ -32,6 +32,7 @@ HAZ_TYPE_LOOKUP = {
     'wildfire',
     'storm_europe',
     "relative_crop_yield",
+    "sea_level_rise"
 }
 
 
@@ -58,6 +59,8 @@ def nccs_direct_impacts_simple(
         calibrated,
         use_sector_bi_scaling
     )
+
+
     imp = ImpactCalc(exp, impf_set, haz).impact(save_mat=True)
     imp.event_name = [str(e) for e in imp.event_name]
     # Drop events with no impact to save space
@@ -255,6 +258,11 @@ def apply_sector_impf_set(
         return agriculture.get_impf_set_rf(country_iso3alpha)
     if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
+    #Use for sea level rise the same functions as for river flood
+    if hazard == 'sea_level_rise' and sector == 'agriculture':
+        return agriculture.get_impf_set_rf(country_iso3alpha, haz_type="TCSurgeBathtub")
+    if hazard == 'sea_level_rise':
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling, haz_type="TCSurgeBathtub")])
     if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
     if hazard == 'storm_europe':
@@ -316,7 +324,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
 #     return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
-def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True):
+def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True, haz_type='RF'):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
     impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
@@ -341,7 +349,11 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True)
     impf_SAM = impf_set.get_func(fun_id=6)
     impf_SAM[0].plot()
 
-    impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+
+    impf = impf_set.get_func(haz_type='RF',fun_id=impf_id)
+
+    if haz_type != "RF":
+        impf.haz_type = haz_type
     impf.id = 1
     if not sector_bi:
         return impf
@@ -425,6 +437,31 @@ def get_hazard(haz_type, country_iso3alpha, scenario, ref_year):
             country_iso3alpha=country_iso3alpha
         )
         return haz
+
+    elif haz_type == 'sea_level_rise':
+        """
+        Sea level rise has the following file configurations:
+        
+        "future climate" includes changes also to the TC surge
+                
+        - historical climate, no SLR: tc_surge/no_cc/no_slr/
+        - future climate, no SLR:
+            tc_surge/rcp26_2060/no_slr/
+            tc_surge/rcp85_2060/no_slr/
+         
+        -historical climate, future SLR: 
+            tc_surge/no_cc/ssp126_2060slr/
+            tc_surge/no_cc/ssp585_2060slr/
+        future climate, future SLR:
+            tc_surge/rcp26_2060/ssp126_2060slr/
+            tc_surge/rcp26_2060/ssp585_2060slr/
+        """
+        if scenario == 'None' and ref_year == 'historical':
+            s3_path = f'hazard/tc_surge/no_cc/no_slr/surge_28arcsec_25synth_{country_iso3alpha}_nossp_noslr_no_cc.hdf5'
+        else:
+            s3_path = (f'hazard/tc_surge/no_cc/{scenario}_{ref_year}slr/surge_28arcsec_25synth_{country_iso3alpha}'
+                       f'_{scenario}_{ref_year}slr_no_cc.hdf5')
+        return download_hazard_from_s3(s3_path)
 
     elif haz_type.startswith("relative_crop_yield"):
         _, crop_type = agriculture.split_agriculture_hazard(haz_type)

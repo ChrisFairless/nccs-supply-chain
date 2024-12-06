@@ -189,3 +189,41 @@ CONFIG5 = {
         },
     ]
 }
+
+CONFIG6 = {
+    "run_title": "test_sea",
+    "n_sim_years": 300,                 # Number of stochastic years of supply chain impacts to simulate
+    "io_approach": ["ghosh"],           # Supply chain IO to use. One or more of "leontief", "ghosh"
+    "force_recalculation": False,       # If an intermediate file or output already exists should it be recalculated?
+    "use_s3": False,                    # Also load and save data from an S3 bucket
+    "log_level": "INFO",
+    "seed": 161,
+
+    # Which parts of the model chain to run:
+    "do_direct": True,                  # Calculate direct impacts (that aren't already calculated)
+    "do_yearsets": True,                # Calculate direct impact yearsets (that aren't already calculated)
+    "do_multihazard": False,            # Also combine hazards to create multi-hazard supply chain shocks
+    "do_indirect": True,                # Calculate any indirect supply chain impacts (that aren't already calculated)
+    "use_sector_bi_scaling": True,     # Calculate sectoral business interruption scaling
+
+    # Impact functions:
+    "business_interruption": True,      # Turn off to assume % asset loss = % production loss. Mostly for debugging and reproducibility
+    "calibrated": True,                 # Turn off to use best guesstimate impact functions. Mostly for debugging and reproducibility
+
+    # Parallisation:
+    "do_parallel": False,                # Parallelise some operations
+    "ncpus": ncpus,
+
+    "runs": [
+        {
+            "hazard": "sea_level_rise",
+            "sectors": ["agriculture"],
+            "countries": ['Netherlands'],
+            "scenario_years": [
+                {"scenario": "None", "ref_year": "historical"},
+                {"scenario": "ssp126", "ref_year": 2060},
+                {"scenario": "ssp585", "ref_year": 2060},
+            ]
+        }
+    ]
+}
