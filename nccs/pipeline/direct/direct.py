@@ -258,7 +258,7 @@ def apply_sector_impf_set(
     if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
     if hazard == 'storm_europe':
-        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi, use_sector_bi_scaling)])
+        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi,country_iso3alpha, use_sector_bi_scaling)])
     if hazard.startswith('relative_crop_yield'):
         _, crop_type = agriculture.split_agriculture_hazard(hazard)
         return agriculture.get_impf_set(crop_type)
