@@ -492,7 +492,7 @@ def create_single_yearset(
     row = analysis_spec.copy().to_dict()
     imp = get_impact_from_file(row['direct_impact_path'])
 
-    poisson_hazards = ['tropical_cyclone']
+    poisson_hazards = ['tropical_cyclone', 'sea_level_rise']
     poisson = row['hazard'] in poisson_hazards
 
     # TODO we don't actually want to generate a yearset if we're looking at observed events
