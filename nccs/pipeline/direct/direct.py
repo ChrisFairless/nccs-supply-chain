@@ -254,17 +254,19 @@ def apply_sector_impf_set(
         return agriculture.get_impf_set_tc()
     if hazard == 'tropical_cyclone':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
-    if hazard == 'river_flood' and sector == 'agriculture':
+    if hazard == 'river_flood' and sector.starts_with('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha)
     if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
     #Use for sea level rise the same functions as for river flood
-    if hazard == 'sea_level_rise' and sector == 'agriculture':
+    if hazard == 'sea_level_rise' and sector.starts_with('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha, haz_type="TCSurgeBathtub")
     if hazard == 'sea_level_rise':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling, haz_type="TCSurgeBathtub")])
     if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
+    if hazard == 'storm_europe' and sector.starts_with('agriculture'):
+        return agriculture.get_impf_set_tc()
     if hazard == 'storm_europe':
         return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi,country_iso3alpha, use_sector_bi_scaling)])
     if hazard.startswith('relative_crop_yield'):
@@ -327,30 +329,42 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
 def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True, haz_type='RF'):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
-    impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
-    # Grab just that impact function from the flood set, and set its ID to 1
-    impf_set = flood_imp_func_set()
-    impf_set.plot()
-    impf_AFR = impf_set.get_func(fun_id=1)
-    impf_AFR[0].plot()
 
-    impf_ASIA = impf_set.get_func(fun_id=2)
-    impf_ASIA[0].plot()
+    if not calibrated:
+        impf_id = country_info.loc[country_info['ISO'] == country_iso3alpha, 'impf_RF'].values[0]
+        # Grab just that impact function from the flood set, and set its ID to 1
+        impf_set = flood_imp_func_set()
+        impf = impf_set.get_func(haz_type='RF', fun_id=impf_id)
+    else:
+        if calibrated == 1:
+            calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'calibrated_v1.csv')
+        else:
+            calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'river_flood', 'custom.csv')
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
 
-    impf_EU = impf_set.get_func(fun_id=3)
-    impf_EU[0].plot()
-
-    impf_NA = impf_set.get_func(fun_id=4)
-    impf_NA[0].plot()
-
-    impf_OCE = impf_set.get_func(fun_id=5)
-    impf_OCE[0].plot()
-
-    impf_SAM = impf_set.get_func(fun_id=6)
-    impf_SAM[0].plot()
-
-
-    impf = impf_set.get_func(haz_type='RF',fun_id=impf_id)
+        if set(calibrated_impf_parameters.columns) == {'v_half'}:
+            assert(calibrated_impf_parameters.shape[0] == 1)
+            impf = ImpfFlood.from_exp_sigmoid(
+                v_half=calibrated_impf_parameters.loc[0, 'v_half']
+            )
+        elif set(calibrated_impf_parameters.columns) == {'v_half', 'translate'}:
+            assert(calibrated_impf_parameters.shape[0] == 1)
+            impf = ImpfFlood.from_exp_sigmoid(
+                v_half=calibrated_impf_parameters.loc[0, 'v_half'],
+                translate=calibrated_impf_parameters.loc[0, 'translate']
+                )
+        elif set(calibrated_impf_parameters.columns) == {'quantile', 'v_half', 'translate'}:
+            vuln_country_data= pd.read_csv(Path(get_resources_dir(), "vuln_2022_nd_gain.csv"))
+            n_vuln_quantiles = 5
+            vuln_country_data["vuln_quantile"]=pd.qcut(vuln_country_data['vuln_nd_gain_2022'], n_vuln_quantiles, labels=False)
+            quantile = vuln_country_data[vuln_country_data['country'] == country_iso3alpha]['vuln_quantile']
+            # TODO move this impact function out of calibration andinto the pipeline
+            impf = ImpfFlood.from_exp_sigmoid(
+                v_half=calibrated_impf_parameters.loc[quantile, 'v_half'].item(),
+                translate=calibrated_impf_parameters.loc[quantile, 'translate'].item()
+                )
+        else:
+            raise ValueError(f'Could not process a custom impact function file with these column names: {calibrated_impf_parameters.columns}')
 
     if haz_type != "RF":
         impf.haz_type = haz_type
@@ -363,7 +377,6 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True,
         country_iso3alpha=country_iso3alpha,
         use_sector_bi_scaling=use_sector_bi_scaling
     )
-
 
 def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling=True):
     impf = ImpfStormEurope.from_schwierz()
