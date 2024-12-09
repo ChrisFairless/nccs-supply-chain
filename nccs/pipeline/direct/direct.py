@@ -254,18 +254,18 @@ def apply_sector_impf_set(
         return agriculture.get_impf_set_tc()
     if hazard == 'tropical_cyclone':
         return ImpactFuncSet([get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
-    if hazard == 'river_flood' and sector.starts_with('agriculture'):
+    if hazard == 'river_flood' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha)
     if hazard == 'river_flood':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
     #Use for sea level rise the same functions as for river flood
-    if hazard == 'sea_level_rise' and sector.starts_with('agriculture'):
+    if hazard == 'sea_level_rise' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha, haz_type="TCSurgeBathtub")
     if hazard == 'sea_level_rise':
         return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling, haz_type="TCSurgeBathtub")])
     if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
-    if hazard == 'storm_europe' and sector.starts_with('agriculture'):
+    if hazard == 'storm_europe' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_tc()
     if hazard == 'storm_europe':
         return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi,country_iso3alpha, use_sector_bi_scaling)])
