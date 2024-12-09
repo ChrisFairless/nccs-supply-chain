@@ -18,6 +18,7 @@ from climada_petals.entity.impact_funcs.wildfire import ImpfWildfire
 
 from exposures.utils import root_dir
 from nccs.pipeline.direct import agriculture, stormeurope
+from nccs.pipeline.direct.river_flood import ImpfFlood
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
 from nccs.utils.folder_naming import get_resources_dir
@@ -257,12 +258,12 @@ def apply_sector_impf_set(
     if hazard == 'river_flood' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha)
     if hazard == 'river_flood':
-        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling)])
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
     #Use for sea level rise the same functions as for river flood
     if hazard == 'sea_level_rise' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_rf(country_iso3alpha, haz_type="TCSurgeBathtub")
     if hazard == 'sea_level_rise':
-        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling, haz_type="TCSurgeBathtub")])
+        return ImpactFuncSet([get_sector_impf_rf(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling, haz_type="TCSurgeBathtub")])
     if hazard == 'wildfire':
         return ImpactFuncSet([get_sector_impf_wf(sector_bi, use_sector_bi_scaling)])
     if hazard == 'storm_europe' and sector.startswith('agriculture'):
@@ -326,7 +327,7 @@ def get_sector_impf_tc(country_iso3alpha, sector_bi, calibrated=True, use_sector
 #     return convert_impf_to_sectoral_bi_dry(impf, sector_bi)
 
 
-def get_sector_impf_rf(country_iso3alpha, sector_bi, use_sector_bi_scaling=True, haz_type='RF'):
+def get_sector_impf_rf(country_iso3alpha, sector_bi, calibrated=True, use_sector_bi_scaling=True, haz_type='RF'):
     # Use the flood module's lookup to get the regional impact function for the country
     country_info = pd.read_csv(RIVER_FLOOD_REGIONS_CSV)
 
