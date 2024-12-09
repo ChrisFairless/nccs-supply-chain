@@ -21,6 +21,7 @@ from nccs.pipeline.direct import agriculture, stormeurope
 from nccs.pipeline.direct.river_flood import ImpfFlood
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_dry
 from nccs.pipeline.direct.business_interruption import convert_impf_to_sectoral_bi_wet
+from nccs.pipeline.direct.combine_impact_funcs import scale_impf
 from nccs.utils.folder_naming import get_resources_dir
 from nccs.utils.s3client import download_from_s3_bucket
 
@@ -269,7 +270,7 @@ def apply_sector_impf_set(
     if hazard == 'storm_europe' and sector.startswith('agriculture'):
         return agriculture.get_impf_set_tc()
     if hazard == 'storm_europe':
-        return ImpactFuncSet([get_sector_impf_stormeurope(sector_bi,country_iso3alpha, use_sector_bi_scaling)])
+        return ImpactFuncSet([get_sector_impf_stormeurope(country_iso3alpha, sector_bi, calibrated, use_sector_bi_scaling)])
     if hazard.startswith('relative_crop_yield'):
         _, crop_type = agriculture.split_agriculture_hazard(hazard)
         return agriculture.get_impf_set(crop_type)
@@ -379,8 +380,24 @@ def get_sector_impf_rf(country_iso3alpha, sector_bi, calibrated=True, use_sector
         use_sector_bi_scaling=use_sector_bi_scaling
     )
 
-def get_sector_impf_stormeurope(sector_bi, country_iso3alpha, use_sector_bi_scaling=True):
-    impf = ImpfStormEurope.from_schwierz()
+
+def get_sector_impf_stormeurope(country_iso3alpha, sector_bi, calibrated=True, use_sector_bi_scaling=True):
+    if not calibrated:
+        impf = ImpfStormEurope.from_schwierz()
+    else:
+        if calibrated == 1:
+            calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'storm_europe', 'calibrated_v1.csv')
+        else:
+            calibrated_impf_parameters_file = Path(get_resources_dir(), 'impact_functions', 'storm_europe', 'custom.csv')
+
+        calibrated_impf_parameters = pd.read_csv(calibrated_impf_parameters_file)
+        assert(calibrated_impf_parameters.shape[0] == 1)
+        impf = scale_impf(
+            ImpfStormEurope.from_schwierz(),
+            translate=calibrated_impf_parameters.loc[0, 'translate'],
+            scale=calibrated_impf_parameters.loc[0, 'scale']
+        )
+    
     if not sector_bi:
         return impf
     return convert_impf_to_sectoral_bi_dry(

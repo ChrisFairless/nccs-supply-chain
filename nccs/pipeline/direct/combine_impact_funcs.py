@@ -158,3 +158,20 @@ def is_monotonic(v, only_increasing = False):
     if only_increasing:
         return np.all(dx >= 0)
     return (np.all(dx <= 0) or np.all(dx >= 0))
+
+
+# Apply a linear transformation to an impact function
+def scale_impf(impf, translate = 0, scale = 1):
+    if np.any(scale * impf.mdd > 1):
+        raise ValueError(f'The chosen scaling of {scale} takes MDD above 100%. TODO: code around this')
+    scaled_impf = ImpactFunc(
+        haz_type = impf.haz_type,
+        name = "Scaled " + impf.name,
+        id = 1,
+        intensity_unit = impf.intensity_unit,
+        intensity = impf.intensity + translate,
+        paa = impf.paa,
+        mdd = scale * impf.mdd
+    )
+    scaled_impf.check()
+    return scaled_impf
