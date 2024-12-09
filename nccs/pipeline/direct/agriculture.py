@@ -2,7 +2,7 @@ import typing
 
 import numpy as np
 import pandas as pd
-from climada.entity import ImpactFunc
+from climada.entity import Exposures, ImpactFunc
 from climada.entity import ImpactFuncSet
 from climada.util.api_client import Client
 from climada_petals.entity.impact_funcs.relative_cropyield import ImpfRelativeCropyield
@@ -32,15 +32,18 @@ def split_agriculture_sector(label):
     return sector, crop_type
 
 
-def get_exposure(crop_type: CropType = "whe", scenario="histsoc", irr: IrrigationType = "firr"):
+def get_exposure(country, crop_type: CropType = "whe", scenario="histsoc", irr: IrrigationType = "firr"):
     client = Client()
-    return client.get_exposures(
+
+    exp = client.get_exposures(
         "crop_production", properties={
             "irrigation_status": irr,
             "crop": crop_type,
             "unit": "USD"
         }
     )
+    region_id = int(countries.get(name=country).numeric)
+    return Exposures(data=exp.gdf[exp.gdf['region_id'] == region_id])
 
 
 def get_impf_set(crop_type: typing.Union[CropType, None] = None):
