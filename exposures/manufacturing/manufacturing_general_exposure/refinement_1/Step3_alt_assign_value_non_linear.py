@@ -20,7 +20,7 @@ worldmap = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
 
 """
 Important Note, when running the script with a new version or modifications, make sure to delete teh files on the s3 bucket
-or that they are properly replace. Goal to onyl have the relevant files on the s3 bucket and no duplicates
+or that they are properly replace. Goal to only have the relevant files on the s3 bucket and no duplicates
 """
 
 
@@ -186,7 +186,7 @@ exp = get_manufacturing_exp(data=data,
                             )
 
 """
-Saving of file, first, locally and secondly also to the s3 Bukcet
+Saving of file, first, locally and secondly also to the s3 bucket
 """
 
 # # Save a shape file to check it in QGIS

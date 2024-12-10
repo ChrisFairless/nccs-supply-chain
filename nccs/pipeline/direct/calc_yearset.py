@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import logging
 from scipy import sparse
 from functools import reduce
 
@@ -7,65 +8,29 @@ from climada.entity import Exposures
 from climada.engine import Impact, ImpactCalc
 from climada.util import yearsets
 
-
-# THIS IS A QUICK FIX FOR A MORE COMPLEX PROBLEM
-# CLIMADA's yearsets currently generate years of data through a Poisson process. That is, the number of 'events' in a 
-# year is a random variable. This is great when our events are e.g. tropical cyclones and we're sampling from a 
-# stochastic set. It doesn't work when our events are e.g. wildfire or windstorm years. In this case we always want to 
-# sample exactly one 'event' per year. At some point we can add this functionality to CLIMADA as an additional method
-# within the yearsets code, but for now I'm making a workaround where if the Poisson process is asked to sample events 
-# with a frequency of 1/year it doesn't implement a Poisson process and instead returns exactly one event per year.
-# This isn't a valid fix because it's plausible that a user would eventually ask for a Poisson process with lamda = 1/yr 
-# and wouldn't be able to get that.
-def sample_from_poisson(n_sampled_years, lam, seed=None):
-    """Sample the number of events for n_sampled_years
-
-    Parameters
-    -----------
-        n_sampled_years : int
-            The target number of years the impact yearset shall contain.
-        lam: int
-            the applied Poisson distribution is centered around lambda events per year
-        seed : int, optional
-            seed for numpy.random, will be set if not None
-            default: None
-
-    Returns
-    -------
-        events_per_year : np.ndarray
-            Number of events per sampled year
-    """
-    if seed is not None:
-        np.random.seed(seed)
-    if lam != 1:
-        events_per_year = np.round(
-            np.random.poisson(
-                lam=lam,
-                size=n_sampled_years
-            )
-        ).astype('int')
-    else:
-        events_per_year = np.ones(n_sampled_years).astype('int')
-
-    return events_per_year
+LOGGER = logging.getLogger(__name__)
 
 
-yearsets.sample_from_poisson = sample_from_poisson
-
-
-def yearset_from_imp(imp, n_sim_years, cap_exposure=1, seed=None):
-    if np.all(imp.frequency == 1):
-        lam = 1 
-    else:
+def yearset_from_imp(imp, n_sim_years, poisson=True, cap_exposure=None, seed=None):
+    if poisson:
         lam = np.sum(imp.frequency)
-    
-    yimp, samp_vec = yearsets.impact_yearset(
-        imp,
-        lam=lam,
-        sampled_years=list(range(1, n_sim_years + 1)),
-        correction_fac=False,
-        seed=seed
-    )
+        LOGGER.info('Correcting TC event frequencies: once these have been updated by Samuel this can be removed')
+        lam = lam * 25 / 26
+        yimp, samp_vec = yearsets.impact_yearset(
+            imp,
+            lam=lam,
+            sampled_years=list(range(1, n_sim_years + 1)),
+            correction_fac=False,
+            seed=seed
+        )
+    else:
+        samp_vec = np.array([np.array([x]) for x in np.random.randint(len(imp.at_event), size=n_sim_years)])
+        yimp = yearsets.impact_yearset_from_sampling_vect(
+            imp,
+            sampled_years = list(range(1, n_sim_years + 1)),
+            sampling_vect = samp_vec,
+            correction_fac=False
+        )
 
     # TODO remove this once it's added to yearsets core
     yimp.event_name = [str(y) for y in range(1, n_sim_years + 1)]
@@ -80,7 +45,8 @@ def yearset_from_imp(imp, n_sim_years, cap_exposure=1, seed=None):
     )
 
     # TODO extend CLIMADA's yearsets (or possibly Impact) class with this too!
-    yimp = cap_impact(yimp, cap_exposure)
+    if cap_exposure is not None:
+        yimp = cap_impact(yimp, cap_exposure)
 
     return yimp
 
@@ -160,7 +126,10 @@ def cap_impact(imp, cap_exposure):
         m2 = cap_exposure
 
     imp_mat = sparse.csr_matrix((np.minimum(m1, m2), imp_mat.indices, imp_mat.indptr), shape=shape)
-
     imp_mat.eliminate_zeros()
+
     imp.imp_mat = imp_mat
+    imp.at_event = ImpactCalc.at_event_from_mat(imp_mat)
+    imp.eai_exp = ImpactCalc.eai_exp_from_mat(imp_mat, freq=imp.frequency)
+    imp.aai_agg = ImpactCalc.aai_agg_from_eai_exp(imp.eai_exp)
     return imp

@@ -56,7 +56,7 @@ def get_manufacturing_exp(data,
 
 
         try:
-            # For countries that are explicitely in the MRIO  table:
+            # For countries that are explicitly in the MRIO  table:
             cnt_df['value'] = cnt_df['normalized_emissions'] * (
                 glob_prod.loc[iso3_cnt].loc[repr_sectors].sum().values[0])
         except KeyError:

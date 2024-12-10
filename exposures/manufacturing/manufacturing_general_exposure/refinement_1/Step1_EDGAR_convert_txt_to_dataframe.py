@@ -9,8 +9,7 @@ project_root = root_dir()
 
 
 """
-The hdf5 also needs a package called tables, which is why it is best to also run this code in the
-virtual environment .venv (Python 3.10 (nccs-correntics)
+The hdf5 also needs a package called tables
 
 
 Additionally, had to remove the two top lines within the header of the txt file of the raw data
