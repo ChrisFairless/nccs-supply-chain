@@ -407,6 +407,7 @@ def df_create_combined_hazard_yearsets(
         out['_yearset_exists'] = True
         # out['annual_impacts'] = combined.at_event
     else:
+        out['yearset_path'] = ""
         out['_yearset_exists'] = False
 
     return pd.Series(out)
@@ -466,6 +467,7 @@ def df_create_combined_hazard_yearsets_agriculture(
         out['_yearset_exists'] = True
         # out['annual_impacts'] = combined.at_event
     else:
+        out['yearset_path'] = ""
         out['_yearset_exists'] = False
 
     return pd.Series(out)
