@@ -309,7 +309,8 @@ def update_state():
         logging.error(f"Error downloading data: {e}")
 
     # Load the data
-    for file in glob.glob(f"{nccs.utils.folder_naming.get_output_dir()}/**/indirect/complete.csv"):
+    for file in glob.glob(f"{nccs.utils.folder_naming.get_output_dir()}/**/indirect/complete.csv", recursive=True):
+        logging.info(f"Loading state for run {file}")
         run = file.replace("\\", "/").split("/")[-3]
         state = generate_dataset_state(file, run)
         logging.info(f"Loaded state for run {run} from {file}")

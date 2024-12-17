@@ -37,7 +37,7 @@ spec:
                     key: secret_access_key
             - name: BOKEH_RESOURCES
               value: cdn
-          image: correnticscontainers.azurecr.io/nccs:v1.14.0
+          image: correnticscontainers.azurecr.io/nccs:v2.0.0
           ports:
             - containerPort: 5007
               name: http
