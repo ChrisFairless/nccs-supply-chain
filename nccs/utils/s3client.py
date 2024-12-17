@@ -107,7 +107,7 @@ def download_complete_csvs_to_results():
     for page in paginator.paginate(Bucket=BUCKET_NAME, Prefix="results/"):
         for obj in page.get("Contents", []):
             filename = obj["Key"]
-            logging.info(f"Scanning: {filename}")
+            # logging.info(f"Scanning: {filename}")
             if filename.endswith("indirect/complete.csv"):
                 if os.path.exists(filename):
                     logging.info(f"Skipping {filename} as it already exists.")
