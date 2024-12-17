@@ -59,12 +59,12 @@ def get_impf_set(crop_type: typing.Union[CropType, None] = None):
     return impf_cp
 
 
-def get_impf_set_tc():
+def get_impf_set_tc(haz_type="TC"):
     imp_fun_maize = ImpactFunc(
         id=1,
-        name="TC agriculture damage",
+        name=f"{haz_type} agriculture damage",
         intensity_unit="m/s",
-        haz_type="TC",
+        haz_type=haz_type,
         intensity=np.array([0, 11, 38, 60]),
         mdd=np.array([0, 0, 1, 1]),
         paa=np.array([1, 1, 1, 1])
