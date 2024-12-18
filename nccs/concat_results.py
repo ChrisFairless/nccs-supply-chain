@@ -129,7 +129,7 @@ for io_approach in io_approaches:
     dfs = []
     for filename in data_files:
         df = pd.read_csv(filename)
-        df['country_of_impact_iso_a3'] = filename.split("_")[-1].split(".")[0]
+        df['country_of_impact_iso_a3'] = filename.split('\\')[-1].split('_')[1]
         dfs.append(df)
 
     DS_INDIRECT_BASE = pd.concat(dfs)
