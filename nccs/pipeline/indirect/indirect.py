@@ -3,7 +3,9 @@ import pandas as pd
 import pycountry
 from climada_petals.engine import SupplyChain
 from exposures.utils import root_dir
+from pathlib import Path
 
+from nccs.utils.folder_naming import get_filename_supchain_direct, get_filename_supchain_indirect
 
 # original
 # SERVICE_SEC = {"service": range(26, 56)}
@@ -170,7 +172,7 @@ def dump_direct_to_csv(supchain,
                        country,
                        n_sim=100,
                        return_period=100,
-                       output_dir="results/direct"):
+                       output_file=None):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     direct_impacts = []
 
@@ -224,16 +226,7 @@ def dump_direct_to_csv(supchain,
     df_direct = pd.DataFrame(direct_impacts)
     # newly added to get ISO3 code
 
-    path = f"{output_dir}/" \
-           f"direct_impacts" \
-           f"_{haz_type}" \
-           f"_{sector.replace(' ', '_')[:15]}" \
-           f"_{scenario}" \
-           f"_{ref_year}" \
-           f"_{country_iso3alpha}" \
-           f".csv"
-
-    df_direct.to_csv(path)
+    df_direct.to_csv(output_file)
     # TODO write to s3 as well
     return path
 
@@ -247,7 +240,7 @@ def dump_supchain_to_csv(supchain,
                          io_approach,
                          n_sim=100,
                          return_period=100,
-                         output_dir="results/indirect"):
+                         output_file=None):
     index_rp = np.floor(n_sim / return_period).astype(int) - 1
     indirect_impacts = []
 
@@ -292,16 +285,6 @@ def dump_supchain_to_csv(supchain,
 
     df_indirect = pd.DataFrame(indirect_impacts)
 
-    # newly added to get ISO3 code
-    path = f"{output_dir}/" \
-           f"indirect_impacts" \
-           f"_{haz_type}" \
-           f"_{sector.replace(' ', '_')[:15]}" \
-           f"_{scenario}" \
-           f"_{ref_year}" \
-           f"_{io_approach}" \
-           f"_{country_iso3alpha}" \
-           f".csv"
-    df_indirect.to_csv(path)
+    df_indirect.to_csv(output_file)
     # TODO write to s3 as well
     return path

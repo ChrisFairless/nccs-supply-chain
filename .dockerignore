@@ -1,8 +1,6 @@
 venv
 .venv
 .git
-#exosures
-#pipeline
 results
 resources
 !resources/observations
@@ -12,6 +10,8 @@ resources
 results_row_adjusted
 docs
 climada_petals
+exposures
+!exposures/utils.py
 *.ipynb
 .idea
 .vscode
