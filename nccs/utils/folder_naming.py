@@ -73,7 +73,7 @@ def get_filename_supchain_direct(d: dict):
         hazard=d['hazard'],
         sector=d['sector'],
         scenario=d['scenario'],
-        ref_year=['ref_year'],
+        ref_year=d['ref_year'],
         country=d['country']
     )
 

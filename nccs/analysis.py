@@ -172,27 +172,26 @@ def run_pipeline_from_config(
     analysis_df['_yearset_exists'] = [exists_impact_file(p, config['use_s3']) for p in analysis_df['yearset_path']]
     analysis_df.to_csv(analysis_df_path)
 
-    # Next: combine yearsets by hazard to create multihazard yearsets
-
     # Combine the yearsets for each agriculture crop type to one agriculture yearset
     analysis_df_crop = analysis_df[analysis_df['hazard'].str.contains('relative_crop_yield')]
     analysis_df_no_crop = analysis_df[~analysis_df['hazard'].str.contains('relative_crop_yield')]
     if analysis_df_crop.shape[0] > 0:
-        LOGGER.info("\n\nCOMBINING CRP CROP YIELD YEARSETS")
+        LOGGER.info("\n\nCOMBINING CROP YIELD YEARSETS")
         grouping_cols = ['i_scenario', 'country']
-        df_aggregated_yearsets = analysis_df_crop \
-            .groupby(grouping_cols)[grouping_cols + ['scenario', 'ref_year', 'yearset_path']] \
-            .apply(df_create_combined_hazard_yearsets_agriculture) \
-            .reset_index()
-        analysis_df = pd.concat([analysis_df_no_crop, df_aggregated_yearsets]).reset_index()
+        df_aggregated_yearsets = df_extend_with_multihazard(analysis_df_crop, df_create_combined_hazard_yearsets_agriculture, config, grouping_cols, False, direct_output_dir, indirect_output_dir, True)
+
+        analysis_df = pd.concat([analysis_df_no_crop, df_aggregated_yearsets]).reset_index(drop=True)
 
     _ = _check_config_valid_for_indirect_aggregations(config)
+
+    # Combine yearsets by hazard to create multihazard yearsets
     grouping_cols = ['i_scenario', 'sector', 'country']
     if config['do_multihazard']:
         LOGGER.info("\n\nCOMBINING HAZARDS TO MULTIHAZARD YEARSETS")
-        analysis_df = df_extend_with_multihazard(analysis_df)
+        analysis_df = df_extend_with_multihazard(analysis_df, df_create_combined_hazard_yearsets, config, grouping_cols, True, direct_output_dir, indirect_output_dir, True)
     else:
         LOGGER.info("Skipping multihazard impact calculations. Set do_multihazard: True in your config to change this")
+
 
     ### ----------------------------------- ###
     ### CALCULATE INDIRECT ECONOMIC IMPACTS ###
@@ -223,19 +222,38 @@ def run_pipeline_from_config(
     n_supchain_calculations_ghosh = np.sum(analysis_df['_indirect_ghosh_calculate'])
 
     LOGGER.info(f'There are {n_supchain_calculations_leontief} out of {analysis_df.shape[0]} leontief supply chains to calculate')
-    LOGGER.info(f'There are {n_supchain_calculations_ghosh} out of {analysis_df.shape[0]} leontief supply chains to calculate')
+    LOGGER.info(f'There are {n_supchain_calculations_ghosh} out of {analysis_df.shape[0]} ghosh supply chains to calculate')
 
     # Run the Supply Chain for each country and sector and output the data needed to csv
     if config['do_indirect']:
         for io_a in config['io_approach']:
-            # For now we're not parallelising this: looks like there's not much time gained. But should time it 
-            # properly.
-            calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir=direct_output_dir_supchain_direct, indirect_output_dir=indirect_output_dir)
+            if config['do_parallel']:
+                # TODO better chunking: I bet most runs will have some chunks that don't actually perform any calculations...
+                chunk_size = int(np.ceil(analysis_df.shape[0] / config['ncpus']))
+                df_chunked = [analysis_df[i:i + chunk_size] for i in range(0, analysis_df.shape[0], chunk_size)]
+                calc_partial = partial(calculate_indirect_impacts_from_df,
+                    io_a=io_a,
+                    config=config,
+                    direct_output_dir=direct_output_dir_supchain_direct,
+                    indirect_output_dir=indirect_output_dir
+                    )
+                with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
+                    pool.map(calc_partial, df_chunked)
+            else:
+                calculate_indirect_impacts_from_df(analysis_df, io_a, config, direct_output_dir=direct_output_dir_supchain_direct, indirect_output_dir=indirect_output_dir)
     else:
         LOGGER.info("Skipping supply chain calculations. Set do_indirect: True in your config to change this")
 
     analysis_df['indirect_leontief_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_leontief_path']]
     analysis_df['indirect_ghosh_exists'] = [os.path.exists(f) for f in analysis_df['supchain_indirect_ghosh_path']]
+
+
+    # AGGREGATE ACROSS DIFFERENT DIMENSIONS
+    # aggregation_axes = ['hazard', 'sector', 'country']
+    
+    # for axes in chain.from_iterable(combinations(aggregation_axes, n) for n in range(1, len(aggregation_axes)+1)):
+    #     LOGGER.info(f'Aggregating supply chain output on {axes}')
+    #     analysis_df = aggregate_supply_chain_impacts(analysis_df, axes)
 
     analysis_df.to_csv(analysis_df_path)
 
@@ -357,16 +375,35 @@ def calculate_yearsets_from_df(df, config):
             LOGGER.error(f"Error calculating an indirect yearset for {logging_dict}", exc_info=True)
 
 
-def df_extend_with_multihazard(df):
-    df_aggregated_yearsets = df \
-                .groupby(grouping_cols)[grouping_cols + ['hazard', 'scenario', 'ref_year', 'yearset_path']] \
-                .apply(df_create_combined_hazard_yearsets) \
-                .reset_index()
-    return pd.concat([df, df_aggregated_yearsets]).reset_index()
+def df_extend_with_multihazard(df, combining_function, config, grouping_cols, extend, direct_output_dir, indirect_output_dir, calculate_yearsets=True):
+    def calc_partial(df):
+        partial_combine_yearsets = partial(combining_function, direct_output_dir=direct_output_dir, indirect_output_dir=indirect_output_dir, calculate_yearsets=True)
+        cols_to_keep = list({'hazard', 'sector', 'scenario', 'ref_year', 'yearset_path'}.union(set(grouping_cols)))
+        return df.groupby(grouping_cols)[cols_to_keep] \
+                 .apply(partial_combine_yearsets) \
+                 .reset_index()
+
+    # TODO this doesn't work in parallel yet - we get duplicated results. Turning off for this calculation.
+    if config['do_parallel'] and False:
+        chunk_size = int(np.ceil(df.shape[0] / config['ncpus']))
+        df_chunked = [df[i:i + chunk_size] for i in range(0, df.shape[0], chunk_size)]
+        with pa.multiprocessing.ProcessPool(config['ncpus']) as pool:
+            df_aggregated_yearsets_list = pool.map(calc_partial, df_chunked)
+        if extend:
+            return pd.concat([df] + df_aggregated_yearsets_list).reset_index(drop=True)
+        return pd.concat(df_aggregated_yearsets_list).reset_index(drop=True)
+    else:
+        df_aggregated_yearsets = calc_partial(df)
+        if extend:
+            return pd.concat([df, df_aggregated_yearsets]).reset_index(drop=True)
+        return df_aggregated_yearsets
 
 
 def df_create_combined_hazard_yearsets(
-        df: pd.DataFrame
+        df,
+        direct_output_dir,
+        indirect_output_dir,
+        calculate_yearsets=True
 ):
     """For each grouping of scenario, country and sector, combine hazard yearsets 
 
@@ -391,10 +428,6 @@ def df_create_combined_hazard_yearsets(
     yearset_output_dir = os.path.dirname(r['yearset_path'])
     LOGGER.info(r)
     r['haz_type'] = 'COMBINED'
-    combined_filename = folder_naming.get_filename_direct(r)
-    combined_path = Path(yearset_output_dir, combined_filename)
-
-    impact_list = [get_impact_from_file(f) for f in df['yearset_path'] if os.path.exists(f)]
 
     out = {
         'hazard': 'COMBINED',
@@ -402,26 +435,48 @@ def df_create_combined_hazard_yearsets(
         'ref_year': r['ref_year'],
     }
 
-    if len(impact_list) > 0:
-        combined = combine_yearsets(
-            impact_list=impact_list,
-            cap_exposure=get_sector_exposure(r['sector'], r['country'])
-        )
-        # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
+    combined_filename = folder_naming.get_filename_direct(r | out)
+    combined_path = Path(yearset_output_dir, combined_filename)
+    supchain_direct_filename = folder_naming.get_filename_supchain_direct(r | out)
+    supchain_direct_path = Path(direct_output_dir, "supchain_direct", supchain_direct_filename)
+    supchain_indirect_leontief_filename = folder_naming.get_filename_supchain_indirect(r | out, io_approach='leontief')
+    supchain_indirect_leontief_path = Path(indirect_output_dir, supchain_indirect_leontief_filename)
+    supchain_indirect_ghosh_filename = folder_naming.get_filename_supchain_indirect(r | out, io_approach='ghosh')
+    supchain_indirect_ghosh_path = Path(indirect_output_dir, supchain_indirect_ghosh_filename)
 
-        combined.write_hdf5(combined_path)
-        out['yearset_path'] = combined_path
-        out['_yearset_exists'] = True
-        # out['annual_impacts'] = combined.at_event
-    else:
-        out['yearset_path'] = ""
-        out['_yearset_exists'] = False
+    impact_list = [get_impact_from_file(f) for f in df['yearset_path'] if os.path.exists(f)]
+
+    out = out | {
+        'yearset_path': combined_path,
+        'supchain_direct_path': supchain_direct_path,
+        'supchain_indirect_leontief_path': supchain_indirect_leontief_path,
+        'supchain_indirect_ghosh_path': supchain_indirect_ghosh_path
+    }
+
+    out['_yearset_exists'] = False
+    if len(impact_list) > 0:
+        if os.path.exists(combined_path):    # TODO include overwrite command here if necessary
+            out['_yearset_exists'] = True
+        elif calculate_yearsets:
+            try:
+                combined = combine_yearsets(
+                    impact_list=impact_list,
+                    cap_exposure=get_sector_exposure(r['sector'], r['country'])
+                )
+                # TODO drop the impact matrix to save RAM/HD space once SupplyChain is updated and doesn't need it
+                combined.write_hdf5(combined_path)
+                out['_yearset_exists'] = True
+            except Exception as e:
+                LOGGER.error(f"Error calculating combining yearsets for {out}", exc_info=True)
 
     return pd.Series(out)
 
 
 def df_create_combined_hazard_yearsets_agriculture(
-        df: pd.DataFrame
+        df: pd.DataFrame,
+        direct_output_dir,
+        indirect_output_dir,
+        calculate_yearsets=True
 ):
     """For each grouping of scenario, country and sector, combine hazard yearsets
 
@@ -445,37 +500,47 @@ def df_create_combined_hazard_yearsets_agriculture(
     r = df.iloc[0].to_dict()
     yearset_output_dir = os.path.dirname(r['yearset_path'])
     LOGGER.info(r)
-    combined_filename = folder_naming.get_direct_namestring(
-        prefix='yearset',
-        extension='hdf5',
-        haz_type='relative_crop_yield',
-        sector="agriculture",
-        scenario=r['scenario'],
-        ref_year=r['ref_year'],
-        country_iso3alpha=r['country']
-    )
+    r['hazard'] = 'relative_crop_yield'
+    r['sector'] = 'agriculture'
+
+    out = {
+        'hazard': r['hazard'],
+        'scenario': r['scenario'],
+        'ref_year': r['ref_year'],
+        'sector': r['sector'],
+    }
+
+    combined_filename = folder_naming.get_filename_direct(r | out)
     combined_path = Path(yearset_output_dir, combined_filename)
+    supchain_direct_filename = folder_naming.get_filename_supchain_direct(r | out)
+    supchain_direct_path = Path(direct_output_dir, "supchain_direct", supchain_direct_filename)
+    supchain_indirect_leontief_filename = folder_naming.get_filename_supchain_indirect(r | out, io_approach='leontief')
+    supchain_indirect_leontief_path = Path(indirect_output_dir, supchain_indirect_leontief_filename)
+    supchain_indirect_ghosh_filename = folder_naming.get_filename_supchain_indirect(r | out, io_approach='ghosh')
+    supchain_indirect_ghosh_path = Path(indirect_output_dir, supchain_indirect_ghosh_filename)
 
     impact_list = [get_impact_from_file(f) for f in df['yearset_path'] if os.path.exists(f)]
 
-    out = {
-        'hazard': 'relative_crop_yield',
-        'scenario': r['scenario'],
-        'ref_year': r['ref_year'],
-        'sector': 'agriculture'
+    out = out | {
+        'yearset_path': combined_path,
+        'supchain_direct_path': supchain_direct_path,
+        'supchain_indirect_leontief_path': supchain_indirect_leontief_path,
+        'supchain_indirect_ghosh_path': supchain_indirect_ghosh_path
     }
 
+    out['_yearset_exists'] = False
     if len(impact_list) > 0:
-        combined = combine_yearsets(
-            impact_list=impact_list
-        )
-        combined.write_hdf5(combined_path)
-        out['yearset_path'] = combined_path
-        out['_yearset_exists'] = True
-        # out['annual_impacts'] = combined.at_event
-    else:
-        out['yearset_path'] = ""
-        out['_yearset_exists'] = False
+        if os.path.exists(combined_path):
+            out['_yearset_exists'] = True
+        elif calculate_yearsets:
+            try:
+                combined = combine_yearsets(
+                    impact_list=impact_list
+                )
+                combined.write_hdf5(combined_path)
+                out['_yearset_exists'] = True
+            except Exception as e:
+                LOGGER.error(f"Error combining agricultural yearset for {out}", exc_info=True)
 
     return pd.Series(out)
 
@@ -581,7 +646,7 @@ def calculate_indirect_impacts_from_df(df, io_a, config, direct_output_dir, indi
 
         except Exception as e:
             LOGGER.error(f"Error calculating indirect impacts for {logging_dict}:", exc_info=True)
-
+    
 
 def exists_impact_file(filepath: str, use_s3: bool = False):
     """Check if an impact object exists at a filepath, checking the corresponding 

@@ -228,7 +228,7 @@ def dump_direct_to_csv(supchain,
 
     df_direct.to_csv(output_file)
     # TODO write to s3 as well
-    return path
+    return
 
 
 def dump_supchain_to_csv(supchain,
@@ -287,4 +287,4 @@ def dump_supchain_to_csv(supchain,
 
     df_indirect.to_csv(output_file)
     # TODO write to s3 as well
-    return path
+    return
